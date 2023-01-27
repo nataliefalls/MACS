@@ -4,7 +4,7 @@
  * SPDX-License-Identifier: MIT
  */
 
-#include "i2c_worker.h"
+#include "i2c_device.h"
 #include <hardware/irq.h>
 
 typedef struct i2c_slave_t

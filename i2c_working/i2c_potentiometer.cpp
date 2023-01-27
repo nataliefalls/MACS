@@ -12,6 +12,8 @@
 #include <hardware/adc.h>
 #include <tusb.h>
 
+#include <pio_usb.h>
+
 static const uint I2C_SLAVE_ADDRESS = 0x17;
 static const uint I2C_BAUDRATE = 100000; // 100 kHz
 
