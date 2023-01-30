@@ -8,8 +8,6 @@
 static const uint I2C_WORKER_ADDRESS = 0x17;
 static const uint I2C_BAUDRATE = 100000; // 100 kHz
 
-// For this example, we run both the master and slave from the same board.
-// You'll need to wire pin GP4 to GP6 (SDA), and pin GP5 to GP7 (SCL).
 static const uint I2C_WORKER_SDA_PIN = PICO_DEFAULT_I2C_SDA_PIN; // 4
 static const uint I2C_WORKER_SCL_PIN = PICO_DEFAULT_I2C_SCL_PIN; // 5
 
@@ -35,7 +33,7 @@ static void setup_worker() {
     gpio_pull_up(I2C_WORKER_SCL_PIN);
 
     i2c_init(i2c0, I2C_BAUDRATE);
-    // configure I2C0 for slave mode
+    // configure I2C0 for worker mode
     i2c_worker_init(i2c0, I2C_WORKER_ADDRESS, &i2c_worker_handler);
 }
 

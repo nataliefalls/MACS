@@ -16,14 +16,13 @@ set(PICO_SDK_PATH "/usr/share/pico_sdk")
 
 set(PICO_BOARD pico CACHE STRING "Board type")
 
-set(PICO_PIO_USB_DIR "${CMAKE_CURRENT_LIST_DIR}/external/pico_pio_usb/")
+set(PICO_PIO_USB_DIR "${CMAKE_CURRENT_LIST_DIR}/lib/Pico-PIO-USB/")
 
 if (PICO_SDK_VERSION_STRING VERSION_LESS "1.4.0")
   message(FATAL_ERROR "Raspberry Pi Pico SDK version 1.4.0 (or later) required. Your version is ${PICO_SDK_VERSION_STRING}")
 endif()
 
-# Add executable. Default name is the project name, version 0.1
+#include_directories(include)
 
-add_subdirectory(queen)
-add_subdirectory(worker)
-include_directories(./)
+add_subdirectory(lib)
+add_subdirectory(src)

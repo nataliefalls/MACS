@@ -1,8 +1,7 @@
 add_executable(i2c_worker)
 
 target_sources(i2c_worker PRIVATE
-        i2cworker.cpp
-        ../i2c_device.cpp)
+        i2cworker.cpp)
 
 pico_set_program_name(i2c_worker "i2c_worker")
 pico_set_program_version(i2c_worker "0.1")
@@ -13,6 +12,7 @@ pico_enable_stdio_usb(i2c_worker 1)
 # Add the standard library to the build
 target_link_libraries(i2c_worker
         pico_stdlib
+        i2c_device
         hardware_i2c
         hardware_adc
 )
