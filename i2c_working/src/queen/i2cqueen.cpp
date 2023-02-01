@@ -5,6 +5,8 @@
 #include <tusb.h>
 #include <hardware/pwm.h>
 
+#include <usb_descriptors.h>
+
 static const uint I2C_WORKER_ADDRESS = 0x17;
 static const uint I2C_BAUDRATE = 100000; // 100 kHz
 
