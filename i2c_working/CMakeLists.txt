@@ -12,7 +12,7 @@ set(CMAKE_CXX_STANDARD 17)
 
 # Initialise pico_sdk from installed location
 # (note this can come from environment, CMake cache etc)
-set(PICO_SDK_PATH "/usr/share/pico_sdk")
+set(PICO_SDK_PATH $ENV{PICO_SDK_PATH})
 
 set(PICO_BOARD pico CACHE STRING "Board type")
 
