@@ -27,6 +27,8 @@ float measure_duty_cycle(uint gpio) {
     pwm_set_enabled(slice_num, false);
     float counting_rate = clock_get_hz(clk_sys) / 100;
     float max_possible_count = counting_rate * 0.01;
+    printf("pwm_get_count number: %d, max_possible_count: %f\n",
+	   pwm_get_counter(slice_num), max_possible_count);
     return pwm_get_counter(slice_num) / max_possible_count;
 }
 
