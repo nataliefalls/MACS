@@ -1,3 +1,0 @@
-[submodule "usb_comms_alt/lib/tinyusb"]
-	path = usb_comms_alt/lib/tinyusb
-	url = https://github.com/hathach/tinyusb.git
