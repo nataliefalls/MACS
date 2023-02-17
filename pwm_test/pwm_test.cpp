@@ -7,7 +7,7 @@
 
 #include "PwmIn.h"
 
-#define NUM_OF_PINS 2
+#define NUM_OF_PINS 6
 
 int main()
 {
@@ -15,9 +15,7 @@ int main()
     stdio_init_all();
     printf("PwmIn on 4 pins\n");
 
-    // set PwmIn
-    uint pin_list[NUM_OF_PINS] = {14, 15};
-    PwmIn my_PwmIn(pin_list, NUM_OF_PINS);
+
 
 
     printf("waiting for usb host");
@@ -27,6 +25,10 @@ int main()
     }
     printf("connected to usb\n\n");
 
+    // set PwmIn
+    uint pin_list[NUM_OF_PINS] = {0, 1, 2, 3, 14, 15};
+    PwmIn my_PwmIn(pin_list, NUM_OF_PINS);
+    
     const uint pwm_pin = 12;
     const uint pwm_pin_2 = 10;
     pwm_config cfg = pwm_get_default_config();
@@ -53,21 +55,16 @@ int main()
         // adviced empty (for now) function of sdk
         tight_loop_contents();
 
-        // translate pwm of input to output
-	if (my_PwmIn.isConnected(0)) {
-	  uint16_t PW_0 = my_PwmIn.read_PW(0);
-	  printf("PW_0=%d ", PW_0);
+	for (int ii = 0; ii < NUM_OF_PINS; ii++) {
+	  if (my_PwmIn.isConnected(ii)) {
+	    uint16_t PW = my_PwmIn.read_PW(ii);
+	    printf("PW_%d=%d ", ii , PW);
+	  }
+	  else
+	    printf("PW_%d=NA ", ii);
 	}
-	else
-	  printf("PW_0=disconnected ");
 
-	if (my_PwmIn.isConnected(1)) {
-	  uint16_t PW_1 = my_PwmIn.read_PW(1);
-	  printf("PW_1=%d                                \r", PW_1);
-	}
-	else
-	  printf("PW_1=disconnected                         \r");
-	
+	printf("                  \r");
         sleep_ms(100);
     }
 }
