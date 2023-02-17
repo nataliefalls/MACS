@@ -24,8 +24,11 @@ project(pwm_test C CXX ASM)
 pico_sdk_init()
 
 # Add executable. Default name is the project name, version 0.1
+add_executable(pwm_test)
 
-add_executable(pwm_test pwm_test.cpp )
+pico_generate_pio_header(pwm_test ${CMAKE_CURRENT_LIST_DIR}/PwmIn.pio)
+
+target_sources(pwm_test PRIVATE pwm_test.cpp PwmIn.cpp)
 
 pico_set_program_name(pwm_test "pwm_test")
 pico_set_program_version(pwm_test "0.1")
@@ -36,7 +39,10 @@ pico_enable_stdio_usb(pwm_test 1)
 # Add the standard library to the build
 target_link_libraries(pwm_test
         pico_stdlib
-        hardware_pwm)
+        hardware_pio
+        hardware_pwm
+        hardware_gpio
+        )
 
 # Add the standard include files to the build
 target_include_directories(pwm_test PRIVATE
