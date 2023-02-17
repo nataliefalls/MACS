@@ -12,11 +12,9 @@ set(CMAKE_CXX_STANDARD 17)
 
 # Initialise pico_sdk from installed location
 # (note this can come from environment, CMake cache etc)
-set(PICO_SDK_PATH ${PICO_SDK_PATH})
+set(PICO_SDK_PATH $ENV{PICO_SDK_PATH})
 
 set(PICO_BOARD pico CACHE STRING "Board type")
-
-set(TINYUSB_DIR "${CMAKE_CURRENT_LIST_DIR}/lib/tinyusb/")
 
 if (PICO_SDK_VERSION_STRING VERSION_LESS "1.4.0")
   message(FATAL_ERROR "Raspberry Pi Pico SDK version 1.4.0 (or later) required. Your version is ${PICO_SDK_VERSION_STRING}")
@@ -24,5 +22,4 @@ endif()
 
 #include_directories(include)
 
-add_subdirectory(lib)
 add_subdirectory(src)

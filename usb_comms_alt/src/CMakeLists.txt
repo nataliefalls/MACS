@@ -5,15 +5,20 @@ pico_enable_stdio_usb(${target_name} 1)
 
 target_sources(${target_name} PRIVATE
     main.c
+    usb_descriptors.c
 )
 
 target_include_directories(${target_name} PUBLIC
     ${CMAKE_CURRENT_LIST_DIR}
-    ${TINYUSB_DIR}
+    ${CMAKE_CURRENT_LIST_DIR}/..
+    # ${PICO_SDK_PATH}/lib/tinyusb/src
+    # ${PICO_SDK_PATH}/lib/tinyusb/hw
 )
 
 target_link_libraries(${target_name} PUBLIC
-    tinyusb
+    pico_stdlib
+    tinyusb_board
+    tinyusb_device
 )
 
 pico_add_extra_outputs(${target_name})
