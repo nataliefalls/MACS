@@ -54,9 +54,20 @@ int main()
         tight_loop_contents();
 
         // translate pwm of input to output
-        uint16_t PW_0 = my_PwmIn.read_PW(0);
-        uint16_t PW_1 = my_PwmIn.read_PW(1);
-        printf("PW_0=%d PW_1=%d\n", PW_0, PW_1);
+	if (my_PwmIn.isConnected(0)) {
+	  uint16_t PW_0 = my_PwmIn.read_PW(0);
+	  printf("PW_0=%d ", PW_0);
+	}
+	else
+	  printf("PW_0=disconnected ");
+
+	if (my_PwmIn.isConnected(1)) {
+	  uint16_t PW_1 = my_PwmIn.read_PW(1);
+	  printf("PW_1=%d                                \r", PW_1);
+	}
+	else
+	  printf("PW_1=disconnected                         \r");
+	
         sleep_ms(100);
     }
 }
