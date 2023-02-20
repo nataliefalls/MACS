@@ -27,14 +27,13 @@
 #include <stdio.h>
 #include <string.h>
 
-#include "bsp/board.h"
-#include "tusb.h"
 #include "tusb_config.h"
+#include "tusb.h"
+#include "class/hid/hid.h"
+#include "bsp/board.h"
 
 #include "usb_descriptors.h"
-#include "class/hid/hid.h"
-
-void hid_task(void);
+#include "reports.h"
 
 /*------------- MAIN -------------*/
 int main(void)

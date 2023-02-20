@@ -1,5 +1,5 @@
-#ifndef REPORT_DEFINITIONS_H
-#define REPORT_DEFINITIONS_H
+#ifndef REPORT_TYPE_DEFINITIONS_H
+#define REPORT_TYPE_DEFINITIONS_H
 
 #include <stdint.h>
 
@@ -7,7 +7,7 @@ typedef struct TU_ATTR_PACKED {
     uint8_t report_id;
     uint8_t module_id;
     uint8_t coordinates[3];
-} module_connected_report_t;
+} module_coordinates_t;
 
 typedef struct TU_ATTR_PACKED {
     uint8_t report_id;
@@ -18,19 +18,19 @@ typedef struct TU_ATTR_PACKED {
     uint8_t report_id;
     uint8_t module_id;
     uint8_t button;
-} button_report_t;
+} button_data_t;
 
 typedef struct TU_ATTR_PACKED {
     uint8_t report_id;
     uint8_t module_id;
     uint8_t buttons;
-} dpad_report_t;
+} dpad_data_t;
 
 typedef struct TU_ATTR_PACKED {
     uint8_t report_id;
     uint8_t module_id;
     uint8_t x;
     uint8_t y;
-} joystick_report_t;
+} joystick_data_t;
 
 #endif
