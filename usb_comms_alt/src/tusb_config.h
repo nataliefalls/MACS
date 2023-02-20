@@ -37,6 +37,7 @@
 // RHPort number used for device can be defined by board.mk, default to port 0
 #ifndef BOARD_TUD_RHPORT
 #define BOARD_TUD_RHPORT      0
+#define CFG_TUSB_RHPORT0_MODE OPT_MODE_DEVICE
 #endif
 
 // RHPort max operational speed can defined by board.mk
