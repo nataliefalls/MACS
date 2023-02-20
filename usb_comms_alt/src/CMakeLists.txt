@@ -6,13 +6,13 @@ pico_enable_stdio_usb(${target_name} 1)
 target_sources(${target_name} PRIVATE
     main.c
     usb_descriptors.c
+    util/hashmap.c
 )
 
 target_include_directories(${target_name} PUBLIC
     ${CMAKE_CURRENT_LIST_DIR}
+    ${CMAKE_CURRENT_LIST_DIR}/util
     ${CMAKE_CURRENT_LIST_DIR}/..
-    # ${PICO_SDK_PATH}/lib/tinyusb/src
-    # ${PICO_SDK_PATH}/lib/tinyusb/hw
 )
 
 target_link_libraries(${target_name} PUBLIC
