@@ -64,7 +64,7 @@ int main()
 	    printf("PW_%d=NA ", ii);
 	}
 
-	printf("                  \r\n");
+	printf("                  \r");
         sleep_ms(100);
     }
 }

@@ -16,7 +16,8 @@ PwmIn::PwmIn(uint *pin_list, uint num_of_pins)
     // load the pio program into the pio memory
     uint offset1 = pio_add_program(pio0, &PwmIn_program);
     uint offset2 = pio_add_program(pio1, &PwmIn_program);
-
+    pio_sm_config c1 = PwmIn_program_get_default_config(offset1);
+    pio_sm_config c2 = PwmIn_program_get_default_config(offset2);
     
     // start num_of_pins state machines
     for (int ii = 0; ii < num_of_pins; ii++)
@@ -24,7 +25,9 @@ PwmIn::PwmIn(uint *pin_list, uint num_of_pins)
         // use both pio's if necessary
         pio = ii < 4 ? pio0 : pio1;
         uint offset = ii < 4 ? offset1 : offset2;
-      
+	// make a sm config
+        pio_sm_config c = ii < 4 ? c1 : c2;
+
         int i = ii % 4;
       
 
@@ -35,9 +38,7 @@ PwmIn::PwmIn(uint *pin_list, uint num_of_pins)
         // configure the used pins (pull down, controlled by PIO)
         gpio_pull_down(pin_list[ii]);
         pio_gpio_init(pio, pin_list[ii]);
-        // make a sm config
-        pio_sm_config c = PwmIn_program_get_default_config(offset);
-        // set the 'jmp' pin
+	// set the 'jmp' pin
         sm_config_set_jmp_pin(&c, pin_list[ii]);
         // set the 'wait' pin (uses 'in' pins)
         sm_config_set_in_pins(&c, pin_list[ii]);
@@ -49,14 +50,14 @@ PwmIn::PwmIn(uint *pin_list, uint num_of_pins)
         pio_sm_set_enabled(pio, i, true);
     }
     // set the IRQ handler
-    irq_set_exclusive_handler(PIO0_IRQ_0, pio_irq_handler);
+    irq_set_exclusive_handler(PIO0_IRQ_0, pio0_irq_handler);
     // enable the IRQ
     irq_set_enabled(PIO0_IRQ_0, true);
 
     // set the IRQ handler
-    irq_set_exclusive_handler(PIO0_IRQ_1, pio_irq_handler);
+    irq_set_exclusive_handler(PIO1_IRQ_0, pio1_irq_handler);
     // enable the IRQ
-    irq_set_enabled(PIO0_IRQ_1, true);
+    irq_set_enabled(PIO1_IRQ_0, true);
     // allow irqs from the low 4 state machines
     pio0_hw->inte0 = PIO_IRQ0_INTE_SM0_BITS | PIO_IRQ0_INTE_SM1_BITS | PIO_IRQ0_INTE_SM2_BITS | PIO_IRQ0_INTE_SM3_BITS ;
     pio1_hw->inte0 = PIO_IRQ1_INTE_SM0_BITS | PIO_IRQ1_INTE_SM1_BITS | PIO_IRQ1_INTE_SM2_BITS | PIO_IRQ1_INTE_SM3_BITS ;
