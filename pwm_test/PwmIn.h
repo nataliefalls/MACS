@@ -17,7 +17,7 @@ public:
     PwmIn(uint *pin_list, uint num_of_pin);
     // read only the pulsewidth
     uint16_t read_PW(uint pin);
-  bool isConnected(uint pin);
+    bool isConnected(uint pin);
 
 private:
     // set the irq handler
@@ -27,22 +27,22 @@ private:
         //printf("Interrupt occurred");
         // check which IRQ was raised:
 	pio = pio0;
-        for (int i = 0; i < 4; i++)
+    for (int i = 0; i < 4; i++)
+    {
+        if (pio0_hw->irq & 1<<i)
         {
-            if (pio0_hw->irq & 1<<i)
-            {
-                // clear interrupt
-                pio0_hw->irq = 1 << i;
-                // read pulse width from the FIFO
-                pulsewidth[i] = pio_sm_get(pio, i);
-                // read low period from the FIFO
-                period[i] = pio_sm_get(pio, i);
-                // clear interrupt
-                pio0_hw->irq = 1 << i;
-		isNew[i] = true;
-		return;
-            }
+            // clear interrupt
+            pio0_hw->irq = 1 << i;
+            // read pulse width from the FIFO
+            pulsewidth[i] = pio_sm_get(pio, i);
+            // read low period from the FIFO
+            period[i] = pio_sm_get(pio, i);
+            // clear interrupt
+            pio0_hw->irq = 1 << i;
+            isNew[i] = true;
+            return;
         }
+    }
 	pio = pio1;
 	for (int i = 0; i < 4; i++)
         {
@@ -56,8 +56,8 @@ private:
                 period[i + 4] = pio_sm_get(pio, i);
                 // clear interrupt
                 pio1_hw->irq = 1 << i;
-		isNew[i + 4] = true;
-		return;
+		        isNew[i + 4] = true;
+		        return;
             }
         }
     }

@@ -18,35 +18,35 @@ PwmIn::PwmIn(uint *pin_list, uint num_of_pins)
     uint offset2 = pio_add_program(pio1, &PwmIn_program);
 
     
-     // start num_of_pins state machines
+    // start num_of_pins state machines
     for (int ii = 0; ii < num_of_pins; ii++)
     {
-      // use both pio's if necessary
-      pio = ii < 4 ? pio0 : pio1;
-      uint offset = ii < 4 ? offset1 : offset2;
+        // use both pio's if necessary
+        pio = ii < 4 ? pio0 : pio1;
+        uint offset = ii < 4 ? offset1 : offset2;
       
-      int i = ii % 4;
+        int i = ii % 4;
       
 
-      // prepare state machine i
-      pulsewidth[i] = 0;
-      period[i] = 0;
+        // prepare state machine i
+        pulsewidth[ii] = 0;
+        period[ii] = 0;
 
-      // configure the used pins (pull down, controlled by PIO)
-      gpio_pull_down(pin_list[i]);
-      pio_gpio_init(pio, pin_list[i]);
-      // make a sm config
-      pio_sm_config c = PwmIn_program_get_default_config(offset);
-      // set the 'jmp' pin
-      sm_config_set_jmp_pin(&c, pin_list[i]);
-      // set the 'wait' pin (uses 'in' pins)
-      sm_config_set_in_pins(&c, pin_list[i]);
-      // set shift direction
-      sm_config_set_in_shift(&c, false, false, 0);
-      // init the pio sm with the config
-      pio_sm_init(pio, i, offset, &c);
-      // enable the sm
-      pio_sm_set_enabled(pio, i, true);
+        // configure the used pins (pull down, controlled by PIO)
+        gpio_pull_down(pin_list[ii]);
+        pio_gpio_init(pio, pin_list[ii]);
+        // make a sm config
+        pio_sm_config c = PwmIn_program_get_default_config(offset);
+        // set the 'jmp' pin
+        sm_config_set_jmp_pin(&c, pin_list[ii]);
+        // set the 'wait' pin (uses 'in' pins)
+        sm_config_set_in_pins(&c, pin_list[ii]);
+        // set shift direction
+        sm_config_set_in_shift(&c, false, false, 0);
+        // init the pio sm with the config
+        pio_sm_init(pio, i, offset, &c);
+        // enable the sm
+        pio_sm_set_enabled(pio, i, true);
     }
     // set the IRQ handler
     irq_set_exclusive_handler(PIO0_IRQ_0, pio_irq_handler);
@@ -67,13 +67,13 @@ uint16_t PwmIn::read_PW(uint pin)
     // the measurements are taken with 2 clock cycles per timer tick
     // hence, it is 2*0.000000008
     //printf("\nPulsewidth is: %d\n", (pulsewidth[pin]));
-  isNew[pin] = false;
-  return pulsewidth[pin];
+    isNew[pin] = false;
+    return pulsewidth[pin];
 };
 
 bool PwmIn::isConnected(uint pin)
 {
-  return isNew[pin];
+    return isNew[pin];
 };
 
 uint32_t PwmIn::pulsewidth[8];
