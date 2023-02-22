@@ -41,11 +41,13 @@ int main(void)
   board_init();
 
   // init device stack on configured roothub port
-  tud_init(BOARD_TUD_RHPORT);
+  // tud_init(BOARD_TUD_RHPORT);
+  tusb_init();
 
   while (1)
   {
     tud_task(); // tinyusb device task
+    hid_task();
   }
 
   return 0;
@@ -85,143 +87,138 @@ void tud_resume_cb(void)
 // USB HID
 //--------------------------------------------------------------------+
 
-// static void send_hid_report(uint8_t report_id, uint32_t btn)
-// {
-//   // skip if hid is not ready yet
-//   if ( !tud_hid_ready() ) return;
-//
-//   switch(report_id)
-//   {
-//     case REPORT_ID_KEYBOARD:
-//     {
-//       // use to avoid send multiple consecutive zero report for keyboard
-//       static bool has_keyboard_key = false;
-//
-//       if ( btn )
-//       {
-//         uint8_t keycode[6] = { 0 };
-//         keycode[0] = HID_KEY_A;
-//
-//         tud_hid_keyboard_report(REPORT_ID_KEYBOARD, 0, keycode);
-//         has_keyboard_key = true;
-//       }else
-//       {
-//         // send empty key report if previously has key pressed
-//         if (has_keyboard_key) tud_hid_keyboard_report(REPORT_ID_KEYBOARD, 0, NULL);
-//         has_keyboard_key = false;
-//       }
-//     }
-//     break;
-//
-//     case REPORT_ID_MOUSE:
-//     {
-//       int8_t const delta = 5;
-//
-//       // no button, right + down, no scroll, no pan
-//       tud_hid_mouse_report(REPORT_ID_MOUSE, 0x00, delta, delta, 0, 0);
-//     }
-//     break;
-//
-//     case REPORT_ID_CONSUMER_CONTROL:
-//     {
-//       // use to avoid send multiple consecutive zero report
-//       static bool has_consumer_key = false;
-//
-//       if ( btn )
-//       {
-//         // volume down
-//         uint16_t volume_down = HID_USAGE_CONSUMER_VOLUME_DECREMENT;
-//         tud_hid_report(REPORT_ID_CONSUMER_CONTROL, &volume_down, 2);
-//         has_consumer_key = true;
-//       }else
-//       {
-//         // send empty key report (release key) if previously has key pressed
-//         uint16_t empty_key = 0;
-//         if (has_consumer_key) tud_hid_report(REPORT_ID_CONSUMER_CONTROL, &empty_key, 2);
-//         has_consumer_key = false;
-//       }
-//     }
-//     break;
-//
-//     case REPORT_ID_GAMEPAD:
-//     {
-//       // use to avoid send multiple consecutive zero report for keyboard
-//       static bool has_gamepad_key = false;
-//
-//       hid_gamepad_report_t report =
-//       {
-//         .x   = 0, .y = 0, .z = 0, .rz = 0, .rx = 0, .ry = 0,
-//         .hat = 0, .buttons = 0
-//       };
-//
-//       if ( btn )
-//       {
-//         report.hat = GAMEPAD_HAT_UP;
-//         report.buttons = GAMEPAD_BUTTON_A;
-//         tud_hid_report(REPORT_ID_GAMEPAD, &report, sizeof(report));
-//
-//         has_gamepad_key = true;
-//       }else
-//       {
-//         report.hat = GAMEPAD_HAT_CENTERED;
-//         report.buttons = 0;
-//         if (has_gamepad_key) tud_hid_report(REPORT_ID_GAMEPAD, &report, sizeof(report));
-//         has_gamepad_key = false;
-//       }
-//     }
-//     break;
-//
-//     default: break;
-//   }
-// }
+// return type indicates status
+// 0 - report was sent
+// 1 - hid is ready && no report was sent for given id
+// 2 - hid is not ready
+static int send_hid_report(uint8_t report_id)
+{
+  // skip if hid is not ready yet
+  if ( !tud_hid_ready() ) return 2;
+
+  switch(report_id)
+  {
+    case REPORT_ID_MODULE_CONNECTED:
+    {
+      // send next module connected message
+      static bool sent = false;
+      if (!sent) {
+        module_connected_report_t report = {
+          .module_id = 1,
+          .coordinates = { 0, 0, 0 }
+        };
+        tud_hid_report(report_id, &report, sizeof(module_connected_report_t));
+        sent = true;
+        return 0;
+      } else {
+        return 1;
+      }
+    }
+    break;
+    case REPORT_ID_MODULE_DISCONNECTED:
+    {
+      return 1;
+      // send next module disconnected message
+    }
+    break;
+    case REPORT_ID_BUTTON_DATA:
+    {
+      // send next button data message
+      button_report_t report = {
+        .module_id = 2,
+        .button = 0
+      };
+      tud_hid_report(report_id, &report, sizeof(button_report_t));
+      return 0;
+    }
+    break;
+    case REPORT_ID_DPAD_DATA:
+    {
+      return 1;
+      // send next dpad data message
+    }
+    break;
+    case REPORT_ID_JOYSTICK_DATA:
+    {
+      return 1;
+      // send next joystick data message
+    }
+    break;
+    default: 
+    {
+      return 1;
+    }
+    break;
+  }
+}
+
+void send_next_report(report_id_t start) {
+  int sent;
+  report_id_t id = start;
+  
+  // we're not guaranteed to have a report for each report_id, so send the next one
+  // immediately if this report was not sent
+  do {
+    sent = send_hid_report(id);
+    if (sent == 1) { // hid is ready, but no report was sent
+      id = id + 1;
+    }
+  } while (sent == 1 && id < REPORT_ID_COUNT); // stop once we reach the last report_id
+}
 
 // Every 10ms, we will sent 1 report for each HID profile (keyboard, mouse etc ..)
 // tud_hid_report_complete_cb() is used to send the next report after previous one is complete
-// void hid_task(void)
-// {
-//   // Poll every 10ms
-//   const uint32_t interval_ms = POLLING_INTERVAL;
-//   static uint32_t start_ms = 0;
-//
-//   if ( board_millis() - start_ms < interval_ms) return; // not enough time
-//   start_ms += interval_ms;
-//
-//   uint32_t const btn = board_button_read();
-//
-//   // Remote wakeup
-//   if ( tud_suspended() && btn )
-//   {
-//     // Wake up host if we are in suspend mode
-//     // and REMOTE_WAKEUP feature is enabled by host
-//     tud_remote_wakeup();
-//   }else
-//   {
-//     // Send the 1st of report chain, the rest will be sent by tud_hid_report_complete_cb()
-//     send_hid_report(REPORT_ID_KEYBOARD, btn);
-//   }
-// }
+void hid_task(void)
+{
+  // Poll every 10ms
+  const uint32_t interval_ms = 500;
+  static uint32_t start_ms = 0;
+
+  if ( board_millis() - start_ms < interval_ms) return; // not enough time
+  start_ms += interval_ms;
+
+  // test
+  // button_report_t report = {
+  //   .module_id = 2,
+  //   .button = 0
+  // };
+  module_connected_report_t report = {
+    .module_id = 1,
+    .coordinates = { 0, 0, 0 }
+  };
+  tud_hid_report(REPORT_ID_BUTTON_DATA, &report, sizeof(button_report_t));
+  
+
+  // Send the 1st of report chain, the rest will be sent by tud_hid_report_complete_cb()
+  // send_next_report(REPORT_ID_MODULE_CONNECTED);
+}
 
 // Invoked when sent REPORT successfully to host
 // Application can use this to send the next report
 // Note: For composite reports, report[0] is report ID
-// void tud_hid_report_complete_cb(uint8_t instance, uint8_t const* report, uint8_t len)
-// {
-//   (void) instance;
-//   (void) len;
-//
-//   uint8_t next_report_id = report[0] + 1;
-//
-//   if (next_report_id < REPORT_ID_COUNT)
-//   {
-//     send_hid_report(next_report_id, board_button_read());
-//   }
-// }
+void tud_hid_report_complete_cb(uint8_t instance, uint8_t const* report, uint8_t len)
+{
+  (void) instance;
+  (void) len;
+
+  // uint8_t next_report_id = (report[0] + 1) % REPORT_ID_COUNT;
+  
+  // send_next_report(next_report_id);
+}
 
 // Invoked when received GET_REPORT control request
 // Application must fill buffer report's content and return its length.
 // Return zero will cause the stack to STALL request
 uint16_t tud_hid_get_report_cb(uint8_t instance, uint8_t report_id, hid_report_type_t report_type, uint8_t* buffer, uint16_t reqlen)
 {
+  // by default, just zero out the buffer
+  memset(buffer, 0, reqlen);
+  
+  // For now, we don't have any reports to send on initialization
+  // it may be helpful for the host to request all connected modules
+  // on start-up, but that seems complicated, so I'll do that later.
+  return reqlen;
+
   switch(report_id) {
     case REPORT_ID_MODULE_CONNECTED:
       break;
@@ -233,14 +230,9 @@ uint16_t tud_hid_get_report_cb(uint8_t instance, uint8_t report_id, hid_report_t
       break;
     case REPORT_ID_JOYSTICK_DATA:
       break;
+    default:
+      break;
   }
-  // TODO not Implemented
-  (void) instance;
-  (void) report_id;
-  (void) report_type;
-  (void) buffer;
-  
-  return reqlen;
 }
 
 // Invoked when received SET_REPORT control request or

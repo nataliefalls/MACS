@@ -38,7 +38,7 @@
 #define BCD_DEVICE 0x0100 // device release number
 
 // for configuration descriptor
-#define MAX_PACKET_SIZE 100 // don't know until we define the report descriptor
+#define MAX_PACKET_SIZE sizeof(payload_t) + 1 // don't know until we define the report descriptor
 
 /*******************************
  * DEVICE DESCRIPTOR DEFINITION
@@ -54,7 +54,7 @@
 #define DEVICE_DESCRIPTOR \
     sizeof(tusb_desc_device_t),\
     TUSB_DESC_DEVICE,\
-    0x0100,\
+    0x200,\
     0x00,\
     0x00,\
     0x00,\
@@ -71,7 +71,7 @@
  * CONFIGURATION DESCRIPTOR DEFINITION
 ***************************************/
 #define CONFIG_TOTAL_LEN (TUD_CONFIG_DESC_LEN + TUD_HID_DESC_LEN)
-#define REPORT_DESCRIPTOR_LEN sizeof(REPORT_DESCRIPTOR)
+#define REPORT_DESCRIPTOR_LEN sizeof({ REPORT_DESCRIPTOR })
 #define ENDPOINT_ADDRESS (TU_BIT(7) | TU_BIT(0)) // IN endpoint at address 1
 #define MAX_POWER 500 // mA
 
