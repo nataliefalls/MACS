@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/x-icon" href="/app-logo.png" />
+    <link rel="stylesheet" href="https://use.typekit.net/abs8nql.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="Content-Security-Policy" content="script-src 'self' 'unsafe-inline';" />
+    <title>MACS Controller</title>
+  </head>
+  <body>
+    <div class="nav">
+      <div class="left-nav">
+        <span class="app-name">MACS</span>
+        </div>
+      <div class="right-nav">
+        <span class="nav-link minimize" id="minimize">&minus;</span>
+        <span class="nav-link close" id="close-app">&#10006;</span>
+      </div>
+    </div>
+    <div id="root"></div>
+    <script defer type="module" src="/src/js/window.js"></script>
+    <script defer type="module" src="/src/main.tsx"></script>
+
+  </body>
+</html>
