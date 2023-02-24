@@ -114,15 +114,15 @@ static void send_hid_report(void)
 // tud_hid_report_complete_cb() is used to send the next report after previous one is complete
 void hid_task(void)
 {
-  // static bool startTimeInitialized = false;
-  // static uint32_t startTime;
-  // if (!startTimeInitialized) {
-  //   startTime = time_us_32();
-  //   startTimeInitialized = true;
-  // }
-  // if (time_us_32() - startTime < 1000000 / 2) {
-  //   return;
-  // }
+  static bool startTimeInitialized = false;
+  static uint32_t startTime;
+  if (!startTimeInitialized) {
+    startTime = time_us_32();
+    startTimeInitialized = true;
+  }
+  if (time_us_32() - startTime < 1000000 / 2) {
+    return;
+  }
 
   // Poll every 10ms
   // static bool start_us_initialized = false;
@@ -136,13 +136,13 @@ void hid_task(void)
   // }
   // start_us = time_us_32();
 
-  // static uint32_t interval_ms = 500;
-  // static uint32_t start_ms = 0;
+  static uint32_t interval_ms = 10;
+  static uint32_t start_ms = 0;
 
-  // if ( board_millis() - start_ms < interval_ms) return; // not enough time
-  // start_ms += interval_ms;
+  if ( board_millis() - start_ms < interval_ms) return; // not enough time
+  start_ms += interval_ms;
 
-  send_hid_report();
+  // send_hid_report();
 
   // static bool pressed;
   // // pressed = gpio_get(BUTTON_PIN);
@@ -159,20 +159,20 @@ void hid_task(void)
   // }
 
 
-  // static module_disconnected_report_t disconnectionReport = {
-  //   .module_id = 2,
-  // };
-  // static module_connected_report_t connectionReport = {
-  //   .module_id = 1,
-  //   .coordinates = { 2, 3, 4 }
-  // };
-  // static bool connection = true;
-  // if (connection) {
-  //   tud_hid_report(REPORT_ID_MODULE_CONNECTED, &connectionReport, sizeof(module_connected_report_t));
-  // } else {
-  //   tud_hid_report(REPORT_ID_MODULE_DISCONNECTED, &disconnectionReport, sizeof(module_disconnected_report_t));
-  // }
-  // connection = !connection;
+  static module_disconnected_report_t disconnectionReport = {
+    .module_id = 2,
+  };
+  static module_connected_report_t connectionReport = {
+    .module_id = 1,
+    .coordinates = { 2, 3, 4 }
+  };
+  static bool connection = true;
+  if (connection) {
+    tud_hid_report(REPORT_ID_MODULE_CONNECTED, &connectionReport, sizeof(module_connected_report_t));
+  } else {
+    tud_hid_report(REPORT_ID_MODULE_DISCONNECTED, &disconnectionReport, sizeof(module_disconnected_report_t));
+  }
+  connection = !connection;
 }
 
 // Invoked when sent REPORT successfully to host
