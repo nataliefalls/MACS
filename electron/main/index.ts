@@ -9,6 +9,7 @@ let controller;
 let controllerListen;
 let MACS_CONTROLLER;
 let buttons;
+let axes;
 let configuration = [];
 
 // The built directory structure
@@ -130,73 +131,9 @@ async function createWindow() {
     console.log(devices);
     console.log(MACS_CONTROLLER);
     let count = 0;
-    for (const device of MACS_CONTROLLER) {
-      const testDevice = new HID.HID(device.path);
-      if (testDevice) {
-        console.log("device found");
-        // try {
-        testDevice.on("data", function (data) {
-          // this is where we update the virtual controller if it is on
-          /*
-          state = {
-            a: data.readUInt8(Buttons.A),
-            b: data.readUInt8(Buttons.B),
-            x: data.readUInt8(Buttons.X),
-            y: data.readUInt8(Buttons.Y),
-            leftStick: {
-              xRaw: data.readInt8(Buttons.LeftStickX),
-              yRaw: data.readInt8(Buttons.LeftStickY),
-              x: 0,
-              y: 0,
-              module: 0,
-              angle: 0,
-            },
-            rightStick: {
-              xRaw: data.readInt8(Buttons.RightStickX),
-              yRaw: data.readInt8(Buttons.RightStickY),
-              x: 0,
-              y: 0,
-              module: 0,
-              angle: 0,
-            },
-            r2: data.readUInt8(Buttons.R2),
-            l2: data.readUInt8(Buttons.L2),
-          };
-          */
-
-          // need to parse the data
-          console.log(data);
-          // count++;
-          if (controller && controller?.productID && controller?.vendorID) {
-            const buttonState = data.readUInt8(5);
-            console.log(buttonState);
-            controller.button.A.setValue(buttonState);
-            controller.update();
-          }
-          // controller.axis.leftX.setValue();
-          // controller.axis.leftY.setValue();
-          // controller.axis.rightX.setValue();
-          // controller.axis.rightY.setValue();
-          // controller.axis.dpadHorz.setValue();
-          // controller.axis.dpadVert.setValue();
-          // buttons.forEach((btn) => {
-          //   if (btn != "GUIDE") {
-          //     // otherwise Win 10 spams the GameBar
-          //     // the set value comes from the parsed data
-          //     controller.button[buttons[btn]].setValue(data); // invert button value
-          //   }
-          // });
-          // controller.update(); // update manually for better performance
-          // }
-        });
-        // } catch (error) {
-        //   console.log("controller disconnected");
-        // }
-        testDevice.on("error", function (error) {
-          console.log(error);
-        });
-      }
-    }
+    // for (const device of MACS_CONTROLLER) {
+    // }
+    // }
 
     win?.webContents.send("main-process-message", new Date().toLocaleString());
   });
@@ -268,42 +205,227 @@ ipcMain.on("save_config", (event, arg) => {
   event.sender.send("config_saved", true);
 });
 
+const getInputIndex = (input) => {
+  switch (input) {
+    case "START":
+      return 0;
+    case "BACK":
+      return 1;
+    case "LEFT_THUMB":
+      return 2;
+    case "RIGHT_THUMB":
+      return 3;
+    case "LEFT_SHOULDER":
+      return 4;
+    case "RIGHT_SHOULDER":
+      return 5;
+    case "GUIDE":
+      return 6;
+    case "A":
+      return 7;
+    case "B":
+      return 8;
+    case "X":
+      return 9;
+    case "Y":
+      return 10;
+    default:
+      return;
+  }
+};
+
+const getAxisIndex = (axis) => {
+  switch (axis) {
+  }
+};
+
 ipcMain.on("handle_controller", (event, arg) => {
   console.log(configuration);
   const { start, disconnect } = arg;
+  const testDevice = new HID.HID(MACS_CONTROLLER[2].path);
+  const testDevice2 = new HID.HID(MACS_CONTROLLER[0].path);
   if (start) {
     try {
-      client.connect(); // establish connection to the ViGEmBus driver
+      if (!controller) {
+        client?.connect(); // establish connection to the ViGEmBus driver
+      }
     } catch (e) {
       event.sender.send("controller_error", e);
     }
     console.log("client started");
 
     try {
-      controller = client.createX360Controller();
-      controller.connect(); // plug in the virtual controller
+      controller = client?.createX360Controller();
+      controller?.connect(); // plug in the virtual controller
     } catch (e) {
       event.sender.send("controller_error", e);
     }
     console.log("controller connected");
-    console.log(controller.vendorID);
-    console.log(controller.productID);
+    console.log(controller?.vendorID);
+    console.log(controller?.productID);
     event.sender.send("controller_started", true);
     let t = 0;
 
     buttons = Object.keys(controller.button);
+    axes = Object.keys(controller.axis);
+    console.log(buttons);
+    console.log(axes);
     // controllerListen = setInterval(() => {
     //   // read the controller data
     //   console.log(controller.button.A.value);
     //   controller.button.A.setValue(!controller.button.A.value);
     //   controller.update();
     // }, 500);
+    // if (testDevice) {
+    console.log("device found");
+    // try {
+    testDevice.on("data", function (data) {
+      // this is where we update the virtual controller if it is on
+      /*
+          state = {
+            a: data.readUInt8(Buttons.A),
+            b: data.readUInt8(Buttons.B),
+            x: data.readUInt8(Buttons.X),
+            y: data.readUInt8(Buttons.Y),
+            leftStick: {
+              xRaw: data.readInt8(Buttons.LeftStickX),
+              yRaw: data.readInt8(Buttons.LeftStickY),
+              x: 0,
+              y: 0,
+              module: 0,
+              angle: 0,
+            },
+            rightStick: {
+              xRaw: data.readInt8(Buttons.RightStickX),
+              yRaw: data.readInt8(Buttons.RightStickY),
+              x: 0,
+              y: 0,
+              module: 0,
+              angle: 0,
+            },
+            r2: data.readUInt8(Buttons.R2),
+            l2: data.readUInt8(Buttons.L2),
+          };
+          */
+
+      // need to parse the data
+      console.log(data.readInt8(2));
+      // console.log("before loop");
+      if (controller !== null) {
+        // console.log("entered loop");
+        for (const module of configuration) {
+          if (module?.index === 7) {
+            console.log(module);
+            console.log(module?.configuration?.input);
+            const buttonState = data.readInt8(2);
+            controller.button[
+              buttons[getInputIndex(module?.configuration?.input)]
+            ].setValue(buttonState);
+            controller.update();
+          } else {
+            // console.log("not found");
+          }
+        }
+      } else {
+        console.log("controller is null");
+      }
+
+      // count++;
+      // if (controller && controller?.productID && controller?.vendorID) {
+      //   const buttonState = data.readUInt8(5);
+      //   console.log(buttonState);
+      //   controller.button.A.setValue(buttonState);
+      //   controller.update();
+      // }
+      // controller.axis.leftX.setValue();
+      // controller.axis.leftY.setValue();
+      // controller.axis.rightX.setValue();
+      // controller.axis.rightY.setValue();
+      // controller.axis.dpadHorz.setValue();
+      // controller.axis.dpadVert.setValue();
+      // buttons.forEach((btn) => {
+      //   if (btn != "GUIDE") {
+      //     // otherwise Win 10 spams the GameBar
+      //     // the set value comes from the parsed data
+      //     controller.button[buttons[btn]].setValue(data); // invert button value
+      //   }
+      // });
+      // controller.update(); // update manually for better performance
+      // }
+    });
+    // } catch (error) {
+    //   console.log("controller disconnected");
+    // }
+    testDevice.on("error", function (error) {
+      console.log(error);
+    });
+    testDevice2.on("data", function (data) {
+      // this is where we update the virtual controller if it is on
+      /*
+          state = {
+            a: data.readUInt8(Buttons.A),
+            b: data.readUInt8(Buttons.B),
+            x: data.readUInt8(Buttons.X),
+            y: data.readUInt8(Buttons.Y),
+            leftStick: {
+              xRaw: data.readInt8(Buttons.LeftStickX),
+              yRaw: data.readInt8(Buttons.LeftStickY),
+              x: 0,
+              y: 0,
+              module: 0,
+              angle: 0,
+            },
+            rightStick: {
+              xRaw: data.readInt8(Buttons.RightStickX),
+              yRaw: data.readInt8(Buttons.RightStickY),
+              x: 0,
+              y: 0,
+              module: 0,
+              angle: 0,
+            },
+            r2: data.readUInt8(Buttons.R2),
+            l2: data.readUInt8(Buttons.L2),
+          };
+          */
+      // need to parse the data
+      // console.log(data);
+      // count++;
+      // if (controller && controller?.productID && controller?.vendorID) {
+      //   const buttonState = data.readUInt8(5);
+      //   console.log(buttonState);
+      //   controller.button.A.setValue(buttonState);
+      //   controller.update();
+      // }
+      // controller.axis.leftX.setValue();
+      // controller.axis.leftY.setValue();
+      // controller.axis.rightX.setValue();
+      // controller.axis.rightY.setValue();
+      // controller.axis.dpadHorz.setValue();
+      // controller.axis.dpadVert.setValue();
+      // buttons.forEach((btn) => {
+      //   if (btn != "GUIDE") {
+      //     // otherwise Win 10 spams the GameBar
+      //     // the set value comes from the parsed data
+      //     controller.button[buttons[btn]].setValue(data); // invert button value
+      //   }
+      // });
+      // controller.update(); // update manually for better performance
+      // }
+    });
+    // } catch (error) {
+    //   console.log("controller disconnected");
+    // }
+    testDevice2.on("error", function (error) {
+      console.log(error);
+    });
   }
   if (disconnect) {
     try {
       controller.disconnect();
+      controller = null;
       clearInterval(controllerListen);
     } catch (e) {
+      console.log(e);
       event.sender.send("controller_error", e);
     }
     event.sender.send("controller_disconnected", true);
@@ -312,7 +434,7 @@ ipcMain.on("handle_controller", (event, arg) => {
 });
 
 ipcMain.on("app/close", () => {
-  if (device.length > 0) device.close();
+  if (MACS_CONTROLLER) MACS_CONTROLLER.close();
   app.quit();
 });
 

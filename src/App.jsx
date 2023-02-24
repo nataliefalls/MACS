@@ -462,7 +462,7 @@ function App() {
     if (!controllerStatus) {
       ipcRenderer.send("handle_controller", { start: true });
       ipcRenderer.on("controller_error", (event, arg) => {
-        console.error(arg);
+        console.error(event);
       });
       ipcRenderer.on("controller_started", (event, arg) => {
         setControllerStatus(true);
@@ -470,7 +470,7 @@ function App() {
     } else {
       ipcRenderer.send("handle_controller", { disconnect: true });
       ipcRenderer.on("controller_error", (event, arg) => {
-        console.error(arg);
+        console.error(event);
       });
       ipcRenderer.on("controller_disconnected", (event, arg) => {
         setControllerStatus(false);
