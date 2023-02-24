@@ -34,15 +34,23 @@
 
 #include "usb_descriptors.h"
 #include "reports.h"
+#include "pico/stdlib.h"
+
+#define BUTTON_PIN 14
+
+void hid_task(void);
 
 /*------------- MAIN -------------*/
 int main(void)
 {
   board_init();
+  // gpio_init(BUTTON_PIN);
+  // gpio_set_dir(BUTTON_PIN, GPIO_IN);
+  // gpio_pull_down(BUTTON_PIN);
 
   // init device stack on configured roothub port
-  // tud_init(BOARD_TUD_RHPORT);
-  tusb_init();
+  tud_init(BOARD_TUD_RHPORT);
+  // tusb_init();
 
   while (1)
   {
@@ -91,106 +99,80 @@ void tud_resume_cb(void)
 // 0 - report was sent
 // 1 - hid is ready && no report was sent for given id
 // 2 - hid is not ready
-static int send_hid_report(uint8_t report_id)
+static void send_hid_report(void)
 {
-  // skip if hid is not ready yet
-  if ( !tud_hid_ready() ) return 2;
+  if ( !tud_hid_ready() ) return;
 
-  switch(report_id)
-  {
-    case REPORT_ID_MODULE_CONNECTED:
-    {
-      // send next module connected message
-      static bool sent = false;
-      if (!sent) {
-        module_connected_report_t report = {
-          .module_id = 1,
-          .coordinates = { 0, 0, 0 }
-        };
-        tud_hid_report(report_id, &report, sizeof(module_connected_report_t));
-        sent = true;
-        return 0;
-      } else {
-        return 1;
-      }
-    }
-    break;
-    case REPORT_ID_MODULE_DISCONNECTED:
-    {
-      return 1;
-      // send next module disconnected message
-    }
-    break;
-    case REPORT_ID_BUTTON_DATA:
-    {
-      // send next button data message
-      button_report_t report = {
-        .module_id = 2,
-        .button = 0
-      };
-      tud_hid_report(report_id, &report, sizeof(button_report_t));
-      return 0;
-    }
-    break;
-    case REPORT_ID_DPAD_DATA:
-    {
-      return 1;
-      // send next dpad data message
-    }
-    break;
-    case REPORT_ID_JOYSTICK_DATA:
-    {
-      return 1;
-      // send next joystick data message
-    }
-    break;
-    default: 
-    {
-      return 1;
-    }
-    break;
-  }
-}
-
-void send_next_report(report_id_t start) {
-  int sent;
-  report_id_t id = start;
-  
-  // we're not guaranteed to have a report for each report_id, so send the next one
-  // immediately if this report was not sent
-  do {
-    sent = send_hid_report(id);
-    if (sent == 1) { // hid is ready, but no report was sent
-      id = id + 1;
-    }
-  } while (sent == 1 && id < REPORT_ID_COUNT); // stop once we reach the last report_id
+  button_report_t report = {
+    .module_id = 0x68,
+    .button = 1,
+  };
+  tud_hid_report(REPORT_ID_BUTTON_DATA, &report, sizeof(report));
 }
 
 // Every 10ms, we will sent 1 report for each HID profile (keyboard, mouse etc ..)
 // tud_hid_report_complete_cb() is used to send the next report after previous one is complete
 void hid_task(void)
 {
+  // static bool startTimeInitialized = false;
+  // static uint32_t startTime;
+  // if (!startTimeInitialized) {
+  //   startTime = time_us_32();
+  //   startTimeInitialized = true;
+  // }
+  // if (time_us_32() - startTime < 1000000 / 2) {
+  //   return;
+  // }
+
   // Poll every 10ms
-  const uint32_t interval_ms = 500;
-  static uint32_t start_ms = 0;
+  // static bool start_us_initialized = false;
+  // static uint32_t start_us;
+  // if (!start_us_initialized) {
+  //   start_us = time_us_32();
+  //   start_us_initialized = true;
+  // }
+  // if (time_us_32() - start_us < 10000) {
+  //   return;
+  // }
+  // start_us = time_us_32();
 
-  if ( board_millis() - start_ms < interval_ms) return; // not enough time
-  start_ms += interval_ms;
+  // static uint32_t interval_ms = 500;
+  // static uint32_t start_ms = 0;
 
-  // test
-  // button_report_t report = {
+  // if ( board_millis() - start_ms < interval_ms) return; // not enough time
+  // start_ms += interval_ms;
+
+  send_hid_report();
+
+  // static bool pressed;
+  // // pressed = gpio_get(BUTTON_PIN);
+  // pressed = !pressed;
+
+  // if (pressed) {
+  //   report.module_id = 105;
+  //   report.button = 1;
+  //   tud_hid_report(REPORT_ID_BUTTON_DATA, &report, sizeof(button_report_t));
+  // } else {
+  //   report.module_id = 105;
+  //   report.button = 0;
+  //   tud_hid_report(REPORT_ID_BUTTON_DATA, &report, sizeof(button_report_t));
+  // }
+
+
+  // static module_disconnected_report_t disconnectionReport = {
   //   .module_id = 2,
-  //   .button = 0
   // };
-  module_connected_report_t report = {
-    .module_id = 1,
-    .coordinates = { 0, 0, 0 }
-  };
-  tud_hid_report(REPORT_ID_BUTTON_DATA, &report, sizeof(button_report_t));
-  
-
-  // Send the 1st of report chain, the rest will be sent by tud_hid_report_complete_cb()
-  // send_next_report(REPORT_ID_MODULE_CONNECTED);
+  // static module_connected_report_t connectionReport = {
+  //   .module_id = 1,
+  //   .coordinates = { 2, 3, 4 }
+  // };
+  // static bool connection = true;
+  // if (connection) {
+  //   tud_hid_report(REPORT_ID_MODULE_CONNECTED, &connectionReport, sizeof(module_connected_report_t));
+  // } else {
+  //   tud_hid_report(REPORT_ID_MODULE_DISCONNECTED, &disconnectionReport, sizeof(module_disconnected_report_t));
+  // }
+  // connection = !connection;
 }
 
 // Invoked when sent REPORT successfully to host
