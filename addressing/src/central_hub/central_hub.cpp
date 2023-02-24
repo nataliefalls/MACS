@@ -11,9 +11,9 @@
 #include <i2c_device.h>
 
 static const uint I2C_BAUDRATE = 100000; // 100 kHz
-static const uint8_t I2C_WORKER_ADDRESS = 0x01;
+static const uint8_t I2C_WORKER_ADDRESS = 0x77;
 
-std::shared_ptr<std::set<uint8_t>> modules;
+std::set<uint8_t> modules;
 
 static const uint I2C_QUEEN_SDA_PIN = 6;
 static const uint I2C_QUEEN_SCL_PIN = 7;
@@ -26,9 +26,9 @@ static void update_addresses(i2c_inst_t *i2c, i2c_worker_event_t event) {
         // only getting receives
         uint8_t received = i2c_read_byte(i2c);
         // if modules does not contain this address, add it
-        auto success = modules->insert(received);
+        auto success = modules.insert(received);
         if (success.second) {
-            //printf("Worker: Added module with ID: %#04X\n", received);
+            printf("Worker: Added module with ID: %#04X\n\n", received);
         }
     }
 }
@@ -42,7 +42,8 @@ static void setup_worker() {
     gpio_set_function(I2C_WORKER_SCL_PIN, GPIO_FUNC_I2C);
     gpio_pull_up(I2C_WORKER_SCL_PIN);
 
-    i2c_init(i2c0, I2C_BAUDRATE);
+    uint baud = i2c_init(i2c0, I2C_BAUDRATE);
+    printf("Actual baud is %d\n", baud);
 
     i2c_worker_init(i2c0, I2C_WORKER_ADDRESS, &update_addresses);
 }
@@ -60,17 +61,19 @@ static void run_queen() {
     i2c_init(i2c1, I2C_BAUDRATE);
 
     while(true) {
+        //printf("New cycle\n\n");
 
-        for(auto x : *modules) {
-            //printf("Queen: Pinging device at %#04X\n", x);
+        for (uint8_t address : modules) {
+            printf("Queen: Pinging device at %#04X\n", address);
             uint8_t buf;
-            int count = i2c_read_blocking(i2c1, x, &buf, 1, false);
+            int count = i2c_read_blocking(i2c1, address, &buf, 1, false);
             if (count == PICO_ERROR_GENERIC) {
-                //printf("Device not recognized at address %#04X\n", x);
+                printf("Device not recognized at address %#04X\n", address);
+                modules.erase(address);
                 continue;
             }
 
-            //printf("Queen: Received value of %d from worker %#04X\n", buf, x);
+            printf("Queen: Received value of %d from worker %#04X\n\n", buf, address);
         }
         //int count = i2c_read_blocking(i2c1, I2C_WORKER_ADDRESS, (uint8_t *)&buf, 2, true);
         sleep_ms(10);
@@ -88,8 +91,12 @@ int main() {
     // }
     // printf("connected to usb\n\n");
 
-    std::set<uint8_t> module_set;
-    modules = std::make_shared<std::set<uint8_t>>(module_set);
+    // std::set<uint8_t> module_set;
+    // modules = std::make_shared<std::set<uint8_t>>(module_set);
+
+    gpio_init(25);
+    gpio_set_dir(25, GPIO_OUT);
+    gpio_put(25, 1);
 
     setup_worker();
     run_queen();
