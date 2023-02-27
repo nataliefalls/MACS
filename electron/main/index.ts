@@ -57,7 +57,7 @@ async function createWindow() {
     title: "MACS Controller",
     icon: join(process.env.PUBLIC, "app-logo.png"),
     webPreferences: {
-      devTools: true,
+      devTools: false,
       preload,
       // Warning: Enable nodeIntegration and disable contextIsolation is not secure in production
       // Consider using contextBridge.exposeInMainWorld
