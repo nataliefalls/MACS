@@ -347,7 +347,7 @@ const ControllerInputs = [
 function App() {
   const [inputTypes, setInputTypes] = useState(InputTypes);
   const [hexagons, setHexagons] = useState(Hexagons);
-  const [controllerFound, setControllerFound] = useState(false);
+  const [controllerFound, setControllerFound] = useState(true);
   const [controllerStatus, setControllerStatus] = useState(false);
   const [activeHexagon, setActiveHexagon] = useState(null);
   const [gridRotate, setGridRotate] = useState("0deg");
@@ -514,7 +514,7 @@ function App() {
   const positionSVG = () => {
     if (controllerFound) {
       const svgGrid = document.getElementById("module-grid");
-      const { xMin, xMax, yMin, yMax } = [...svgGrid.children].reduce(
+      const { xMin, xMax, yMin, yMax } = [...svgGrid?.children].reduce(
         (acc, el) => {
           const { x, y, width, height } = el.getBBox();
           if (!acc.xMin || x < acc.xMin) acc.xMin = x;
@@ -1558,22 +1558,47 @@ function App() {
     setDistinctInputTypes(Array.from(tempInputTypes));
   }, [hexagons]);
 
+  useEffect(() => {
+    if (controllerFound) {
+      let tempDropzones = [];
+      positionSVG();
+      for (const [index, Hexagon] of filteredHexagons.entries()) {
+        positionDropzone(index, `hexagon-${Hexagon.id}`);
+        tempDropzones = [...tempDropzones, Hexagon.id];
+      }
+      const tempInputTypes = new Set(
+        filteredHexagons.map((hexagon) => hexagon.moduleType)
+      );
+      console.log(tempInputTypes);
+      setDistinctInputTypes(Array.from(tempInputTypes));
+      panRef?.current?.resetTransform();
+      setDropzones(tempDropzones);
+      ipcRenderer.send("initialize", hexagons);
+    }
+  }, [controllerFound]);
+
   // On initial render
   useEffect(() => {
-    let tempDropzones = [];
-    positionSVG();
-    for (const [index, Hexagon] of filteredHexagons.entries()) {
-      positionDropzone(index, `hexagon-${Hexagon.id}`);
-      tempDropzones = [...tempDropzones, Hexagon.id];
-    }
-    const tempInputTypes = new Set(
-      filteredHexagons.map((hexagon) => hexagon.moduleType)
-    );
-    console.log(tempInputTypes);
-    setDistinctInputTypes(Array.from(tempInputTypes));
-    panRef?.current?.resetTransform();
-    setDropzones(tempDropzones);
-    ipcRenderer.send("initialize", hexagons);
+    ipcRenderer.on("controller_found", (event, arg) => {
+      console.log(arg);
+      setControllerFound(arg);
+      if (arg) {
+        let tempDropzones = [];
+        positionSVG();
+        for (const [index, Hexagon] of filteredHexagons.entries()) {
+          positionDropzone(index, `hexagon-${Hexagon.id}`);
+          tempDropzones = [...tempDropzones, Hexagon.id];
+        }
+        const tempInputTypes = new Set(
+          filteredHexagons.map((hexagon) => hexagon.moduleType)
+        );
+        console.log(tempInputTypes);
+        setDistinctInputTypes(Array.from(tempInputTypes));
+        panRef?.current?.resetTransform();
+        setDropzones(tempDropzones);
+        ipcRenderer.send("initialize", hexagons);
+      }
+    });
   }, []);
 
   // console.log("ran");
