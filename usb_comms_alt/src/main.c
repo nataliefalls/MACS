@@ -33,27 +33,34 @@
 #include "bsp/board.h"
 
 #include "usb_descriptors.h"
-#include "reports.h"
+#include "report_types.h"
 #include "pico/stdlib.h"
 
+// example demo stuff
+#include "hardware/adc.h"
+
 #define BUTTON_PIN 14
+#define JOYSTICK_X_PIN 0
+#define JOYSTICK_Y_PIN 1
 
 void hid_task(void);
 
 /*------------- MAIN -------------*/
-int main(void)
-{
+int main(void) {
   board_init();
-  // gpio_init(BUTTON_PIN);
-  // gpio_set_dir(BUTTON_PIN, GPIO_IN);
-  // gpio_pull_down(BUTTON_PIN);
+  gpio_init(BUTTON_PIN);
+  gpio_set_dir(BUTTON_PIN, GPIO_IN);
+  gpio_pull_down(BUTTON_PIN);
+
+  adc_init();
+  adc_gpio_init(JOYSTICK_X_PIN);
+  adc_gpio_init(JOYSTICK_Y_PIN);
 
   // init device stack on configured roothub port
   tud_init(BOARD_TUD_RHPORT);
   // tusb_init();
 
-  while (1)
-  {
+  while (1) {
     tud_task(); // tinyusb device task
     hid_task();
   }
@@ -66,28 +73,24 @@ int main(void)
 //--------------------------------------------------------------------+
 
 // Invoked when device is mounted
-void tud_mount_cb(void)
-{
+void tud_mount_cb(void) {
   // nothing yet
 }
 
 // Invoked when device is unmounted
-void tud_umount_cb(void)
-{
+void tud_umount_cb(void) {
   // nothing yet
 }
 
 // Invoked when usb bus is suspended
 // remote_wakeup_en : if host allow us  to perform remote wakeup
 // Within 7ms, device must draw an average of current less than 2.5 mA from bus
-void tud_suspend_cb(bool remote_wakeup_en)
-{
+void tud_suspend_cb(bool remote_wakeup_en) {
   (void) remote_wakeup_en;
 }
 
 // Invoked when usb bus is resumed
-void tud_resume_cb(void)
-{
+void tud_resume_cb(void) {
     // nothing yet
 }
 
@@ -95,97 +98,110 @@ void tud_resume_cb(void)
 // USB HID
 //--------------------------------------------------------------------+
 
-// return type indicates status
-// 0 - report was sent
-// 1 - hid is ready && no report was sent for given id
-// 2 - hid is not ready
-static void send_hid_report(void)
-{
+void send_button_report(void) {
   if ( !tud_hid_ready() ) return;
 
   button_report_t report = {
     .module_id = 0x68,
-    .button = 1,
+    .button = gpio_get(BUTTON_PIN) ? 1 : 0,
   };
+
   tud_hid_report(REPORT_ID_BUTTON_DATA, &report, sizeof(report));
 }
 
-// Every 10ms, we will sent 1 report for each HID profile (keyboard, mouse etc ..)
-// tud_hid_report_complete_cb() is used to send the next report after previous one is complete
-void hid_task(void)
-{
+void send_joystick_report(void) {
+  if ( !tud_hid_ready() ) return;
+  adc_select_input(JOYSTICK_X_PIN);
+  uint16_t x = adc_read();
+  adc_select_input(JOYSTICK_Y_PIN);
+  uint16_t y = adc_read();
+
+  joystick_report_t report = {
+    .module_id = 0x68,
+    .joystick.x = x,
+    .joystick.y = y,
+  };
+
+  tud_hid_report(REPORT_ID_JOYSTICK_DATA, &report, sizeof(report));
+}
+
+static void send_hid_report(void) {
+  static bool buttonOrJoystick = false;
+
+  if (buttonOrJoystick) {
+    send_joystick_report();
+  } else {
+    send_button_report();
+  }
+
+  buttonOrJoystick = !buttonOrJoystick;
+}
+
+bool initialStartUpFinished(void) {
   static bool startTimeInitialized = false;
   static uint32_t startTime;
+
   if (!startTimeInitialized) {
     startTime = time_us_32();
     startTimeInitialized = true;
   }
+
   if (time_us_32() - startTime < 1000000 / 2) {
+    return false;
+  }
+  return true;
+}
+
+
+#define USE_TIMESTAMPS // uncomment to use timestamps for our wait
+
+bool wait_ms(uint32_t interval_ms) {
+  #ifdef USE_TIMESTAMPS
+  static bool start_us_initialized = false;
+  static uint32_t start_us;
+  uint32_t current_us = time_us_32();
+
+  if (!start_us_initialized) {
+    start_us = current_us;
+    start_us_initialized = true;
+  }
+
+  if (current_us < start_us) {
+    return true;
+  } else if (current_us - start_us < POLLING_INTERVAL_MS * 1000) {
+    return true;
+  } else {
+    start_us = current_us;
+    return false;
+  }
+  #else
+  static uint32_t start_ms = 0;
+  if ( board_millis() - start_ms < interval_ms) { // not enough time
+    return true;
+  } else {
+    start_ms += interval_ms;
+    return false;
+  }
+  #endif
+
+}
+
+void hid_task(void) {
+  if (!initialStartUpFinished()) {
+    return;
+  } else if (wait_ms(1)) {
     return;
   }
-
-  // Poll every 10ms
-  // static bool start_us_initialized = false;
-  // static uint32_t start_us;
-  // if (!start_us_initialized) {
-  //   start_us = time_us_32();
-  //   start_us_initialized = true;
-  // }
-  // if (time_us_32() - start_us < 10000) {
-  //   return;
-  // }
-  // start_us = time_us_32();
-
-  static uint32_t interval_ms = 10;
-  static uint32_t start_ms = 0;
-
-  if ( board_millis() - start_ms < interval_ms) return; // not enough time
-  start_ms += interval_ms;
-
-  // send_hid_report();
-
-  // static bool pressed;
-  // // pressed = gpio_get(BUTTON_PIN);
-  // pressed = !pressed;
-
-  // if (pressed) {
-  //   report.module_id = 105;
-  //   report.button = 1;
-  //   tud_hid_report(REPORT_ID_BUTTON_DATA, &report, sizeof(button_report_t));
-  // } else {
-  //   report.module_id = 105;
-  //   report.button = 0;
-  //   tud_hid_report(REPORT_ID_BUTTON_DATA, &report, sizeof(button_report_t));
-  // }
-
-
-  static module_disconnected_report_t disconnectionReport = {
-    .module_id = 2,
-  };
-  static module_connected_report_t connectionReport = {
-    .module_id = 1,
-    .coordinates = { 2, 3, 4 }
-  };
-  static bool connection = true;
-  if (connection) {
-    tud_hid_report(REPORT_ID_MODULE_CONNECTED, &connectionReport, sizeof(module_connected_report_t));
-  } else {
-    tud_hid_report(REPORT_ID_MODULE_DISCONNECTED, &disconnectionReport, sizeof(module_disconnected_report_t));
-  }
-  connection = !connection;
+  
+  send_hid_report();
 }
 
 // Invoked when sent REPORT successfully to host
 // Application can use this to send the next report
 // Note: For composite reports, report[0] is report ID
-void tud_hid_report_complete_cb(uint8_t instance, uint8_t const* report, uint8_t len)
-{
+void tud_hid_report_complete_cb(uint8_t instance, uint8_t const* report, uint8_t len) {
   (void) instance;
   (void) len;
-
-  // uint8_t next_report_id = (report[0] + 1) % REPORT_ID_COUNT;
-  
-  // send_next_report(next_report_id);
 }
 
 // Invoked when received GET_REPORT control request
@@ -200,21 +216,6 @@ uint16_t tud_hid_get_report_cb(uint8_t instance, uint8_t report_id, hid_report_t
   // it may be helpful for the host to request all connected modules
   // on start-up, but that seems complicated, so I'll do that later.
   return reqlen;
-
-  switch(report_id) {
-    case REPORT_ID_MODULE_CONNECTED:
-      break;
-    case REPORT_ID_MODULE_DISCONNECTED:
-      break;
-    case REPORT_ID_BUTTON_DATA:
-      break;
-    case REPORT_ID_DPAD_DATA:
-      break;
-    case REPORT_ID_JOYSTICK_DATA:
-      break;
-    default:
-      break;
-  }
 }
 
 // Invoked when received SET_REPORT control request or

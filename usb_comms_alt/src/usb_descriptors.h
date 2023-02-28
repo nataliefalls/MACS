@@ -34,11 +34,11 @@
 **********************/
 
 // for device descriptor
-#define POLLING_INTERVAL 10 // milliseconds
+#define POLLING_INTERVAL_MS 1 // milliseconds
 #define BCD_DEVICE 0x0100 // device release number
 
 // for configuration descriptor
-#define MAX_PACKET_SIZE sizeof(payload_t) + 1 // don't know until we define the report descriptor
+#define MAX_PACKET_SIZE sizeof(report_t) + 1 // don't know until we define the report descriptor
 
 /*******************************
  * DEVICE DESCRIPTOR DEFINITION
@@ -80,7 +80,7 @@
 #define CONFIGURATION_DESCRIPTOR {\
     TUD_CONFIG_DESCRIPTOR(1, 1, 1, CONFIG_TOTAL_LEN, TU_BIT(7), 500),\
     TUD_HID_DESCRIPTOR(1, 1, HID_ITF_PROTOCOL_NONE, REPORT_DESCRIPTOR_LEN,\
-        ENDPOINT_ADDRESS, MAX_PACKET_SIZE, POLLING_INTERVAL)\
+        ENDPOINT_ADDRESS, MAX_PACKET_SIZE, POLLING_INTERVAL_MS)\
 };
 
 

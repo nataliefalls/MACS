@@ -7,6 +7,7 @@ target_sources(${target_name} PRIVATE
     main.c
     usb_descriptors.c
     util/hashmap.c
+    util/report_queue.c
 )
 
 target_include_directories(${target_name} PUBLIC
@@ -19,6 +20,7 @@ target_link_libraries(${target_name} PUBLIC
     pico_stdlib
     tinyusb_board
     tinyusb_device
+    hardware_adc
 )
 
 pico_add_extra_outputs(${target_name})
