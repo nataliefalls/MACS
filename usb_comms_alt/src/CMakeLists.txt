@@ -6,7 +6,8 @@ pico_enable_stdio_usb(${target_name} 1)
 target_sources(${target_name} PRIVATE
     main.c
     usb_descriptors.c
-    util/hashmap.c
+    report_queue_handler.c
+    usb_controller.c
     util/report_queue.c
 )
 
