@@ -1571,10 +1571,11 @@ function App() {
       );
       console.log(tempInputTypes);
       setDistinctInputTypes(Array.from(tempInputTypes));
-      panRef?.current?.resetTransform();
       setDropzones(tempDropzones);
       ipcRenderer.send("initialize", hexagons);
     }
+    panRef?.current?.resetTransform();
+    panRef?.current?.centerView();
   }, [controllerFound]);
 
   // On initial render
@@ -1594,10 +1595,12 @@ function App() {
         );
         console.log(tempInputTypes);
         setDistinctInputTypes(Array.from(tempInputTypes));
-        panRef?.current?.resetTransform();
+
         setDropzones(tempDropzones);
         ipcRenderer.send("initialize", hexagons);
       }
+      panRef?.current?.resetTransform();
+      panRef?.current?.centerView();
     });
   }, []);
 

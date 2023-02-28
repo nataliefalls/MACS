@@ -12,6 +12,7 @@ let controllerFound = false;
 let MACS_CONTROLLER;
 let testDevice;
 let testDevice2;
+let testDevice3;
 let buttons;
 let axes;
 let configuration = [];
@@ -170,8 +171,8 @@ async function createWindow() {
               // console.log("entered loop");
               configuration?.forEach((module, index) => {
                 if (module?.index === 7) {
-                  console.log(module);
-                  console.log(module?.configuration?.input);
+                  // console.log(module);
+                  // console.log(module?.configuration?.input);
                   const buttonState = data.readInt8(2);
                   // console.log(buttons);
                   controller?.button[
@@ -299,6 +300,8 @@ async function createWindow() {
   // Test actively push message to the Electron-Renderer
   win.webContents.on("did-finish-load", () => {
     const devices = HID.devices();
+    console.log(devices);
+    let count = 0;
     controllerListen = setInterval(() => {
       console.log("loop");
       // read the controller data
@@ -307,6 +310,7 @@ async function createWindow() {
         if (MACS_CONTROLLER.length > 0 && !controllerFound) {
           testDevice = new HID.HID(MACS_CONTROLLER[2].path);
           testDevice2 = new HID.HID(MACS_CONTROLLER[0].path);
+          testDevice3 = new HID.HID(MACS_CONTROLLER[4].path);
           win?.webContents.send("controller_found", true);
           testDevice.on("data", function (data) {
             // this is where we update the virtual controller if it is on
@@ -338,15 +342,16 @@ async function createWindow() {
                 */
 
             // need to parse the data
-            console.log(data.readInt8(2));
+            // console.log(count);
+            // count++;
             // console.log("before loop");
             try {
               if (controller?.type) {
                 // console.log("entered loop");
                 configuration?.forEach((module, index) => {
                   if (module?.index === 7) {
-                    console.log(module);
-                    console.log(module?.configuration?.input);
+                    // console.log(module);
+                    // console.log(module?.configuration?.input);
                     const buttonState = data.readInt8(2);
                     // console.log(buttons);
                     controller?.button[
@@ -387,9 +392,6 @@ async function createWindow() {
             // controller.update(); // update manually for better performance
             // }
           });
-          // } catch (error) {
-          //   console.log("controller disconnected");
-          // }
           testDevice.on("error", function (error) {
             console.log(error);
             win?.webContents.send("controller_found", false);
@@ -449,10 +451,55 @@ async function createWindow() {
             // controller.update(); // update manually for better performance
             // }
           });
-          // } catch (error) {
-          //   console.log("controller disconnected");
-          // }
           testDevice2.on("error", function (error) {
+            console.log(error);
+            win?.webContents.send("controller_found", false);
+            controllerFound = false;
+            controllerListenRestart = setInterval(() => listenerLoop(), 1000);
+          });
+          testDevice3.on("data", function (data) {
+            // console.log(data);
+            const joystickHorizontal = data.readUInt16LE(2);
+            const joystickVertical = data.readUInt16LE(4);
+            console.log(
+              "x " +
+                ((parseInt(joystickHorizontal, 16) / 16600) * 2 - 1).toString()
+            );
+            console.log(
+              "y " +
+                ((parseInt(joystickVertical, 16) / 16600) * 2 - 1).toString()
+            );
+            // console.log("before loop");
+            try {
+              if (controller?.type) {
+                // console.log("entered loop");
+                configuration?.forEach((module, index) => {
+                  if (module?.index === 5) {
+                    console.log(module);
+                    // console.log(module?.configuration?.input);
+                    if (module?.configuration?.behavior === "default") {
+                      // controller.axis.leftX.setValue(0.5); // move left stick 50% to the left
+                      // controller.axis.leftY.setValue(-0.5); // move left stick 50% down
+                      controller.axis.leftX.setValue(
+                        (parseInt(joystickHorizontal, 16) / 16600) * 2 - 1
+                      );
+                      controller.axis.leftY.setValue(
+                        (parseInt(joystickHorizontal, 16) / 16000) * 2 - 1
+                      );
+                      controller?.update();
+                    }
+                  } else {
+                    // console.log("not found");
+                  }
+                });
+              } else {
+                // console.log("controller is null");
+              }
+            } catch (e) {
+              // controller is not on
+            }
+          });
+          testDevice3.on("error", function (error) {
             console.log(error);
             win?.webContents.send("controller_found", false);
             controllerFound = false;
@@ -471,6 +518,10 @@ async function createWindow() {
         win?.webContents.send("controller_found", false);
       }
     }, 1000);
+    // MACS_CONTROLLER = new HID.HID(0x54c, 0xce6); // ps5 version
+    // MACS_CONTROLLER.on("data", function (data) {
+    //   console.log(data);
+    // });
     win?.webContents.send("main-process-message", new Date().toLocaleString());
   });
   // Make all links open with the browser, not with the application
