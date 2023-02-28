@@ -23,6 +23,9 @@
  *
  */
 
+#define DEMO_FOR_FUENTES // uncomment to build a demo version
+#define USE_TIMESTAMPS // uncomment to use timestamps for our wait
+
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
@@ -35,9 +38,6 @@
 #include "usb_descriptors.h"
 #include "report_types.h"
 #include "pico/stdlib.h"
-
-#define DEMO_FOR_FUENTES // uncomment to build a demo version
-#define USE_TIMESTAMPS // uncomment to use timestamps for our wait
 
 #ifdef DEMO_FOR_FUENTES
 #include "hardware/adc.h"

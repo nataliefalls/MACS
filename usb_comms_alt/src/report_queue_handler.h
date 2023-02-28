@@ -3,9 +3,15 @@
 
 #include <stdbool.h>
 
+// error status codes for send_next_report
+enum {
+    E_QUEUE_EMPTY = 1,
+    E_USB_TRANSFER_FAILED,
+};
+
 /**
  * send the next report in the report queue over usb
 */
-bool send_next_report();
+int send_next_report();
 
 #endif

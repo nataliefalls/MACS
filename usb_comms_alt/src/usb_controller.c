@@ -1,7 +1,7 @@
 #include "report_queue.h"
 #include "usb_controller.h"
 
-bool register_module(uint8_t moduleID, module_coordinates_t coordinates) {
+bool module_connected_report(uint8_t moduleID, module_coordinates_t coordinates) {
     report_t newReport = {
         .moduleID = moduleID,
         .payload.coordinates = coordinates
@@ -9,7 +9,7 @@ bool register_module(uint8_t moduleID, module_coordinates_t coordinates) {
     queue_push(newReport);
 }
 
-bool unregister_module(uint8_t moduleID) {
+bool module_disconnected_report(uint8_t moduleID) {
     report_t newReport = {
         .moduleID = moduleID,
     };

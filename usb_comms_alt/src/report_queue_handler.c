@@ -10,14 +10,16 @@ bool send_button_report(report_t report);
 bool send_dpad_report(report_t report);
 bool send_joystick_report(report_t report);
 
-bool send_next_report() {
+/**
+ * send the next report in the report queue over usb
+*/
+int send_next_report() {
     report_t nextReport;
 
-    if (queue_pop(&nextReport)) {
-        return send_report(nextReport);
-    } else {
-        return false;
-    }
+    if (!queue_pop(&nextReport)) return E_QUEUE_EMPTY;
+    if (!send_report(nextReport)) return E_USB_TRANSFER_FAILED;
+
+    return 0;
 }
 
 bool send_report(report_t report) {
@@ -48,7 +50,7 @@ bool send_module_disconnected_report(report_t report) {
     module_disconnected_report_t disconnected = {
         .moduleID = report.moduleID
     };
-    return tud_hid_report(REPORT_ID_MODULE_DISCONNECTED, (void *) (&disconnected), sizeof(report));
+    return tud_hid_report(REPORT_ID_MODULE_DISCONNECTED, (void *) (&disconnected), sizeof(disconnected));
 }
 
 bool send_button_report(report_t report) {
@@ -56,7 +58,7 @@ bool send_button_report(report_t report) {
         .moduleID = report.moduleID,
         .button = report.payload.button
     };
-    return tud_hid_report(REPORT_ID_BUTTON_DATA, (void *) (&button), sizeof(report));
+    return tud_hid_report(REPORT_ID_BUTTON_DATA, (void *) (&button), sizeof(button));
 }
 
 bool send_dpad_report(report_t report) {
@@ -64,7 +66,7 @@ bool send_dpad_report(report_t report) {
         .moduleID = report.moduleID,
         .dpad = report.payload.dpad
     };
-    return tud_hid_report(REPORT_ID_DPAD_DATA, (void *) (&dpad), sizeof(report));
+    return tud_hid_report(REPORT_ID_DPAD_DATA, (void *) (&dpad), sizeof(dpad));
 }
 
 bool send_joystick_report(report_t report) {
@@ -72,5 +74,5 @@ bool send_joystick_report(report_t report) {
         .moduleID = report.moduleID,
         .joystick = report.payload.joystick
     };
-    return tud_hid_report(REPORT_ID_JOYSTICK_DATA, (void *) (&joystick), sizeof(report));
+    return tud_hid_report(REPORT_ID_JOYSTICK_DATA, (void *) (&joystick), sizeof(joystick));
 }
