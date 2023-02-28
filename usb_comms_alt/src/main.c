@@ -36,18 +36,24 @@
 #include "report_types.h"
 #include "pico/stdlib.h"
 
-// example demo stuff
+#define DEMO_FOR_FUENTES // uncomment to build a demo version
+#define USE_TIMESTAMPS // uncomment to use timestamps for our wait
+
+#ifdef DEMO_FOR_FUENTES
 #include "hardware/adc.h"
 
 #define BUTTON_PIN 14
 #define JOYSTICK_X_PIN 0
 #define JOYSTICK_Y_PIN 1
+#endif // DEMO_FOR_FUENTES
 
 void hid_task(void);
 
 /*------------- MAIN -------------*/
 int main(void) {
   board_init();
+
+  #ifdef DEMO_FOR_FUENTES
   gpio_init(BUTTON_PIN);
   gpio_set_dir(BUTTON_PIN, GPIO_IN);
   gpio_pull_down(BUTTON_PIN);
@@ -55,10 +61,10 @@ int main(void) {
   adc_init();
   adc_gpio_init(JOYSTICK_X_PIN);
   adc_gpio_init(JOYSTICK_Y_PIN);
+  #endif // DEMO_FOR_FUENTES
 
   // init device stack on configured roothub port
   tud_init(BOARD_TUD_RHPORT);
-  // tusb_init();
 
   while (1) {
     tud_task(); // tinyusb device task
@@ -67,6 +73,52 @@ int main(void) {
 
   return 0;
 }
+
+//--------------------------------------------------------------------+
+// Demo utilities
+//--------------------------------------------------------------------+
+#ifdef DEMO_FOR_FUENTES
+
+void send_button_report_demo(void) {
+  if ( !tud_hid_ready() ) return;
+
+  button_report_t report = {
+    .module_id = 0x68,
+    .button = gpio_get(BUTTON_PIN) ? 1 : 0,
+  };
+
+  tud_hid_report(REPORT_ID_BUTTON_DATA, &report, sizeof(report));
+}
+
+void send_joystick_report_demo(void) {
+  if ( !tud_hid_ready() ) return;
+  adc_select_input(JOYSTICK_X_PIN);
+  uint16_t x = adc_read();
+  adc_select_input(JOYSTICK_Y_PIN);
+  uint16_t y = adc_read();
+
+  joystick_report_t report = {
+    .module_id = 0x68,
+    .joystick.x = x,
+    .joystick.y = y,
+  };
+
+  tud_hid_report(REPORT_ID_JOYSTICK_DATA, &report, sizeof(report));
+}
+
+static void send_demo_report(void) {
+  static bool buttonOrJoystick = false;
+
+  if (buttonOrJoystick) {
+    send_joystick_report_demo();
+  } else {
+    send_button_report_demo();
+  }
+
+  buttonOrJoystick = !buttonOrJoystick;
+}
+
+#endif // DEMO_FOR_FUENTES
 
 //--------------------------------------------------------------------+
 // Device callbacks
@@ -98,45 +150,6 @@ void tud_resume_cb(void) {
 // USB HID
 //--------------------------------------------------------------------+
 
-void send_button_report(void) {
-  if ( !tud_hid_ready() ) return;
-
-  button_report_t report = {
-    .module_id = 0x68,
-    .button = gpio_get(BUTTON_PIN) ? 1 : 0,
-  };
-
-  tud_hid_report(REPORT_ID_BUTTON_DATA, &report, sizeof(report));
-}
-
-void send_joystick_report(void) {
-  if ( !tud_hid_ready() ) return;
-  adc_select_input(JOYSTICK_X_PIN);
-  uint16_t x = adc_read();
-  adc_select_input(JOYSTICK_Y_PIN);
-  uint16_t y = adc_read();
-
-  joystick_report_t report = {
-    .module_id = 0x68,
-    .joystick.x = x,
-    .joystick.y = y,
-  };
-
-  tud_hid_report(REPORT_ID_JOYSTICK_DATA, &report, sizeof(report));
-}
-
-static void send_hid_report(void) {
-  static bool buttonOrJoystick = false;
-
-  if (buttonOrJoystick) {
-    send_joystick_report();
-  } else {
-    send_button_report();
-  }
-
-  buttonOrJoystick = !buttonOrJoystick;
-}
-
 bool initialStartUpFinished(void) {
   static bool startTimeInitialized = false;
   static uint32_t startTime;
@@ -152,10 +165,7 @@ bool initialStartUpFinished(void) {
   return true;
 }
 
-
-#define USE_TIMESTAMPS // uncomment to use timestamps for our wait
-
-bool wait_ms(uint32_t interval_ms) {
+bool polling_interval_wait() {
   #ifdef USE_TIMESTAMPS
   static bool start_us_initialized = false;
   static uint32_t start_us;
@@ -167,7 +177,7 @@ bool wait_ms(uint32_t interval_ms) {
   }
 
   if (current_us < start_us) {
-    return true;
+    return (current_us + ~start_us + 1) < (POLLING_INTERVAL_MS * 1000);
   } else if (current_us - start_us < POLLING_INTERVAL_MS * 1000) {
     return true;
   } else {
@@ -176,30 +186,37 @@ bool wait_ms(uint32_t interval_ms) {
   }
   #else
   static uint32_t start_ms = 0;
-  if ( board_millis() - start_ms < interval_ms) { // not enough time
+  if ( board_millis() - start_ms < POLLING_INTERVAL_MS) { // not enough time
     return true;
   } else {
-    start_ms += interval_ms;
+    start_ms += POLLING_INTERVAL_MS;
     return false;
   }
   #endif
 
 }
 
+static void send_hid_report(void) {
+}
+
 void hid_task(void) {
   if (!initialStartUpFinished()) {
     return;
-  } else if (wait_ms(1)) {
+  } else if (polling_interval_wait()) {
     return;
   }
   
+  #ifdef DEMO_FOR_FUENTES
+  send_demo_report();
+  #else
   send_hid_report();
+  #endif
 }
 
 // Invoked when sent REPORT successfully to host
 // Application can use this to send the next report
 // Note: For composite reports, report[0] is report ID
-void tud_hid_report_complete_cb(uint8_t instance, uint8_t const* report, uint8_t len) {
+void tud_hid_report_complete_cb(uint8_t instance, uint8_t const* report, uint16_t len) {
   (void) instance;
   (void) len;
 }
@@ -207,8 +224,7 @@ void tud_hid_report_complete_cb(uint8_t instance, uint8_t const* report, uint8_t
 // Invoked when received GET_REPORT control request
 // Application must fill buffer report's content and return its length.
 // Return zero will cause the stack to STALL request
-uint16_t tud_hid_get_report_cb(uint8_t instance, uint8_t report_id, hid_report_type_t report_type, uint8_t* buffer, uint16_t reqlen)
-{
+uint16_t tud_hid_get_report_cb(uint8_t instance, uint8_t report_id, hid_report_type_t report_type, uint8_t* buffer, uint16_t reqlen) {
   // by default, just zero out the buffer
   memset(buffer, 0, reqlen);
   
@@ -220,7 +236,6 @@ uint16_t tud_hid_get_report_cb(uint8_t instance, uint8_t report_id, hid_report_t
 
 // Invoked when received SET_REPORT control request or
 // received data on OUT endpoint ( Report ID = 0, Type = 0 )
-void tud_hid_set_report_cb(uint8_t instance, uint8_t report_id, hid_report_type_t report_type, uint8_t const* buffer, uint16_t bufsize)
-{
+void tud_hid_set_report_cb(uint8_t instance, uint8_t report_id, hid_report_type_t report_type, uint8_t const* buffer, uint16_t bufsize) {
   (void) instance;
 }
