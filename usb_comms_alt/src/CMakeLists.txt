@@ -6,9 +6,12 @@ pico_enable_stdio_usb(${target_name} 1)
 target_sources(${target_name} PRIVATE
     main.c
     usb_stack/usb_descriptors.c
+    usb_stack/device_callbacks.c
+    usb_stack/hid_callbacks.c
+    util/demo_utils.c
+    report_queue.c
     report_queue_handler.c
     usb_controller.c
-    util/report_queue.c
 )
 
 target_include_directories(${target_name} PUBLIC

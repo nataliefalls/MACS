@@ -3,6 +3,7 @@
 
 bool module_connected_report(uint8_t moduleID, module_coordinates_t coordinates) {
     report_t newReport = {
+        .reportID = REPORT_ID_MODULE_CONNECTED,
         .moduleID = moduleID,
         .payload.coordinates = coordinates
     };
@@ -11,6 +12,7 @@ bool module_connected_report(uint8_t moduleID, module_coordinates_t coordinates)
 
 bool module_disconnected_report(uint8_t moduleID) {
     report_t newReport = {
+        .reportID = REPORT_ID_MODULE_DISCONNECTED,
         .moduleID = moduleID,
     };
     queue_push(newReport);
@@ -18,6 +20,7 @@ bool module_disconnected_report(uint8_t moduleID) {
 
 bool button_report(uint8_t moduleID, button_data_t button) {
     report_t newReport = {
+        .reportID = REPORT_ID_BUTTON_DATA,
         .moduleID = moduleID,
         .payload.button = button
     };
@@ -26,6 +29,7 @@ bool button_report(uint8_t moduleID, button_data_t button) {
 
 bool dpad_report(uint8_t moduleID, dpad_data_t dpad) {
     report_t newReport = {
+        .reportID = REPORT_ID_DPAD_DATA,
         .moduleID = moduleID,
         .payload.dpad = dpad
     };
@@ -34,6 +38,7 @@ bool dpad_report(uint8_t moduleID, dpad_data_t dpad) {
 
 bool joystick_report(uint8_t moduleID, joystick_data_t joystick) {
     report_t newReport = {
+        .reportID = REPORT_ID_JOYSTICK_DATA,
         .moduleID = moduleID,
         .payload.joystick = joystick
     };
