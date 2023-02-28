@@ -1,19 +1,49 @@
 #include "report_queue.h"
 
+// buffer for the report queue
 static report_t queue[REPORT_QUEUE_BUFFER_SIZE];
+// index at which the next report will be pushed
 static uint8_t pushIndex = 0;
-static uint8_t popIndex = 0;
+// number of reports on the queue waiting to be sent
+static uint8_t reportsLeft = 0;
+
+/**
+ * is the queue full?
+*/
+bool queue_full() {
+    return reportsLeft == REPORT_QUEUE_BUFFER_SIZE;
+}
+
+/**
+ * is the queue empty?
+*/
+bool queue_empty() {
+    return reportsLeft == 0;
+}
+
+/**
+ * the index at which the next report should be popped
+ * assumes the queue is non-empty
+*/
+uint8_t pop_index() {
+    if (reportsLeft > pushIndex) {
+        uint8_t reportsBeforeIndexZero = reportsLeft - pushIndex;
+        return REPORT_QUEUE_BUFFER_SIZE - reportsBeforeIndexZero;
+    } else {
+        return pushIndex - reportsLeft;
+    }
+}
 
 /**
  * push a report onto the queue to be sent over usb
- * false return indicates the buffer is full, and report could not be pushed
+ * false return indicates the queue is full, and report could not be pushed
  * true return indicates success
 */
 bool queue_push(report_t report) {
-    if (pushIndex == popIndex) return false;
+    if (queue_full()) return false;
 
-    queue[pushIndex].id = report.id;
-    queue[pushIndex].payload = report.payload;
+    queue[pushIndex] = report;
+    reportsLeft++;
 
     if (++pushIndex >= REPORT_QUEUE_BUFFER_SIZE) {
         pushIndex -= REPORT_QUEUE_BUFFER_SIZE;
@@ -23,23 +53,22 @@ bool queue_push(report_t report) {
 }
 
 /**
- * pop a report off of the queue, returns the report
+ * pop a report off of the queue
+ * false return indicates the queue is empty, and no report was popped
+ * true return indicates a report was popped, in which case, the given report arg will contain the report
 */
-report_t queue_pop() {
-    report_t report = queue[popIndex];
+bool queue_pop(report_t *report) {
+    if (queue_empty()) return false;
 
-    if (++popIndex >= REPORT_QUEUE_BUFFER_SIZE) {
-        popIndex -= REPORT_QUEUE_BUFFER_SIZE;
-    }
+    *report = queue[pop_index()];
+    reportsLeft--;
 
-    return report;
+    return true;
 }
 
 /**
- * returns the number of reports to be sent in the buffer
+ * the number of reports that can be added to the queue before it's at maximum capacity
 */
-uint8_t reports_left() {
-    return (pushIndex < popIndex) ?
-        REPORT_QUEUE_BUFFER_SIZE - popIndex + pushIndex :
-        pushIndex - popIndex;
+uint8_t space_remaining() {
+    return REPORT_QUEUE_BUFFER_SIZE - reportsLeft;
 }

@@ -1,41 +1,45 @@
 #include "report_queue.h"
 #include "usb_controller.h"
 
-bool register_module(module_connected_report_t report) {
+bool register_module(uint8_t moduleID, module_coordinates_t coordinates) {
     report_t newReport = {
-        .id = report.module_id,
-        .payload.coordinates = report.coordinates
+        .moduleID = moduleID,
+        .payload.coordinates = coordinates
     };
     queue_push(newReport);
 }
 
-bool unregister_module(module_disconnected_report_t report) {
+bool unregister_module(uint8_t moduleID) {
     report_t newReport = {
-        .id = report.module_id
+        .moduleID = moduleID,
     };
     queue_push(newReport);
 }
 
-bool send_button_report(button_report_t report) {
+bool button_report(uint8_t moduleID, button_data_t button) {
     report_t newReport = {
-        .id = report.module_id,
-        .payload.button = report.button
+        .moduleID = moduleID,
+        .payload.button = button
     };
     queue_push(newReport);
 }
 
-bool send_dpad_report(dpad_report_t report) {
+bool dpad_report(uint8_t moduleID, dpad_data_t dpad) {
     report_t newReport = {
-        .id = report.module_id,
-        .payload.dpad = report.dpad
+        .moduleID = moduleID,
+        .payload.dpad = dpad
     };
     queue_push(newReport);
 }
 
-bool send_joystick_report(joystick_report_t report) {
+bool joystick_report(uint8_t moduleID, joystick_data_t joystick) {
     report_t newReport = {
-        .id = report.module_id,
-        .payload.joystick = report.joystick
+        .moduleID = moduleID,
+        .payload.joystick = joystick
     };
     queue_push(newReport);
+}
+
+uint8_t queue_space_remaining() {
+    return space_remaining();
 }

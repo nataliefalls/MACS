@@ -83,7 +83,7 @@ void send_button_report_demo(void) {
   if ( !tud_hid_ready() ) return;
 
   button_report_t report = {
-    .module_id = 0x68,
+    .moduleID = 0x68,
     .button = gpio_get(BUTTON_PIN) ? 1 : 0,
   };
 
@@ -98,7 +98,7 @@ void send_joystick_report_demo(void) {
   uint16_t y = adc_read();
 
   joystick_report_t report = {
-    .module_id = 0x68,
+    .moduleID = 0x68,
     .joystick.x = x,
     .joystick.y = y,
   };
@@ -196,7 +196,7 @@ bool polling_interval_wait() {
 
 }
 
-static void send_hid_report(void) {
+void send_hid_report(void) {
 }
 
 void hid_task(void) {
@@ -209,7 +209,7 @@ void hid_task(void) {
   #ifdef DEMO_FOR_FUENTES
   send_demo_report();
   #else
-  send_hid_report();
+  send_next_report();
   #endif
 }
 

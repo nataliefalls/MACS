@@ -7,19 +7,21 @@
 
 /**
  * push a report onto the queue to be sent over usb
- * false return indicates the buffer is full, and report could not be pushed
+ * false return indicates the queue is full, and report could not be pushed
  * true return indicates success
 */
 bool queue_push(report_t report);
 
 /**
- * pop a report off of the queue, returns the report
+ * pop a report off of the queue
+ * false return indicates the queue is empty, and no report was popped
+ * true return indicates a report was popped, in which case, the given report arg will contain the report
 */
-report_t queue_pop();
+bool queue_pop(report_t *report);
 
 /**
- * returns the number of reports to be sent in the buffer
+ * the number of reports that can be added to the queue before it's at maximum capacity
 */
-uint8_t reports_left();
+uint8_t space_remaining();
 
 #endif
