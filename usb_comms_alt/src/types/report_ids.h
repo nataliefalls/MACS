@@ -1,0 +1,13 @@
+#ifndef REPORT_IDS_H
+#define REPORT_IDS_H
+
+typedef enum {
+    REPORT_ID_MODULE_CONNECTED = 1,
+    REPORT_ID_MODULE_DISCONNECTED,
+    REPORT_ID_BUTTON_DATA,
+    REPORT_ID_DPAD_DATA,
+    REPORT_ID_JOYSTICK_DATA,
+    LAST
+} report_id_t;
+
+#endif
