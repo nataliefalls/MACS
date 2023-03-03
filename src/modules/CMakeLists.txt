@@ -1,37 +1,107 @@
-add_executable(button_module_1)
+function(string_starts_with output str search)
+    string(FIND "${str}" "${search}" out)
+    if("${out}" EQUAL 0)
+        set(${output} TRUE PARENT_SCOPE)
+        return()
+    endif()
+    set(${output} FALSE PARENT_SCOPE)
+endfunction(string_starts_with output str search)
 
-pico_set_program_name(button_module_1 "button_module_1")
-pico_set_program_version(button_module_1 "0.1")
+function(string_split_at_last partb input separator)
+  string(FIND "${input}" "${separator}" idx  REVERSE)
 
-pico_enable_stdio_uart(button_module_1 1)
-pico_enable_stdio_usb(button_module_1 1)
+  if(${idx} LESS 0 OR "${separator}_" STREQUAL "_")
+    set(${partb} "" PARENT_SCOPE)
+    return()
+  endif()
 
-include_directories(${CMAKE_CURRENT_LIST_DIR}/include)
+  math(EXPR idx "${idx} + 1")
 
-target_compile_definitions(button_module_1 PRIVATE 
-        BUTTON
-)
+  string(SUBSTRING "${input}" ${idx} -1 pb)
+  set(${partb} ${pb} PARENT_SCOPE)
+endfunction(string_split_at_last partb input separator)
 
-# Add the standard include files to the build
-target_include_directories(button_module_1 INTERFACE
-  ${CMAKE_CURRENT_LIST_DIR}
-  ${CMAKE_CURRENT_LIST_DIR}/include
-  #${CMAKE_CURRENT_LIST_DIR}/.. # for our common lwipopts or any other standard includes, if required
-)
+set(TARGET "button_1" "button_2" "switch_1" "joystick_1" "linear_potentiometer_1")
+foreach(element ${TARGET})
+    add_executable(${element})
 
-target_sources(button_module_1 PUBLIC
-        src/button_module_1.cpp
-        src/inputs.cpp
-)
+    pico_set_program_name(${element} "${element}")
+    pico_set_program_version(${element} "0.1")
 
-# Add the standard library to the build
-target_link_libraries(button_module_1 PUBLIC
-        pico_stdlib
-        i2c_device
-        hardware_i2c
-        hardware_pwm
-        pico_multicore
-        pwm_pio
-)
+    pico_enable_stdio_uart(${element} 1)
+    pico_enable_stdio_usb(${element} 1)
 
-pico_add_extra_outputs(button_module_1)
+    include_directories(${CMAKE_CURRENT_LIST_DIR}/include)
+
+    string_starts_with(BUTTON ${element} "button")
+    string_starts_with(SWITCH ${element} "switch")
+    string_starts_with(ROTARY_POTENTIOMETER ${element} "rotary_potentiometer")
+    string_starts_with(LINEAR_POTENTIOMETER ${element} "linear_potentiometer")
+    string_starts_with(JOYSTICK ${element} "joystick")
+    string_split_at_last(ID_NUM ${element} "_")
+    set(ID "ID_${ID_NUM}")
+
+    if(BUTTON STREQUAL TRUE)
+        target_compile_definitions(${element} PRIVATE 
+            "BUTTON"
+            DIGITAL
+            ${ID}
+        )
+    endif()
+    if(SWITCH)
+        target_compile_definitions(${element} PRIVATE
+            SWITCH
+            DIGITAL
+            ${ID}
+        )
+    endif()
+    if(ROTARY_POTENTIOMETER)
+        target_compile_definitions(${element} PRIVATE
+            ROTARY_POTENTIOMETER
+            ANALOG
+            ${ID}
+        )
+    endif()
+    if(LINEAR_POTENTIOMETER)
+        target_compile_definitions(${element} PRIVATE
+            LINEAR_POTENTIOMETER
+            ANALOG
+            ${ID}
+        )
+    endif()
+    if(JOYSTICK)
+        target_compile_definitions(${element} PRIVATE
+            JOYSTICK
+            ANALOG
+            DIGITAL
+            ${ID}
+        )
+    endif()
+
+    # Add the standard include files to the build
+    target_include_directories(${element} INTERFACE
+    ${CMAKE_CURRENT_LIST_DIR}
+    ${CMAKE_CURRENT_LIST_DIR}/include
+    #${CMAKE_CURRENT_LIST_DIR}/.. # for our common lwipopts or any other standard includes, if required
+    )
+
+    target_sources(${element} PUBLIC
+            src/module.cpp
+            src/inputs.cpp
+    )
+
+    # Add the standard library to the build
+    target_link_libraries(${element} PUBLIC
+            pico_stdlib
+            i2c_device
+            hardware_i2c
+            hardware_pwm
+            pico_multicore
+            pwm_pio
+            hardware_gpio
+    )
+
+    pico_add_extra_outputs(${element})
+endforeach(element ${TARGET})
+
+set(TARGET )
