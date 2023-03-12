@@ -1,44 +1,39 @@
-#include "report_queue_handler.h"
-#include "report_queue.h"
-#include "report_types.h"
+#include "ReportQueueHandler.h"
 #include "tusb.h"
 
-bool send_report(report_t report);
-bool send_module_connected_report(report_t report);
-bool send_module_disconnected_report(report_t report);
-bool send_button_report(report_t report);
-bool send_dpad_report(report_t report);
-bool send_joystick_report(report_t report);
-
-/**
- * send the next report in the report queue over usb
-*/
-int send_next_report() {
-    report_t nextReport;
-
-    if (!queue_pop(&nextReport)) return E_QUEUE_EMPTY;
-    if (!send_report(nextReport)) return E_USB_TRANSFER_FAILED;
-
-    return 0;
+ReportQueueHandler::ReportQueueHandler(const IReportQueue *_queue) {
+    this->queue = _queue;
 }
 
-bool send_report(report_t report) {
+send_report_status_t ReportQueueHandler::send_next_report() const {
+    report_t nextReport{};
+
+    if (!(this->queue->queue_pop(nextReport)))
+        return E_QUEUE_EMPTY;
+
+    if (!this->send_report(nextReport))
+        return E_USB_TRANSFER_FAILED;
+
+    return SEND_SUCCESS;
+}
+
+bool ReportQueueHandler::send_report(const report_t &report) const {
     switch (report.reportID) {
         case REPORT_ID_MODULE_CONNECTED:
-            return send_module_connected_report(report);
+            return this->send_module_connected_report(report);
         case REPORT_ID_MODULE_DISCONNECTED:
-            return send_module_disconnected_report(report);
+            return this->send_module_disconnected_report(report);
         case REPORT_ID_BUTTON_DATA: 
-            return send_button_report(report);
+            return this->send_button_report(report);
         case REPORT_ID_DPAD_DATA:
-            return send_dpad_report(report);
+            return this->send_dpad_report(report);
         case REPORT_ID_JOYSTICK_DATA:
-            return send_joystick_report(report);
+            return this->send_joystick_report(report);
         default: return false;
     }
 }
 
-bool send_module_connected_report(report_t report) {
+bool ReportQueueHandler::send_module_connected_report(const report_t &report) const {
     module_connected_report_t connected = {
         .moduleID = report.moduleID,
         .coordinates = report.payload.coordinates
@@ -46,14 +41,14 @@ bool send_module_connected_report(report_t report) {
     return tud_hid_report(REPORT_ID_MODULE_CONNECTED, (void *) (&connected), sizeof(connected));
 }
 
-bool send_module_disconnected_report(report_t report) {
+bool ReportQueueHandler::send_module_disconnected_report(const report_t &report) const {
     module_disconnected_report_t disconnected = {
         .moduleID = report.moduleID
     };
     return tud_hid_report(REPORT_ID_MODULE_DISCONNECTED, (void *) (&disconnected), sizeof(disconnected));
 }
 
-bool send_button_report(report_t report) {
+bool ReportQueueHandler::send_button_report(const report_t &report) const {
     button_report_t button = {
         .moduleID = report.moduleID,
         .button = report.payload.button
@@ -61,7 +56,7 @@ bool send_button_report(report_t report) {
     return tud_hid_report(REPORT_ID_BUTTON_DATA, (void *) (&button), sizeof(button));
 }
 
-bool send_dpad_report(report_t report) {
+bool ReportQueueHandler::send_dpad_report(const report_t &report) const {
     dpad_report_t dpad = {
         .moduleID = report.moduleID,
         .dpad = report.payload.dpad
@@ -69,7 +64,7 @@ bool send_dpad_report(report_t report) {
     return tud_hid_report(REPORT_ID_DPAD_DATA, (void *) (&dpad), sizeof(dpad));
 }
 
-bool send_joystick_report(report_t report) {
+bool ReportQueueHandler::send_joystick_report(const report_t &report) const {
     joystick_report_t joystick = {
         .moduleID = report.moduleID,
         .joystick = report.payload.joystick

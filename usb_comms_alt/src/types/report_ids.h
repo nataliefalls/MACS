@@ -1,13 +1,16 @@
 #ifndef REPORT_IDS_H
 #define REPORT_IDS_H
 
-typedef enum {
+enum report_id_t {
     REPORT_ID_MODULE_CONNECTED = 1,
     REPORT_ID_MODULE_DISCONNECTED,
     REPORT_ID_BUTTON_DATA,
     REPORT_ID_DPAD_DATA,
     REPORT_ID_JOYSTICK_DATA,
     LAST
-} report_id_t;
+} __attribute__ ((__packed__));
+TU_VERIFY_STATIC( sizeof(enum report_id_t) == 1 );
+
+typedef enum report_id_t report_id_t;
 
 #endif

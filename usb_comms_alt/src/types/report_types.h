@@ -29,7 +29,7 @@ typedef struct TU_ATTR_PACKED {
     joystick_data_t joystick;
 } joystick_report_t;
 
-typedef struct {
+typedef struct report_t {
     report_id_t reportID;
     uint8_t moduleID;
     payload_t payload;

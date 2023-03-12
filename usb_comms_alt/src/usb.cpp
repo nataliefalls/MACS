@@ -33,24 +33,23 @@
 
 // pico includes
 #include "bsp/board.h"
+#include "pico/time.h"
 
 // local includes
+#include "usb.h"
 #include "usb_descriptors.h"
 #include "report_types.h"
-#include "report_queue_handler.h"
-
-#define DEMO_FOR_FUENTES // uncomment to build a demo version
+#include "ReportQueueHandler.h"
 
 #ifdef DEMO_FOR_FUENTES
   #include "demo_utils.h"
 #endif
 
-void hid_task(void);
-bool initial_start_up_finished(void);
+void hid_task();
+bool initial_start_up_finished();
 bool polling_interval_wait();
 
-/*------------- MAIN -------------*/
-int main(void) {
+int usb_main() {
   board_init();
 
   #ifdef DEMO_FOR_FUENTES
@@ -68,7 +67,7 @@ int main(void) {
   return 0;
 }
 
-void hid_task(void) {
+void hid_task() {
   if (!initial_start_up_finished()) {
     return;
   } else if (polling_interval_wait()) {
@@ -76,13 +75,13 @@ void hid_task(void) {
   }
   
   #ifdef DEMO_FOR_FUENTES
-  send_demo_report();
+    send_demo_report();
   #else
-  send_next_report();
+    send_next_report();
   #endif
 }
 
-bool initial_start_up_finished(void) {
+bool initial_start_up_finished() {
   static bool startTimeInitialized = false;
   static uint32_t startTime;
 

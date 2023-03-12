@@ -22,8 +22,8 @@
  * THE SOFTWARE.
  */
 
-#ifndef USB_DESCRIPTORS_H_
-#define USB_DESCRIPTORS_H_
+#ifndef USB_DESCRIPTORS_H
+#define USB_DESCRIPTORS_H
 
 #include "report_descriptor.h"
 #include "device/usbd.h"
@@ -83,5 +83,4 @@
         ENDPOINT_ADDRESS, MAX_PACKET_SIZE, POLLING_INTERVAL_MS)\
 };
 
-
-#endif /* USB_DESCRIPTORS_H_ */
+#endif
