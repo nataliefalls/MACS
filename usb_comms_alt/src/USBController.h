@@ -17,25 +17,22 @@ class USBController {
     USBController() = default;
 
     /**
-     *  prepare an input report to be sent over usb
-     *  false return indicates that the report could not be queued,
-     *      and this report should be attempted again
+     *  prepare an input report to be sent over usb.
+     *  false return indicates that the report could not be queued
      *  true return indicates success
     */
     bool inputReport(const report_t &report) const;
 
     /**
-     *  prepare a module connected report to be sent over usb
-     *  false return indicates that the report could not be queued,
-     *      and this report should be attempted again
+     *  prepare a module connected report to be sent over usb.
+     *  false return indicates that the report could not be queued
      *  true return indicates success
     */
     bool moduleConnectedReport(uint8_t moduleID, const module_coordinates_t &coordinates) const;
 
     /**
-     *  prepare a module disconnected report to be sent over usb
-     *  false return indicates that the report could not be queued,
-     *      and this report should be attempted again
+     *  prepare a module disconnected report to be sent over usb.
+     *  false return indicates that the report could not be queued
      *  true return indicates success
     */
     bool moduleDisconnectedReport(uint8_t moduleID) const;
