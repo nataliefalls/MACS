@@ -18,6 +18,7 @@ send_report_status_t ReportQueueHandler::sendNextReport() const {
 }
 
 bool ReportQueueHandler::send_report(const report_t &report) const {
+    if ( !tud_hid_ready() ) return false;
     switch (report.reportID) {
         case REPORT_ID_MODULE_CONNECTED:
             return this->send_module_connected_report(report);

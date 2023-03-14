@@ -7,6 +7,9 @@
 #include "ReportQueueHandler.h"
 #include "MulticoreReportQueue.h"
 
+#include "Module.h"
+#include "ButtonPayload.h"
+
 #define BUTTON_PIN 14
 #define JOYSTICK_X_PIN 0
 #define JOYSTICK_Y_PIN 1
@@ -14,6 +17,33 @@
 IReportQueue *queue = new MulticoreReportQueue();
 ReportQueueHandler *handler = new ReportQueueHandler(queue);
 ReportQueueController *controller = new ReportQueueController(queue);
+
+Module<ButtonPayload> *module;
+
+void connectModule() {
+  uint8_t moduleID = 0x68;
+  module_coordinates_t coordinates = { 3, 3 };
+  module = new Module<ButtonPayload>(0x68, coordinates, controller);
+}
+
+void updateModule() {
+  static bool pressed = false;
+  static int count = 0;
+
+  button_data_t data = { (uint8_t) (pressed ? 1 : 0) };
+  IPayload *button = new ButtonPayload(data);
+  if (module) {
+    module->update(button);
+  }
+
+  if (++count % 1000 == 0) pressed == !pressed;
+  if (count >= 6000) count = 0;
+}
+
+void removeModule() {
+  delete module;
+  module = nullptr;
+}
 
 void init_adc_gpio() {
   gpio_init(BUTTON_PIN);
@@ -25,90 +55,23 @@ void init_adc_gpio() {
   adc_gpio_init(JOYSTICK_Y_PIN);
 }
 
-void send_button_report_demo() {
-  if ( !tud_hid_ready() ) return;
-
-  uint8_t moduleID = 0x68;
-  uint8_t button = gpio_get(BUTTON_PIN) ? 1 : 0;
-
-  payload_t payload = {
-    .button = { button },
-  };
-
-  // tud_hid_report(REPORT_ID_BUTTON_DATA, &report, sizeof(report));
-  // button_report(moduleID, report);
-  controller->inputReport(moduleID, REPORT_ID_BUTTON_DATA, payload);
-  switch (handler->sendNextReport()) {
-    case SEND_SUCCESS:
-      break;
-    case E_QUEUE_EMPTY: {
-      button_report_t report = {
-        .moduleID = E_QUEUE_EMPTY,
-        .button = 1,
-      };
-      tud_hid_report(REPORT_ID_BUTTON_DATA, &report, sizeof(report));
-      break;
-    }
-    case E_USB_TRANSFER_FAILED: {
-      button_report_t report = {
-        .moduleID = E_USB_TRANSFER_FAILED,
-        .button = 0,
-      };
-      tud_hid_report(REPORT_ID_BUTTON_DATA, &report, sizeof(report));
-      break;
-    }
-  }
-}
-
 static inline uint16_t adc_read_pin(uint pin) {
   adc_select_input(pin);
   return adc_read();
 }
 
-void send_joystick_report_demo() {
-  if ( !tud_hid_ready() ) return;
-  uint16_t x = adc_read_pin(JOYSTICK_X_PIN);
-  uint16_t y = adc_read_pin(JOYSTICK_Y_PIN);
-  uint8_t moduleID = 0x68;
-
-  const payload_t payload = {
-    .joystick = {
-      .x = (uint8_t) (x >> 8),
-      .y = (uint8_t) (y >> 8),
-    },
-  };
-
-  // tud_hid_report(REPORT_ID_JOYSTICK_DATA, &report, sizeof(report));
-  controller->inputReport(moduleID, REPORT_ID_JOYSTICK_DATA, payload);
-  switch (handler->sendNextReport()) {
-    case 0: break;
-    case E_QUEUE_EMPTY: {
-      button_report_t report = {
-        .moduleID = E_QUEUE_EMPTY,
-        .button = 1,
-      };
-      tud_hid_report(REPORT_ID_BUTTON_DATA, &report, sizeof(report));
-      break;
-    }
-    case E_USB_TRANSFER_FAILED: {
-      button_report_t report = {
-        .moduleID = E_USB_TRANSFER_FAILED,
-        .button = 0,
-      };
-      tud_hid_report(REPORT_ID_BUTTON_DATA, &report, sizeof(report));
-      break;
-    }
-  }
-}
-
 void send_demo_report() {
-  static bool buttonOrJoystick = false;
+  static int count = 0;
 
-  if (buttonOrJoystick) {
-    send_joystick_report_demo();
-  } else {
-    send_button_report_demo();
+  if (count == 0) {
+    connectModule();
+  } else if (count <= 7000) { 
+    updateModule();
+  } else if (count == 8000) { 
+    removeModule();
   }
 
-  buttonOrJoystick = !buttonOrJoystick;
+  if (++count >= 9000) {
+    count = 0;
+  }
 }
