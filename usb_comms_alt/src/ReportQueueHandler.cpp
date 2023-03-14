@@ -5,7 +5,7 @@ ReportQueueHandler::ReportQueueHandler(const IReportQueue *_queue) {
     this->queue = _queue;
 }
 
-send_report_status_t ReportQueueHandler::send_next_report() const {
+send_report_status_t ReportQueueHandler::sendNextReport() const {
     report_t nextReport{};
 
     if (!(this->queue->queue_pop(nextReport)))

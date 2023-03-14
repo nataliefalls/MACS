@@ -1,5 +1,4 @@
-#ifndef REPORT_QUEUE_H
-#define REPORT_QUEUE_H
+#pragma once
 
 #include "report_types.h"
 
@@ -20,5 +19,3 @@ class IReportQueue {
     */
     virtual bool queue_pop(report_t &report) const = 0;
 };
-
-#endif

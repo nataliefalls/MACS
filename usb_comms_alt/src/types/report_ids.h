@@ -9,7 +9,7 @@ enum report_id_t {
     REPORT_ID_JOYSTICK_DATA,
     LAST
 } __attribute__ ((__packed__));
-TU_VERIFY_STATIC( sizeof(enum report_id_t) == 1 );
+static_assert( sizeof(enum report_id_t) == 1 );
 
 typedef enum report_id_t report_id_t;
 

@@ -1,9 +1,9 @@
 #include "bsp/board.h"
 #include "hardware/adc.h"
 
-#include "demo_utils.h"
+#include "demo.h"
 #include "report_types.h"
-#include "USBController.h"
+#include "ReportQueueController.h"
 #include "ReportQueueHandler.h"
 #include "MulticoreReportQueue.h"
 
@@ -12,8 +12,8 @@
 #define JOYSTICK_Y_PIN 1
 
 IReportQueue *queue = new MulticoreReportQueue();
-ReportQueueHandler handler(queue);
-USBController controller(queue);
+ReportQueueHandler *handler = new ReportQueueHandler(queue);
+ReportQueueController *controller = new ReportQueueController(queue);
 
 void init_adc_gpio() {
   gpio_init(BUTTON_PIN);
@@ -31,20 +31,16 @@ void send_button_report_demo() {
   uint8_t moduleID = 0x68;
   uint8_t button = gpio_get(BUTTON_PIN) ? 1 : 0;
 
-  button_data_t data = {
-    button, // .button
-  };
-  report_t report = {
-    REPORT_ID_BUTTON_DATA,
-    moduleID,
-    {.button = data}
+  payload_t payload = {
+    .button = { button },
   };
 
   // tud_hid_report(REPORT_ID_BUTTON_DATA, &report, sizeof(report));
   // button_report(moduleID, report);
-  controller.inputReport(report);
-  switch (handler.send_next_report()) {
-    case 0: break;
+  controller->inputReport(moduleID, REPORT_ID_BUTTON_DATA, payload);
+  switch (handler->sendNextReport()) {
+    case SEND_SUCCESS:
+      break;
     case E_QUEUE_EMPTY: {
       button_report_t report = {
         .moduleID = E_QUEUE_EMPTY,
@@ -75,19 +71,16 @@ void send_joystick_report_demo() {
   uint16_t y = adc_read_pin(JOYSTICK_Y_PIN);
   uint8_t moduleID = 0x68;
 
-  joystick_data_t data = {
-    .x = (uint8_t) (x >> 8),
-    .y = (uint8_t) (y >> 8),
-  };
-  report_t report = {
-    REPORT_ID_JOYSTICK_DATA, // .reportID
-    moduleID, // .moduleID
-    {.joystick = data}, // .payload
+  const payload_t payload = {
+    .joystick = {
+      .x = (uint8_t) (x >> 8),
+      .y = (uint8_t) (y >> 8),
+    },
   };
 
   // tud_hid_report(REPORT_ID_JOYSTICK_DATA, &report, sizeof(report));
-  controller.inputReport(report);
-  switch (handler.send_next_report()) {
+  controller->inputReport(moduleID, REPORT_ID_JOYSTICK_DATA, payload);
+  switch (handler->sendNextReport()) {
     case 0: break;
     case E_QUEUE_EMPTY: {
       button_report_t report = {

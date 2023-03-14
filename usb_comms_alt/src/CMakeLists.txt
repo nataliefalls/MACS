@@ -8,11 +8,15 @@ target_sources(${target_name} PRIVATE
     usb_stack/usb_descriptors.c
     usb_stack/device_callbacks.c
     usb_stack/hid_callbacks.c
-    demo/demo_utils.cpp
+    demo/demo.cpp
     report_queue/BufferedReportQueue.cpp
     report_queue/MulticoreReportQueue.cpp
+    module/Module.cpp
+    payload/ButtonPayload.cpp
+    payload/DpadPayload.cpp
+    payload/JoystickPayload.cpp
     ReportQueueHandler.cpp
-    USBController.cpp
+    ReportQueueController.cpp
     usb.cpp
 )
 
@@ -22,6 +26,8 @@ target_include_directories(${target_name} PUBLIC
     ${CMAKE_CURRENT_LIST_DIR}/types
     ${CMAKE_CURRENT_LIST_DIR}/usb_stack
     ${CMAKE_CURRENT_LIST_DIR}/report_queue
+    ${CMAKE_CURRENT_LIST_DIR}/module
+    ${CMAKE_CURRENT_LIST_DIR}/payload
     ${CMAKE_CURRENT_LIST_DIR}/..
 )
 

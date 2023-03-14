@@ -41,15 +41,27 @@
 #include "report_types.h"
 #include "ReportQueueHandler.h"
 
-#ifdef DEMO_FOR_FUENTES
-  #include "demo_utils.h"
+#define MULTICORE_REPORT_QUEUE
+
+#ifdef MULTICORE_REPORT_QUEUE
+  #include "MulticoreReportQueue.h"
+  IReportQueue *queue = new MulticoreReportQueue();
+#else
+  #include "BufferedReportQueue.h"
+  IReportQueue *queue = new BufferedReportQueue();
 #endif
 
-void hid_task();
-bool initial_start_up_finished();
-bool polling_interval_wait();
+#ifdef DEMO_FOR_FUENTES
+  #include "demo.h"
+#endif
 
-int usb_main() {
+void hidTask();
+bool initialStartUpFinished();
+bool pollingIntervalWait();
+
+ReportQueueHandler *handler = new ReportQueueHandler(queue);
+
+int usbMain() {
   board_init();
 
   #ifdef DEMO_FOR_FUENTES
@@ -61,27 +73,27 @@ int usb_main() {
 
   while (1) {
     tud_task();
-    hid_task();
+    hidTask();
   }
 
   return 0;
 }
 
-void hid_task() {
-  if (!initial_start_up_finished()) {
+void hidTask() {
+  if (!initialStartUpFinished()) {
     return;
-  } else if (polling_interval_wait()) {
+  } else if (pollingIntervalWait()) {
     return;
   }
   
   #ifdef DEMO_FOR_FUENTES
     send_demo_report();
   #else
-    send_next_report();
+    handler->sendNextReport();
   #endif
 }
 
-bool initial_start_up_finished() {
+bool initialStartUpFinished() {
   static bool startTimeInitialized = false;
   static uint32_t startTime;
 
@@ -93,7 +105,7 @@ bool initial_start_up_finished() {
   return (time_us_32() - startTime) >= (1000000 / 2);
 }
 
-bool polling_interval_wait() {
+bool pollingIntervalWait() {
   static bool start_us_initialized = false;
   static uint32_t start_us;
   uint32_t current_us = time_us_32();

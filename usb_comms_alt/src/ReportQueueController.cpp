@@ -1,15 +1,20 @@
 #include "IReportQueue.h"
-#include "USBController.h"
+#include "ReportQueueController.h"
 
-USBController::USBController(const IReportQueue *_queue)  {
+ReportQueueController::ReportQueueController(const IReportQueue *_queue)  {
     this->queue = _queue;
 }
 
-bool USBController::inputReport(const report_t &report) const {
+bool ReportQueueController::inputReport(uint8_t moduleID, report_id_t reportID, const payload_t &payload) const {
+    report_t report = {
+        reportID,
+        moduleID,
+        payload,
+    };
     return this->queue->queue_push(report);
 }
 
-bool USBController::moduleConnectedReport(uint8_t moduleID, const module_coordinates_t &coordinates) const {
+bool ReportQueueController::moduleConnectedReport(uint8_t moduleID, const module_coordinates_t &coordinates) const {
     report_t newReport = {
         REPORT_ID_MODULE_CONNECTED, // .reportID
         moduleID,                   // .moduleID
@@ -18,7 +23,7 @@ bool USBController::moduleConnectedReport(uint8_t moduleID, const module_coordin
     return this->queue->queue_push(newReport);
 }
 
-bool USBController::moduleDisconnectedReport(uint8_t moduleID) const {
+bool ReportQueueController::moduleDisconnectedReport(uint8_t moduleID) const {
     report_t newReport = {
         REPORT_ID_MODULE_DISCONNECTED,  // .reportID
         moduleID,                       // .moduleID

@@ -1,5 +1,4 @@
-#ifndef REPORT_QUEUE_HANDLER_H
-#define REPORT_QUEUE_HANDLER_H
+#pragma once
 
 #include "IReportQueue.h"
 
@@ -25,7 +24,7 @@ class ReportQueueHandler {
     /**
      * send the next report in the report queue over usb
     */
-    send_report_status_t send_next_report() const;
+    send_report_status_t sendNextReport() const;
 
     private:
     bool send_report(const report_t &report) const;
@@ -35,5 +34,3 @@ class ReportQueueHandler {
     bool send_dpad_report(const report_t &report) const;
     bool send_joystick_report(const report_t &report) const;
 };
-
-#endif
