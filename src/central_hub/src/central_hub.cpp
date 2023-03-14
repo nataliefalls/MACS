@@ -9,6 +9,7 @@
 #include <i2c_device.h>
 #include <PwmIn.h>
 #include "hub_utils.h"
+#include <common.h>
 
 std::set<uint8_t> modules;
 
@@ -88,6 +89,8 @@ static void core0_main() {
                 modules.erase(address);
                 continue;
             }
+
+            // do stuff with read buffer here? or in case block?
         }
         //int count = i2c_read_blocking(i2c1, I2C_WORKER_ADDRESS, (uint8_t *)&buf, 2, true);
         
