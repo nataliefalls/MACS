@@ -7,6 +7,7 @@
 #ifndef _I2C_WORKER_H_
 #define _I2C_WORKER_H_
 
+#include <functional>
 #include <hardware/i2c.h>
 
 #ifdef __cplusplus
@@ -20,6 +21,8 @@ extern "C" {
 
 #define I2C_BAUDRATE 100000
 #define HUB_I2C_ADDRESS 0x77
+#define WORKER_I2C_SDA_PIN PICO_DEFAULT_I2C_SDA_PIN
+#define WORKER_I2C_SCL_PIN PICO_DEFAULT_I2C_SCL_PIN
 
 /**
  * \brief I2C worker event types.
@@ -52,7 +55,7 @@ typedef void (*i2c_worker_handler_t)(i2c_inst_t *i2c, i2c_worker_event_t event);
  * \param handler Called on events from I2C master. It will run from the I2C ISR, on the CPU core
  *                where the worker was initialized.
  */
-void i2c_worker_init(i2c_inst_t *i2c, uint8_t address, i2c_worker_handler_t handler);
+void i2c_worker_init(i2c_inst_t *i2c, uint8_t address, std::function<void(i2c_inst_t*, i2c_worker_event_t)> handler);
 
 /**
  * \brief Restore I2C instance to master mode.

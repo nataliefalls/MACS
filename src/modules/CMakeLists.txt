@@ -43,16 +43,12 @@ foreach(element ${TARGET})
 
     if(BUTTON STREQUAL TRUE)
         target_compile_definitions(${element} PRIVATE 
-            "BUTTON"
-            DIGITAL
-            ${ID}
+            BUTTON DIGITAL ${ID}
         )
     endif()
     if(SWITCH)
         target_compile_definitions(${element} PRIVATE
-            SWITCH
-            DIGITAL
-            ${ID}
+            SWITCH DIGITAL ${ID}
         )
     endif()
     if(ROTARY_POTENTIOMETER)

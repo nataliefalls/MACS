@@ -10,7 +10,7 @@
 typedef struct i2c_worker_t
 {
     i2c_inst_t *i2c;
-    i2c_worker_handler_t handler;
+    std::function<void(i2c_inst_t*, i2c_worker_event_t)> handler;
     bool transfer_in_progress;
 } i2c_worker_t;
 
@@ -62,7 +62,7 @@ static void __not_in_flash_func(i2c1_worker_irq_handler)() {
     i2c_worker_irq_handler(&i2c_workers[1]);
 }
 
-void i2c_worker_init(i2c_inst_t *i2c, uint8_t address, i2c_worker_handler_t handler) {
+void i2c_worker_init(i2c_inst_t *i2c, uint8_t address, std::function<void(i2c_inst_t*, i2c_worker_event_t)> handler) {
     assert(i2c == i2c0 || i2c == i2c1);
     assert(handler != NULL);
 
