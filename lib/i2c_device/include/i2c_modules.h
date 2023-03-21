@@ -1,7 +1,49 @@
+#ifndef I2C_MODULES
+#define I2C_MODULES
+
 #include <pico/stdlib.h>
-#include "i2c_device.h"
+#include <i2c_device.h>
 #include <common.h>
 #include <set>
+
+/* Utility functions */
+
+static inline void initialize_i2c(i2c_inst_t* i2c, uint sda, uint scl) {
+
+    gpio_init(sda);
+    gpio_init(scl);
+    gpio_set_function(sda, GPIO_FUNC_I2C);
+    gpio_set_function(scl, GPIO_FUNC_I2C);
+    gpio_pull_up(sda);
+    gpio_pull_up(scl);
+
+    i2c_init(i2c, I2C_BAUDRATE);
+}
+
+static inline uint8_t hw_size_from_type(Module type) {
+    switch (type)
+    {
+    case kButton:
+    case kSwitch:
+        return 1;
+    case kSlider:
+    case kPotentiometer:
+        return 2;
+    case kJoystick:
+        return 3;
+    default:
+        return -1;
+    }
+}
+
+static inline i2c_inst_t* i2c_block_from_gpio(uint pin) {
+    invalid_params_if(I2C, pin != 26 && pin != 27 && pin >= 22);
+    if (pin < 22) {
+        return i2c_get_instance((pin / 2) % 2);
+    } else if (pin == 26 || pin == 27) {
+        return i2c_get_instance(1);
+    }
+}
 
 class I2C_Base {
 public:
@@ -40,3 +82,5 @@ private:
     uint queen_scl;
     std::set<uint8_t> modules;
 };
+
+#endif

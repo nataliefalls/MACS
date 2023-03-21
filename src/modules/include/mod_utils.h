@@ -2,11 +2,13 @@
  * Testing out preprocessor directives that can be set in CMake with target_compile_definitions for different targets
 */
 
-#ifndef INPUTS
-#define INPUTS
+#ifndef MOD_UTILS
+#define MOD_UTILS
 
 #include <pico/stdlib.h>
 #include <cstdio>
+
+
 
 void test(uint8_t *test) {
 #if DIGITAL
