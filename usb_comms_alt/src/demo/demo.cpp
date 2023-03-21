@@ -74,6 +74,8 @@ void send_demo_report() {
   
   handler->sendNextReport();
 
+  handler->sendNextReport();
+
   if (++count >= 9000) {
     count = 0;
   }
