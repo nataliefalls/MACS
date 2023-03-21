@@ -43,6 +43,7 @@ static inline i2c_inst_t* i2c_block_from_gpio(uint pin) {
 //} else if (pin == 26 || pin == 27) {
 //    return i2c_get_instance(1);
 //}
+  return NULL;
 }
 
 class I2C_Base {
