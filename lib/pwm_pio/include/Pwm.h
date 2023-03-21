@@ -13,7 +13,7 @@ class Pwm
 {
 public:
   // constructor
-  Pwm(uint *pin_in_list, uint num_of_pins);
+  Pwm(uint pwm_out, uint *pin_in_list, uint num_of_pins);
   // read only the pulsewidth
   uint16_t read_PW(uint pin);
   bool isConnected(uint pin);

@@ -37,12 +37,12 @@ Pwm::Pwm(uint pwm_out, uint *pin_in_list, uint num_of_pins)
       period[ii] = 0;
 
       // configure the used pins (pull down, controlled by PIO)
-      gpio_pull_down(pin_list[ii]);
-      pio_gpio_init(pio, pin_list[ii]);
+      gpio_pull_down(pin_in_list[ii]);
+      pio_gpio_init(pio, pin_in_list[ii]);
       // set the 'jmp' pin
-      sm_config_set_jmp_pin(&c, pin_list[ii]);
+      sm_config_set_jmp_pin(&c, pin_in_list[ii]);
       // set the 'wait' pin (uses 'in' pins)
-      sm_config_set_in_pins(&c, pin_list[ii]);
+      sm_config_set_in_pins(&c, pin_in_list[ii]);
       // set shift direction
       sm_config_set_in_shift(&c, false, false, 0);
       // init the pio sm with the config
@@ -78,7 +78,7 @@ bool Pwm::isConnected(uint pin)
   return isNew[pin];
 };
 
-void PWmIn::setPWMOut(uint16_t value)
+void Pwm::setPWMOut(uint16_t value)
 {
   gpio_set_function(_pwm_out, GPIO_FUNC_PWM);
   
@@ -88,4 +88,3 @@ uint32_t Pwm::pulsewidth[8];
 uint32_t Pwm::period[8];
 PIO Pwm::pio;
 bool Pwm::isNew[8];
-uint Pwm::_pwm_out;

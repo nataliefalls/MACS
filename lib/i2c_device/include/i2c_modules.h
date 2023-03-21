@@ -37,12 +37,12 @@ static inline uint8_t hw_size_from_type(Module type) {
 }
 
 static inline i2c_inst_t* i2c_block_from_gpio(uint pin) {
-    invalid_params_if(I2C, pin != 26 && pin != 27 && pin >= 22);
-    if (pin < 22) {
-        return i2c_get_instance((pin / 2) % 2);
-    } else if (pin == 26 || pin == 27) {
-        return i2c_get_instance(1);
-    }
+//invalid_params_if(I2C, pin != 26 && pin != 27 && pin >= 22);
+//if (pin < 22) {
+//    return i2c_get_instance((pin / 2) % 2);
+//} else if (pin == 26 || pin == 27) {
+//    return i2c_get_instance(1);
+//}
 }
 
 class I2C_Base {
