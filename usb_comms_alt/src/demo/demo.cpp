@@ -71,6 +71,8 @@ void send_demo_report() {
     removeModule();
   }
 
+  handler->sendNextReport();
+
   if (++count >= 9000) {
     count = 0;
   }
