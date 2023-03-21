@@ -6,6 +6,8 @@
 #include <mod_utils.h>
 
 
+#define NUM_PWM_PINS
+
 int main() {
     stdio_init_all();
 
@@ -27,9 +29,22 @@ int main() {
     };
     uint pwm_out = PWM_OUT_PIN;
 
-    Pwm module_pwm(pwm_out, pwm_in, 6);
-    module_pwm.setPWMOut(addr);
+    Pwm module_pwm(pwm_out, pwm_in, NUM_PWM_PINS);
 
+    module_pwm.setPWMOut(addr);
+    // sleep for some time to let neigbors initialize if necessary
+    usleep(500000);
+
+    bool found_neighbor = false;
+    uint side = 0;
+    while(!found_neighbor) {
+      side = (side + 1) % NUM_PWM_PINS;
+      if (module_pwm.isConnected(side))
+	break;
+    }
+
+    uint16_t neighbor_address = module_pwm.read_PW(side);
+    
     module.setup();
 
     while(1) {
