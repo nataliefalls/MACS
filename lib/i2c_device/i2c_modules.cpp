@@ -1,48 +1,8 @@
 #include <functional>
 
 #include "i2c_modules.h"
-#include "pico/lock_core.h"
 
 using namespace std::placeholders;
-
-/* Utility functions */
-
-static void initialize_i2c(i2c_inst_t* i2c, uint sda, uint scl) {
-
-    gpio_init(sda);
-    gpio_init(scl);
-    gpio_set_function(sda, GPIO_FUNC_I2C);
-    gpio_set_function(scl, GPIO_FUNC_I2C);
-    gpio_pull_up(sda);
-    gpio_pull_up(scl);
-
-    i2c_init(i2c, I2C_BAUDRATE);
-}
-
-static uint8_t hw_size_from_type(Module type) {
-    switch (type)
-    {
-    case kButton:
-    case kSwitch:
-        return 1;
-    case kSlider:
-    case kPotentiometer:
-        return 2;
-    case kJoystick:
-        return 3;
-    default:
-        return -1;
-    }
-}
-
-static i2c_inst_t* i2c_block_from_gpio(uint pin) {
-    invalid_params_if(I2C, pin != 26 && pin != 27 && pin >= 22);
-    if (pin < 22) {
-        return i2c_get_instance((pin / 2) % 2);
-    } else if (pin == 26 || pin == 27) {
-        return i2c_get_instance(1);
-    }
-}
 
 /* I2C Base Definition */
 

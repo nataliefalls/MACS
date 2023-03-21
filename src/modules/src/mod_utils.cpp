@@ -1,4 +1,4 @@
-#include <inputs.h>
+#include <mod_utils.h>
 #include <hardware/gpio.h>
 
 uint8_t read_digital_input(uint pin) {

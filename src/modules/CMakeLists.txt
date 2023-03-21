@@ -21,7 +21,7 @@ function(string_split_at_last partb input separator)
   set(${partb} ${pb} PARENT_SCOPE)
 endfunction(string_split_at_last partb input separator)
 
-set(TARGET "button_1" "button_2" "switch_1" "joystick_1" "linear_potentiometer_1")
+set(TARGET "button_1" "button_2" "switch_1" "joystick_1" "slider_1")
 foreach(element ${TARGET})
     add_executable(${element})
 
@@ -35,13 +35,13 @@ foreach(element ${TARGET})
 
     string_starts_with(BUTTON ${element} "button")
     string_starts_with(SWITCH ${element} "switch")
-    string_starts_with(ROTARY_POTENTIOMETER ${element} "rotary_potentiometer")
-    string_starts_with(LINEAR_POTENTIOMETER ${element} "linear_potentiometer")
+    string_starts_with(POTENTIOMETER ${element} "potentiometer")
+    string_starts_with(SLIDER ${element} "slider")
     string_starts_with(JOYSTICK ${element} "joystick")
     string_split_at_last(ID_NUM ${element} "_")
     set(ID "ID_${ID_NUM}")
 
-    if(BUTTON STREQUAL TRUE)
+    if(BUTTON)
         target_compile_definitions(${element} PRIVATE 
             BUTTON DIGITAL ${ID}
         )
@@ -51,26 +51,19 @@ foreach(element ${TARGET})
             SWITCH DIGITAL ${ID}
         )
     endif()
-    if(ROTARY_POTENTIOMETER)
+    if(POTENTIOMETER)
         target_compile_definitions(${element} PRIVATE
-            ROTARY_POTENTIOMETER
-            ANALOG
-            ${ID}
+            POTENTIOMETER ANALOG ${ID}
         )
     endif()
-    if(LINEAR_POTENTIOMETER)
+    if(SLIDER)
         target_compile_definitions(${element} PRIVATE
-            LINEAR_POTENTIOMETER
-            ANALOG
-            ${ID}
+            SLIDER ANALOG ${ID}
         )
     endif()
     if(JOYSTICK)
         target_compile_definitions(${element} PRIVATE
-            JOYSTICK
-            ANALOG
-            DIGITAL
-            ${ID}
+            JOYSTICK ANALOG DIGITAL ${ID}
         )
     endif()
 
@@ -83,7 +76,7 @@ foreach(element ${TARGET})
 
     target_sources(${element} PUBLIC
             src/module.cpp
-            src/inputs.cpp
+            src/mod_utils.cpp
     )
 
     # Add the standard library to the build
