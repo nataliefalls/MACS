@@ -6,7 +6,7 @@
 #include <pico/multicore.h>
 
 #include <i2c_modules.h>
-#include <PwmIn.h>
+#include <Pwm.h>
 #include "hub_utils.h"
 #include <common.h>
 

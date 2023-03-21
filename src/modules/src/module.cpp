@@ -2,7 +2,7 @@
 #include <hardware/pwm.h>
 
 #include <i2c_modules.h>
-#include <PwmIn.h>
+#include <Pwm.h>
 
 
 int main() {
