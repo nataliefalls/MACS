@@ -1,21 +1,25 @@
 #pragma once
 
 #include "IReportQueue.h"
+#include "pico/util/queue.h"
 
-class BufferedReportQueue: public IReportQueue {
+class PicoQueueReportQueue: public IReportQueue {
     private:
-    // need to add a mutex field
-    const uint8_t *buffer;
-    const uint8_t size;
+    queue_t *queue;
+    /**
+     * timeout for the queue requests in microseconds
+    */
+    static const uint64_t QUEUE_TIMEOUT = 1000;
+    /**
+     * number of elements that we can hold in the queue
+    */
+    static const uint QUEUE_SIZE = 8;
 
     public:
     /**
-     * construct a buffered report queue with a buffer and its size
+     * construct a PicoQueueReportQueue
     */
-    BufferedReportQueue(const uint8_t *_buffer, uint8_t _size)
-        : buffer(_buffer), size(_size) {}
-
-    BufferedReportQueue() = default;
+    PicoQueueReportQueue();
 
     /**
      * push the given report to the queue.

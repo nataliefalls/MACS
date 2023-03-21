@@ -5,7 +5,8 @@
 #include "report_types.h"
 #include "ReportQueueController.h"
 #include "ReportQueueHandler.h"
-#include "MulticoreReportQueue.h"
+// #include "MulticoreFifoReportQueue.h"
+#include "PicoQueueReportQueue.h"
 
 #include "Module.h"
 #include "ButtonPayload.h"
@@ -14,7 +15,7 @@
 #define JOYSTICK_X_PIN 0
 #define JOYSTICK_Y_PIN 1
 
-IReportQueue *queue = new MulticoreReportQueue();
+IReportQueue *queue = new PicoQueueReportQueue();
 ReportQueueHandler *handler = new ReportQueueHandler(queue);
 ReportQueueController *controller = new ReportQueueController(queue);
 
@@ -23,7 +24,7 @@ Module<ButtonPayload> *module;
 void connectModule() {
   uint8_t moduleID = 0x68;
   module_coordinates_t coordinates = { 3, 3 };
-  module = new Module<ButtonPayload>(0x68, coordinates, controller);
+  module = new Module<ButtonPayload>(moduleID, coordinates, controller);
 }
 
 void updateModule() {
@@ -65,11 +66,13 @@ void send_demo_report() {
 
   if (count == 0) {
     connectModule();
-  } else if (count <= 7000) { 
+  } else if (count < 8000) { 
     updateModule();
   } else if (count == 8000) { 
     removeModule();
   }
+  
+  handler->sendNextReport();
 
   if (++count >= 9000) {
     count = 0;

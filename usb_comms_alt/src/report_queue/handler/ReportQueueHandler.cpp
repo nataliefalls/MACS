@@ -6,19 +6,21 @@ ReportQueueHandler::ReportQueueHandler(const IReportQueue *_queue) {
 }
 
 send_report_status_t ReportQueueHandler::sendNextReport() const {
-    report_t nextReport{};
+    report_t nextReport;
+    bool success = this->queue->queue_pop(&nextReport);
 
-    if (!(this->queue->queue_pop(nextReport)))
-        return E_QUEUE_EMPTY;
+    if (!success) return E_QUEUE_EMPTY;
 
-    if (!this->send_report(nextReport))
-        return E_USB_TRANSFER_FAILED;
+    success = this->send_report(nextReport);
+
+    if (!success) return E_USB_TRANSFER_FAILED;
 
     return SEND_SUCCESS;
 }
 
 bool ReportQueueHandler::send_report(const report_t &report) const {
-    if ( !tud_hid_ready() ) return false;
+    bool ready = tud_hid_ready();
+    if ( !ready ) return false;
     switch (report.reportID) {
         case REPORT_ID_MODULE_CONNECTED:
             return this->send_module_connected_report(report);

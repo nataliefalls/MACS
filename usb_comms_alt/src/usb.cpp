@@ -43,14 +43,6 @@
 
 #define MULTICORE_REPORT_QUEUE
 
-#ifdef MULTICORE_REPORT_QUEUE
-  #include "MulticoreReportQueue.h"
-  IReportQueue *queue = new MulticoreReportQueue();
-#else
-  #include "BufferedReportQueue.h"
-  IReportQueue *queue = new BufferedReportQueue();
-#endif
-
 #ifdef DEMO_FOR_FUENTES
   #include "demo.h"
 #endif
@@ -59,14 +51,12 @@ void hidTask();
 bool initialStartUpFinished();
 bool pollingIntervalWait();
 
-ReportQueueHandler *handler = new ReportQueueHandler(queue);
-
-int usbMain() {
+#ifdef DEMO_FOR_FUENTES
+int main() {
+#else
+  int usbMain() {
+#endif
   board_init();
-
-  #ifdef DEMO_FOR_FUENTES
-    init_adc_gpio();
-  #endif
 
   // init device stack on configured roothub port
   tud_init(BOARD_TUD_RHPORT);

@@ -41,3 +41,5 @@ template <class T> class Module {
     protected:
     bool sendReport(IPayload *newState) const;
 };
+
+#include "ModuleImpl.h"

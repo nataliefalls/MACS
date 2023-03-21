@@ -1,5 +1,4 @@
-#ifndef MULTICORE_REPORT_QUEUE_H
-#define MULTICORE_REPORT_QUEUE_H
+#pragma once
 
 #include "IReportQueue.h"
 
@@ -24,7 +23,5 @@ class MulticoreReportQueue: public IReportQueue {
      *  returns true on success, in which case, the report argument
      *      contains the report that was popped
     */
-    virtual bool queue_pop(report_t &report) const;
+    virtual bool queue_pop(report_t *report) const;
 };
-
-#endif

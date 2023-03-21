@@ -1,10 +1,17 @@
+#pragma once
+
 #include <type_traits>
 #include "Module.h"
 #include "report_types.h"
 
+uint8_t oof() {
+    return 1;
+}
+
 template <class T>
 Module<T>::Module(uint8_t _moduleID, module_coordinates_t coordinates, ReportQueueController *_controller)
-    : moduleID(_moduleID), controller(_controller), state(nullptr) {
+    // : moduleID(_moduleID), controller(_controller), state(nullptr) {
+    : moduleID(oof()), controller(_controller), state(nullptr) {
     // verify at compile-time that T is a subclass of IPayload
     static_assert(std::is_base_of<IPayload, T>::value, "template parameter not a subclass of IPayload");
     // let the application know a module was connected
