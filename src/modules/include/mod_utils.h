@@ -7,24 +7,17 @@
 
 #include <pico/stdlib.h>
 #include <cstdio>
+#include <hardware/i2c.h>
+#include <common.h>
 
-
-
-void test(uint8_t *test) {
-#if DIGITAL
-    printf("Digital input\n");
+#ifndef PARAM_ASSERTIONS_ENABLED_MODULE
+#define PARAM_ASSERTIONS_ENABLED_MODULE 0
 #endif
 
-#if ANALOG
-    //this piece of code will run if the module is an analog input
-    printf("Analog input\n");
-#endif
+namespace module {
+
+uint8_t get_address();
+
 }
-
-#if ID_1
-void test_id_1();
-#endif
-
-uint8_t read_digital_input(uint pin);
 
 #endif

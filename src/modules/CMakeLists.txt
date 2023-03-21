@@ -33,37 +33,36 @@ foreach(element ${TARGET})
 
     include_directories(${CMAKE_CURRENT_LIST_DIR}/include)
 
-    string_starts_with(BUTTON ${element} "button")
-    string_starts_with(SWITCH ${element} "switch")
-    string_starts_with(POTENTIOMETER ${element} "potentiometer")
-    string_starts_with(SLIDER ${element} "slider")
-    string_starts_with(JOYSTICK ${element} "joystick")
+    string_starts_with(HAS_BUTTON ${element} "button")
+    string_starts_with(HAS_SWITCH ${element} "switch")
+    string_starts_with(HAS_POTENTIOMETER ${element} "potentiometer")
+    string_starts_with(HAS_SLIDER ${element} "slider")
+    string_starts_with(HAS_JOYSTICK ${element} "joystick")
     string_split_at_last(ID_NUM ${element} "_")
-    set(ID "ID_${ID_NUM}")
 
-    if(BUTTON)
+    if(HAS_BUTTON)
         target_compile_definitions(${element} PRIVATE 
-            BUTTON DIGITAL ${ID}
+            BUTTON DIGITAL ID=${ID_NUM}
         )
     endif()
-    if(SWITCH)
+    if(HAS_SWITCH)
         target_compile_definitions(${element} PRIVATE
-            SWITCH DIGITAL ${ID}
+            SWITCH DIGITAL ID=${ID_NUM}
         )
     endif()
-    if(POTENTIOMETER)
+    if(HAS_POTENTIOMETER)
         target_compile_definitions(${element} PRIVATE
-            POTENTIOMETER ANALOG ${ID}
+            POTENTIOMETER ANALOG ID=${ID_NUM}
         )
     endif()
-    if(SLIDER)
+    if(HAS_SLIDER)
         target_compile_definitions(${element} PRIVATE
-            SLIDER ANALOG ${ID}
+            SLIDER ANALOG ID=${ID_NUM}
         )
     endif()
-    if(JOYSTICK)
+    if(HAS_JOYSTICK)
         target_compile_definitions(${element} PRIVATE
-            JOYSTICK ANALOG DIGITAL ${ID}
+            JOYSTICK ANALOG DIGITAL ID=${ID_NUM}
         )
     endif()
 
@@ -88,6 +87,7 @@ foreach(element ${TARGET})
             pico_multicore
             pwm_pio
             hardware_gpio
+            hardware_adc
     )
 
     pico_add_extra_outputs(${element})

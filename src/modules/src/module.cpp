@@ -3,6 +3,7 @@
 
 #include <i2c_modules.h>
 #include <Pwm.h>
+#include <mod_utils.h>
 
 
 int main() {
@@ -12,7 +13,9 @@ int main() {
     gpio_set_dir(25, GPIO_OUT);
     gpio_put(25, 1);
 
-    I2C_Module module(0x01, PICO_DEFAULT_I2C_SDA_PIN, PICO_DEFAULT_I2C_SCL_PIN, parse_address(0x01));
+    uint8_t addr = module::get_address();
+
+    I2C_Module module(addr, PICO_DEFAULT_I2C_SDA_PIN, PICO_DEFAULT_I2C_SCL_PIN, parse_address(addr));
 
     uint pwm_in[6] = {
 		   PWM_IN_SIDE_1,
@@ -25,6 +28,7 @@ int main() {
     uint pwm_out = PWM_OUT_PIN;
 
     Pwm module_pwm(pwm_out, pwm_in, 6);
+    module_pwm.setPWMOut(addr);
 
     module.setup();
 
