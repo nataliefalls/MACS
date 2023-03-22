@@ -347,7 +347,7 @@ const ControllerInputs = [
 function App() {
   const [inputTypes, setInputTypes] = useState(InputTypes);
   const [hexagons, setHexagons] = useState(Hexagons);
-  const [controllerFound, setControllerFound] = useState(true);
+  const [controllerFound, setControllerFound] = useState(false);
   const [controllerStatus, setControllerStatus] = useState(false);
   const [activeHexagon, setActiveHexagon] = useState(null);
   const [gridRotate, setGridRotate] = useState("0deg");
@@ -1602,6 +1602,8 @@ function App() {
       panRef?.current?.resetTransform();
       panRef?.current?.centerView();
     });
+    panRef?.current?.resetTransform();
+    panRef?.current?.centerView();
   }, []);
 
   // console.log("ran");
