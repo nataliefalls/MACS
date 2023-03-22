@@ -40,6 +40,7 @@
 #include "usb_descriptors.h"
 #include "report_types.h"
 #include "ReportQueueHandler.h"
+#include "PicoTimer.h"
 
 #define MULTICORE_REPORT_QUEUE
 
@@ -47,17 +48,20 @@
   #include "demo.h"
 #endif
 
+PicoTimer timer;
+
 void hidTask();
 bool initialStartUpFinished();
 bool pollingIntervalWait();
 
 #ifdef DEMO_FOR_FUENTES
 int main() {
-#else
-  int usbMain() {
+  usbMain();
+}
 #endif
-  board_init();
 
+int usbMain() {
+  board_init();
   // init device stack on configured roothub port
   tud_init(BOARD_TUD_RHPORT);
 
@@ -85,32 +89,27 @@ void hidTask() {
 
 bool initialStartUpFinished() {
   static bool startTimeInitialized = false;
-  static uint32_t startTime;
 
   if (!startTimeInitialized) {
-    startTime = time_us_32();
     startTimeInitialized = true;
+    timer.startTimer(1000000 / 2);
   }
 
-  return (time_us_32() - startTime) >= (1000000 / 2);
+  return timer.timeoutOccured();
 }
 
 bool pollingIntervalWait() {
   static bool start_us_initialized = false;
-  static uint32_t start_us;
-  uint32_t current_us = time_us_32();
 
   if (!start_us_initialized) {
-    start_us = current_us;
+    timer.startTimer(POLLING_INTERVAL_MS * 1000);
     start_us_initialized = true;
   }
 
-  if (current_us < start_us) {
-    return (current_us + ~start_us + 1) < (POLLING_INTERVAL_MS * 1000);
-  } else if (current_us - start_us < POLLING_INTERVAL_MS * 1000) {
-    return true;
-  } else {
-    start_us = current_us;
+  if (timer.timeoutOccured()) {
+    timer.startTimer(POLLING_INTERVAL_MS * 1000);
     return false;
+  } else {
+    return true;
   }
 }

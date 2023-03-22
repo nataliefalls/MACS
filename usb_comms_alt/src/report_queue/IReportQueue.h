@@ -5,14 +5,14 @@
 class IReportQueue {
     public:
     /**
-     * push the given report to the queue.
+     * push the given report to the queue with a 1ms timeout.
      *  returns false on failure
      *  returns true on success
     */
     virtual bool queue_push(const report_t &report) const = 0;
 
     /**
-     * pop the first report off of the queue.
+     * pop the first report off of the queue with a 1ms timeout.
      *  returns false on failure
      *  returns true on success, in which case, the report argument
      *      contains the report that was popped

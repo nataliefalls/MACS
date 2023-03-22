@@ -17,14 +17,12 @@ target_sources(${target_name} PRIVATE
     report_queue/MulticoreFifoReportQueue.cpp
     report_queue/PicoQueueReportQueue.cpp
     # module/Module.cpp
-    # module/ButtonModule.cpp
-    # module/JoystickModule.cpp
-    # module/DpadModule.cpp
     payload/ButtonPayload.cpp
     payload/DpadPayload.cpp
     payload/JoystickPayload.cpp
     report_queue/handler/ReportQueueHandler.cpp
     report_queue/controller/ReportQueueController.cpp
+    PicoTimer.cpp
     usb.cpp
 )
 

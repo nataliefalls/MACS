@@ -5,17 +5,18 @@
 #include "report_types.h"
 #include "ReportQueueController.h"
 #include "ReportQueueHandler.h"
-// #include "MulticoreFifoReportQueue.h"
 #include "PicoQueueReportQueue.h"
 
 #include "Module.h"
 #include "ButtonPayload.h"
+#include "DpadPayload.h"
 
 #define BUTTON_PIN 14
 #define JOYSTICK_X_PIN 0
 #define JOYSTICK_Y_PIN 1
 
-IReportQueue *queue = new PicoQueueReportQueue();
+queue_t sharedQueue;
+IReportQueue *queue = new PicoQueueReportQueue(&sharedQueue);
 ReportQueueHandler *handler = new ReportQueueHandler(queue);
 ReportQueueController *controller = new ReportQueueController(queue);
 
@@ -28,22 +29,33 @@ void connectModule() {
 }
 
 void updateModule() {
-  static bool pressed = false;
-  static int count = 0;
+  uint8_t state = gpio_get(BUTTON_PIN) ? 1 : 0;
 
-  button_data_t data = { (uint8_t) (pressed ? 1 : 0) };
-  IPayload *button = new ButtonPayload(data);
-  if (module) {
-    module->update(button);
-  }
-
-  if (++count % 1000 == 0) pressed == !pressed;
-  if (count >= 6000) count = 0;
+  button_data_t data = { state };
+  ButtonPayload *dpad = new ButtonPayload(data);
+  module->update(dpad);
 }
 
 void removeModule() {
   delete module;
-  module = nullptr;
+}
+
+void send_demo_report() {
+  static int count = 0;
+
+  if (count == 0) {
+    connectModule();
+    handler->sendNextReport();
+    count++;
+  } else if (count == 1 || count == 2) {
+    updateModule();
+    handler->sendNextReport();
+    count++;
+  } else { 
+    removeModule();
+    handler->sendNextReport();
+    count = 0;
+  }
 }
 
 void init_adc_gpio() {
@@ -56,27 +68,7 @@ void init_adc_gpio() {
   adc_gpio_init(JOYSTICK_Y_PIN);
 }
 
-static inline uint16_t adc_read_pin(uint pin) {
+inline uint16_t adc_read_pin(uint pin) {
   adc_select_input(pin);
   return adc_read();
-}
-
-void send_demo_report() {
-  static int count = 0;
-
-  if (count == 0) {
-    connectModule();
-  } else if (count < 8000) { 
-    updateModule();
-  } else if (count == 8000) { 
-    removeModule();
-  }
-  
-  handler->sendNextReport();
-
-  handler->sendNextReport();
-
-  if (++count >= 9000) {
-    count = 0;
-  }
 }

@@ -36,10 +36,11 @@ template <class T> class Module {
      * - we force a send
      * state is updated iff the report was queued successfully
     */
-    void update(IPayload *newState);
+    void update(T *newState);
 
     protected:
     bool sendReport(IPayload *newState) const;
 };
 
+// for implicit template instantiation
 #include "ModuleImpl.h"

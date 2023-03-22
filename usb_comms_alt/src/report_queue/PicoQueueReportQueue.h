@@ -5,21 +5,30 @@
 
 class PicoQueueReportQueue: public IReportQueue {
     private:
-    queue_t *queue;
     /**
      * timeout for the queue requests in microseconds
     */
     static const uint64_t QUEUE_TIMEOUT = 1000;
-    /**
-     * number of elements that we can hold in the queue
-    */
-    static const uint QUEUE_SIZE = 8;
+
+    queue_t *queue;
+
+    bool init;
 
     public:
     /**
-     * construct a PicoQueueReportQueue
+     * constructs a PicoQueueReportQueue with the given queue_t
     */
-    PicoQueueReportQueue();
+    PicoQueueReportQueue(queue_t *_queue);
+
+    /**
+     * default constructor
+    */
+    PicoQueueReportQueue() = default;
+
+    /**
+     * destruct a PicoQueueReportQueue
+    */
+    ~PicoQueueReportQueue();
 
     /**
      * push the given report to the queue.
@@ -35,4 +44,10 @@ class PicoQueueReportQueue: public IReportQueue {
      *      contains the report that was popped
     */
     virtual bool queue_pop(report_t *report) const;
+
+    protected:
+    /**
+     * check if a timeout has occured
+    */
+    bool timeout();
 };
