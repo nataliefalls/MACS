@@ -21,19 +21,33 @@ ReportQueueHandler *handler = new ReportQueueHandler(queue);
 ReportQueueController *controller = new ReportQueueController(queue);
 
 Module<ButtonPayload> *module;
+const uint8_t moduleID = 0x68;
 
 void connectModule() {
-  uint8_t moduleID = 0x68;
   module_coordinates_t coordinates = { 3, 3 };
+  // controller->moduleConnectedReport(moduleID, coordinates);
+
+  // return;
   module = new Module<ButtonPayload>(moduleID, coordinates, controller);
 }
 
-void updateModule() {
-  uint8_t state = gpio_get(BUTTON_PIN) ? 1 : 0;
+void updateModule0() {
+  ButtonPayload *button0 = new ButtonPayload({ 0 });
+  module->update(button0);
+}
+void updateModule1() {
+  ButtonPayload *button1 = new ButtonPayload({ 1 });
+  module->update(button1);
+}
 
-  button_data_t data = { state };
-  ButtonPayload *dpad = new ButtonPayload(data);
-  module->update(dpad);
+void updateModule(uint8_t state) {
+  ButtonPayload *button = new ButtonPayload({ state });
+  module->update(button);
+}
+
+void updateModule() {
+  ButtonPayload *button = new ButtonPayload({ read_button(BUTTON_PIN) });
+  module->update(button);
 }
 
 void removeModule() {
@@ -41,21 +55,42 @@ void removeModule() {
 }
 
 void send_demo_report() {
-  static int count = 0;
+  static uint8_t count = 0;
 
-  if (count == 0) {
-    connectModule();
-    handler->sendNextReport();
-    count++;
-  } else if (count == 1 || count == 2) {
-    updateModule();
-    handler->sendNextReport();
-    count++;
-  } else { 
-    removeModule();
-    handler->sendNextReport();
-    count = 0;
+  switch (count) {
+    case 0: {
+      connectModule();
+      count++;
+      break;
+    }
+    case 1: {
+      updateModule0();
+      count++;
+      break;
+    }
+    case 2: {
+      updateModule0();
+      count++;
+      break;
+    }
+    case 3: {
+      updateModule1();
+      count++;
+      break;
+    }
+    case 4: {
+      updateModule1();
+      count++;
+      break;
+    }
+    case 5: {
+      removeModule();
+      count = 0;
+      break;
+    }
   }
+
+  handler->sendNextReport();
 }
 
 void init_adc_gpio() {
@@ -71,4 +106,8 @@ void init_adc_gpio() {
 inline uint16_t adc_read_pin(uint pin) {
   adc_select_input(pin);
   return adc_read();
+}
+
+inline uint8_t read_button(uint pin) {
+  return gpio_get(pin) ? 1 : 0;
 }

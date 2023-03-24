@@ -26,8 +26,8 @@ bool PicoQueueReportQueue::queue_pop(report_t *report) const {
     timer.startTimer(this->QUEUE_TIMEOUT);
 
     do {
-        if (queue_try_peek(this->queue, report)) return true;
+        if (queue_try_remove(this->queue, report)) return true;
     } while (!timer.timeoutOccured());
-
+    
     return false;
 }

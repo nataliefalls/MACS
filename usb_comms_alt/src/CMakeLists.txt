@@ -23,7 +23,7 @@ target_sources(${target_name} PRIVATE
     report_queue/handler/ReportQueueHandler.cpp
     report_queue/controller/ReportQueueController.cpp
     PicoTimer.cpp
-    usb.cpp
+    usbTask.cpp
 )
 
 target_include_directories(${target_name} PUBLIC

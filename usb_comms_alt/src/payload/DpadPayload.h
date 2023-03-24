@@ -24,10 +24,9 @@ class DpadPayload: public IPayload {
     */
     virtual report_id_t reportID() const;
 
-    private:
     /**
      * is the given IPayload equal to this DpadPayload?
      * precondition: other is a DpadPayload
     */
-    virtual bool isEqual(const IPayload& other) const;
+    virtual bool isEquivalent(const IPayload *other) const;
 };

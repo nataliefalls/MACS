@@ -36,7 +36,7 @@
 #include "pico/time.h"
 
 // local includes
-#include "usb.h"
+#include "usbTask.h"
 #include "usb_descriptors.h"
 #include "report_types.h"
 #include "ReportQueueHandler.h"

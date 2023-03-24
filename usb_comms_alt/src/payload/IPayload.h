@@ -16,18 +16,11 @@ class IPayload {
     */
     virtual report_id_t reportID() const = 0;
 
-    bool operator==(const IPayload& other) const {
-        if (&other == nullptr) {
-            return this == nullptr;
-        } else {
-            return typeid(*this) == typeid(other) && isEqual(other);
-        }
-    }
-
-    private:
     /**
-     * is the given IPayload equal to this IPayload?
+     * is the given IPayload equivalent to this IPayload?
      * precondition: other is the same type as the instance invoking the function
     */
-    virtual bool isEqual(const IPayload& other) const = 0;
+    virtual bool isEquivalent(const IPayload *other) const {
+        return false;
+    }
 };

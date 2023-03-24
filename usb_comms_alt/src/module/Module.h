@@ -12,7 +12,7 @@ template <class T> class Module {
     protected:
     const uint8_t moduleID;
     const ReportQueueController *controller;
-    IPayload *state;
+    T *state;
 
     public:
     /**

@@ -21,10 +21,8 @@ Module<T>::~Module() {
 
 template <class T>
 void Module<T>::update(T *newState) {
-    // only send the report if the new state:
-    // - has the correct payload type
-    // - is different from the old
-    if (this->state == newState) {
+    // only send the report if the new state is different from the old state
+    if (newState->isEquivalent(this->state)) {
         return;
     } else if (this->sendReport(newState)) {
         this->state = newState;
