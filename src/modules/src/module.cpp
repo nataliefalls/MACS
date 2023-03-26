@@ -6,7 +6,7 @@
 #include <mod_utils.h>
 
 
-#define NUM_PWM_PINS
+#define NUM_PWM_PINS 6
 
 int main() {
     stdio_init_all();
@@ -33,7 +33,7 @@ int main() {
 
     module_pwm.setPWMOut(addr);
     // sleep for some time to let neigbors initialize if necessary
-    usleep(500000);
+    sleep_us(500000);
 
     bool found_neighbor = false;
     uint side = 0;
