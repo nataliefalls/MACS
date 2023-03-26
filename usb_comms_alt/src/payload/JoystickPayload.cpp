@@ -5,6 +5,7 @@ payload_t JoystickPayload::toPayload() const {
 }
 
 bool JoystickPayload::isEquivalent(const IPayload *other) const {
+    if (other == nullptr) return false;
     // we know the type of other and this are the same from the precondition
     joystick_data_t otherJoystick = other->toPayload().joystick;
     return (this->data.x == otherJoystick.x && this->data.y == otherJoystick.y);

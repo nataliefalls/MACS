@@ -5,6 +5,7 @@ payload_t DpadPayload::toPayload() const {
 }
 
 bool DpadPayload::isEquivalent(const IPayload *other) const {
+    if (other == nullptr) return false;
     // we know the type of other and this are the same from the precondition
     dpad_data_t otherDpad = other->toPayload().dpad;
     return (this->data.dpad == otherDpad.dpad);

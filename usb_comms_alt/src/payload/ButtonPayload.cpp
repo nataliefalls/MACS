@@ -5,9 +5,7 @@ payload_t ButtonPayload::toPayload() const {
 }
 
 bool ButtonPayload::isEquivalent(const IPayload *other) const {
-    if (other == nullptr) {
-        return false;
-    }
+    if (other == nullptr) return false;
     // we know the type of other and this are the same from the precondition
     button_data_t otherButton = other->toPayload().button;
     return (this->data.button == otherButton.button);

@@ -16,26 +16,27 @@ target_sources(${target_name} PRIVATE
     report_queue/BufferedReportQueue.cpp
     report_queue/MulticoreFifoReportQueue.cpp
     report_queue/PicoQueueReportQueue.cpp
+    report_queue/handler/ReportQueueHandler.cpp
+    report_queue/controller/ReportQueueController.cpp
     # module/Module.cpp
     payload/ButtonPayload.cpp
     payload/DpadPayload.cpp
     payload/JoystickPayload.cpp
-    report_queue/handler/ReportQueueHandler.cpp
-    report_queue/controller/ReportQueueController.cpp
-    PicoTimer.cpp
+    util/PicoTimer.cpp
     usbTask.cpp
 )
 
 target_include_directories(${target_name} PUBLIC
     ${CMAKE_CURRENT_LIST_DIR}
     ${CMAKE_CURRENT_LIST_DIR}/demo
-    ${CMAKE_CURRENT_LIST_DIR}/types
-    ${CMAKE_CURRENT_LIST_DIR}/usb_stack
-    ${CMAKE_CURRENT_LIST_DIR}/report_queue
-    ${CMAKE_CURRENT_LIST_DIR}/report_queue/handler
-    ${CMAKE_CURRENT_LIST_DIR}/report_queue/controller
     ${CMAKE_CURRENT_LIST_DIR}/module
     ${CMAKE_CURRENT_LIST_DIR}/payload
+    ${CMAKE_CURRENT_LIST_DIR}/report_queue
+    ${CMAKE_CURRENT_LIST_DIR}/report_queue/controller
+    ${CMAKE_CURRENT_LIST_DIR}/report_queue/handler
+    ${CMAKE_CURRENT_LIST_DIR}/types
+    ${CMAKE_CURRENT_LIST_DIR}/usb_stack
+    ${CMAKE_CURRENT_LIST_DIR}/util
     ${CMAKE_CURRENT_LIST_DIR}/..
 )
 

@@ -7,9 +7,8 @@
 #include "ReportQueueHandler.h"
 #include "PicoQueueReportQueue.h"
 
-#include "Module.h"
+#include "ModuleUpdateHandler.h"
 #include "ButtonPayload.h"
-#include "DpadPayload.h"
 
 #define BUTTON_PIN 14
 #define JOYSTICK_X_PIN 0
@@ -20,34 +19,17 @@ IReportQueue *queue = new PicoQueueReportQueue(&sharedQueue);
 ReportQueueHandler *handler = new ReportQueueHandler(queue);
 ReportQueueController *controller = new ReportQueueController(queue);
 
-Module<ButtonPayload> *module;
+ModuleUpdateHandler<ButtonPayload> *module;
 const uint8_t moduleID = 0x68;
 
 void connectModule() {
   module_coordinates_t coordinates = { 3, 3 };
-  // controller->moduleConnectedReport(moduleID, coordinates);
-
-  // return;
-  module = new Module<ButtonPayload>(moduleID, coordinates, controller);
+  module = new ModuleUpdateHandler<ButtonPayload>(moduleID, coordinates, controller);
 }
 
-void updateModule0() {
-  ButtonPayload *button0 = new ButtonPayload({ 0 });
-  module->update(button0);
-}
-void updateModule1() {
-  ButtonPayload *button1 = new ButtonPayload({ 1 });
-  module->update(button1);
-}
-
-void updateModule(uint8_t state) {
-  ButtonPayload *button = new ButtonPayload({ state });
-  module->update(button);
-}
-
-void updateModule() {
+bool updateModule() {
   ButtonPayload *button = new ButtonPayload({ read_button(BUTTON_PIN) });
-  module->update(button);
+  return module->update(button);
 }
 
 void removeModule() {
@@ -55,39 +37,26 @@ void removeModule() {
 }
 
 void send_demo_report() {
+  static bool connected = false;
   static uint8_t count = 0;
 
-  switch (count) {
-    case 0: {
-      connectModule();
-      count++;
-      break;
-    }
-    case 1: {
-      updateModule0();
-      count++;
-      break;
-    }
-    case 2: {
-      updateModule0();
-      count++;
-      break;
-    }
-    case 3: {
-      updateModule1();
-      count++;
-      break;
-    }
-    case 4: {
-      updateModule1();
-      count++;
-      break;
-    }
-    case 5: {
-      removeModule();
-      count = 0;
-      break;
-    }
+  uint8_t button = read_button(BUTTON_PIN);
+
+  if (!connected && button) {
+    connectModule();
+    connected = true;
+    return;
+  }
+
+  if (connected && updateModule() && button) {
+    count++;
+    return;
+  }
+
+  if (count == 6) {
+    removeModule();
+    connected = false;
+    count = 0;
   }
 
   handler->sendNextReport();
