@@ -1,1 +1,1 @@
-# add_subdirectory() # this is for the usb library
+add_subdirectory(usb) # this is for the usb library
