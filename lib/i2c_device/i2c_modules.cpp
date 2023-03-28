@@ -18,7 +18,10 @@ I2C_Base::~I2C_Base() {
 
 /* I2C Module Definition */
 
-I2C_Module::I2C_Module(uint address, uint sda, uint scl, Module type) : I2C_Base(address, sda, scl) {
+I2C_Module::I2C_Module(uint8_t address,  uint8_t neighbor_side, uint8_t neighbor_address,
+		       uint sda, uint scl, Module type)
+  : I2C_Base(address, sda, scl),
+    _neighbor_side(neighbor_side), _neighbor_address(neighbor_address) {
     hw_type = type;
 }
 
@@ -38,10 +41,13 @@ void I2C_Module::update_input(uint8_t* hardware_input, Module type) {
 void I2C_Module::setup() {
     initialize_i2c(i2c0, sda, scl);
 
+    // create buffer containing address and neighbor data to send to hub
+    init_module_buffer send_buffer = {addr, _neighbor_address, _neighbor_side};
+        
     // send address to hub
-    int success = i2c_write_timeout_us(i2c0, HUB_I2C_ADDRESS, &addr, sizeof(addr), false, 100000);
+    int success = i2c_write_timeout_us(i2c0, HUB_I2C_ADDRESS, (uint8_t*)(&send_buffer), sizeof(send_buffer), false, 100000);
     while(success == PICO_ERROR_GENERIC || success == PICO_ERROR_TIMEOUT) {
-        success = i2c_write_timeout_us(i2c0, HUB_I2C_ADDRESS, &addr, sizeof(addr), false, 100000);
+      success = i2c_write_timeout_us(i2c0, HUB_I2C_ADDRESS, (uint8_t*)(&send_buffer), sizeof(send_buffer), false, 100000);
     }
 
     // set up worker
@@ -111,9 +117,10 @@ void I2C_Hub::setup() {
 void I2C_Hub::worker_callback(i2c_inst_t *i2c, i2c_worker_event_t event) {
     if (event == I2C_WORKER_RECEIVE) {
         // only getting receives
-        uint8_t received;
-        i2c_read_raw_blocking(i2c, &received, 1);
+        init_module_buffer received;
+        i2c_read_raw_blocking(i2c, (uint8_t*)(&received), sizeof(received));
+	
         // if modules does not contain this address, add it
-        auto success = modules.insert(received);
+        auto success = modules.insert(received.addr);
     }
 }

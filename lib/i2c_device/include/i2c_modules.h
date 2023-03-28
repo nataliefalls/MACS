@@ -56,11 +56,18 @@ protected:
     uint8_t addr;
     uint sda;
     uint scl;
+
+  struct init_module_buffer {
+    uint8_t addr;
+    uint8_t neighbor_address;
+    uint8_t neighbor_side;
+  };
 };
 
 class I2C_Module : public I2C_Base {
 public:
-    I2C_Module(uint address, uint sda, uint scl, Module type);
+    I2C_Module(uint8_t address, uint8_t neighbor_side, uint8_t neighbor_address,
+	       uint sda, uint scl, Module type);
     void worker_callback(i2c_inst_t *i2c, i2c_worker_event_t event);
     void setup();
     void update_input(uint8_t* hardware_input, Module type);
@@ -68,6 +75,8 @@ protected:
 private:
     uint8_t* hw_status;
     Module hw_type;
+    uint8_t _neighbor_side;
+    uint8_t _neighbor_address;
 };
 
 class I2C_Hub : public I2C_Base {

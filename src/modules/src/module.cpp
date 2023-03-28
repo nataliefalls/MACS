@@ -17,8 +17,7 @@ int main() {
 
     uint8_t addr = module::get_address();
 
-    I2C_Module module(addr, PICO_DEFAULT_I2C_SDA_PIN, PICO_DEFAULT_I2C_SCL_PIN, parse_address(addr));
-
+    
     uint pwm_in[6] = {
 		   PWM_IN_SIDE_1,
 		   PWM_IN_SIDE_2,
@@ -31,7 +30,7 @@ int main() {
 
     Pwm module_pwm(pwm_out, pwm_in, NUM_PWM_PINS);
 
-    module_pwm.setPWMOut(addr);
+    module_pwm.setPWMOut((uint32_t)addr);
     // sleep for some time to let neigbors initialize if necessary
     sleep_us(500000);
 
@@ -43,7 +42,11 @@ int main() {
 	break;
     }
 
-    uint16_t neighbor_address = module_pwm.read_PW(side);
+    uint8_t neighbor_address = module_pwm.read_PW(side) & 0x00FF;
+
+    I2C_Module module(addr, side, neighbor_address,
+		      PICO_DEFAULT_I2C_SDA_PIN, PICO_DEFAULT_I2C_SCL_PIN,
+		      parse_address(addr));
     
     module.setup();
 
