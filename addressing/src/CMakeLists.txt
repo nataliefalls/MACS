@@ -1,2 +1,0 @@
-add_subdirectory(central_hub)
-add_subdirectory(module)
