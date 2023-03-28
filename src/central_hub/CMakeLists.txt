@@ -1,4 +1,4 @@
-#add_subdirectory(lib)
+add_subdirectory(lib)
 
 add_executable(central_hub)
 
