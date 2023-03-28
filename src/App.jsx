@@ -74,86 +74,86 @@ const Hexagons = [
   {
     id: nanoid(),
     q: 0,
-    r: -2,
-    s: 2,
+    r: 0,
+    s: 0,
     moduleType: undefined,
     mainModule: true,
     configuration: {},
   },
-  {
-    id: nanoid(),
-    q: 1,
-    r: -2,
-    s: 1,
-    moduleType: undefined,
-    configuration: {},
-  },
-  {
-    id: nanoid(),
-    q: 0,
-    r: 0,
-    s: 0,
-    moduleType: "dial",
-    configuration: {},
-  },
-  {
-    id: nanoid(),
-    q: 0,
-    r: -1,
-    s: 1,
-    moduleType: "dpad",
-    configuration: {},
-  },
-  {
-    id: nanoid(),
-    q: 0,
-    r: 1,
-    s: -1,
-    moduleType: "button",
-    configuration: {},
-  },
-  {
-    id: nanoid(),
-    q: 1,
-    r: -1,
-    s: 0,
-    moduleType: "slider",
-    configuration: {},
-  },
-  {
-    id: nanoid(),
-    q: 1,
-    r: 0,
-    s: -1,
-    moduleType: "joystick",
-    configuration: {
-      behavior: "default",
-    },
-  },
-  {
-    id: nanoid(),
-    q: -1,
-    r: 1,
-    s: 0,
-    moduleType: "switch",
-    configuration: {},
-  },
-  {
-    id: nanoid(),
-    q: -1,
-    r: 0,
-    s: 1,
-    moduleType: "button",
-    configuration: {},
-  },
-  {
-    id: nanoid(),
-    q: -2,
-    r: 0,
-    s: 1,
-    moduleType: "button",
-    configuration: {},
-  },
+  // {
+  //   id: nanoid(),
+  //   q: 1,
+  //   r: -2,
+  //   s: 1,
+  //   moduleType: undefined,
+  //   configuration: {},
+  // },
+  // {
+  //   id: nanoid(),
+  //   q: 0,
+  //   r: 0,
+  //   s: 0,
+  //   moduleType: "dial",
+  //   configuration: {},
+  // },
+  // {
+  //   id: nanoid(),
+  //   q: 0,
+  //   r: -1,
+  //   s: 1,
+  //   moduleType: "dpad",
+  //   configuration: {},
+  // },
+  // {
+  //   id: nanoid(),
+  //   q: 0,
+  //   r: 1,
+  //   s: -1,
+  //   moduleType: "button",
+  //   configuration: {},
+  // },
+  // {
+  //   id: nanoid(),
+  //   q: 1,
+  //   r: -1,
+  //   s: 0,
+  //   moduleType: "slider",
+  //   configuration: {},
+  // },
+  // {
+  //   id: nanoid(),
+  //   q: 1,
+  //   r: 0,
+  //   s: -1,
+  //   moduleType: "joystick",
+  //   configuration: {
+  //     behavior: "default",
+  //   },
+  // },
+  // {
+  //   id: nanoid(),
+  //   q: -1,
+  //   r: 1,
+  //   s: 0,
+  //   moduleType: "switch",
+  //   configuration: {},
+  // },
+  // {
+  //   id: nanoid(),
+  //   q: -1,
+  //   r: 0,
+  //   s: 1,
+  //   moduleType: "button",
+  //   configuration: {},
+  // },
+  // {
+  //   id: nanoid(),
+  //   q: -2,
+  //   r: 0,
+  //   s: 1,
+  //   moduleType: "button",
+  //   configuration: {},
+  // },
 ];
 
 // const Hexagons = [
@@ -1576,7 +1576,7 @@ function App() {
     }
     panRef?.current?.resetTransform();
     panRef?.current?.centerView();
-  }, [controllerFound]);
+  }, [controllerFound, hexagons]);
 
   // On initial render
   useEffect(() => {
@@ -1598,9 +1598,47 @@ function App() {
 
         setDropzones(tempDropzones);
         ipcRenderer.send("initialize", hexagons);
+      } else {
+        setDropzones([]);
+        setHexagons(Hexagons);
       }
       panRef?.current?.resetTransform();
       panRef?.current?.centerView();
+    });
+    ipcRenderer.on("module_connected", (event, arg) => {
+      console.log("connected received");
+      console.log(arg);
+      setHexagons((prevHexagons) => {
+        console.log("old");
+        console.log(prevHexagons);
+        console.log(
+          !prevHexagons.some((localHexagon) => localHexagon.id === arg.id)
+        );
+        if (!prevHexagons.some((localHexagon) => localHexagon.id === arg.id)) {
+          console.log([...prevHexagons, arg]);
+          return [...prevHexagons, arg];
+        }
+        console.log("already exists");
+        return prevHexagons;
+      });
+    });
+    ipcRenderer.on("module_removed", (event, arg) => {
+      console.log("removed received");
+      console.log(arg);
+      setHexagons((prevHexagons) => {
+        console.log("old");
+        console.log(prevHexagons);
+        console.log(
+          prevHexagons.some((localHexagon) => localHexagon.id === arg.id)
+        );
+        if (prevHexagons.some((localHexagon) => localHexagon.id === arg.id)) {
+          console.log("new");
+          console.log(prevHexagons.filter((hex) => hex.id !== arg.id));
+          return prevHexagons.filter((hex) => hex.id !== arg.id);
+        }
+        console.log("not in list");
+        return prevHexagons;
+      });
     });
     panRef?.current?.resetTransform();
     panRef?.current?.centerView();
