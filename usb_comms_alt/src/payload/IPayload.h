@@ -23,4 +23,9 @@ class IPayload {
     virtual bool isEquivalent(const IPayload *other) const {
         return false;
     }
+
+    /**
+     * Is the given address valid for this payload type?
+    */
+    // virtual bool isValidAddress(uint8_t address) const = 0;
 };

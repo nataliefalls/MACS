@@ -2,17 +2,18 @@ set(target_name usb_comms_alt)
 add_executable(${target_name})
 # add_library(${target_name})
 
-# pico_enable_stdio_usb(${target_name} 1)
+pico_enable_stdio_usb(${target_name} 1)
 
 # for picoprobe stuff
-pico_enable_stdio_usb(usb_comms_alt 0)
-pico_enable_stdio_uart(usb_comms_alt 1)
+# pico_enable_stdio_usb(usb_comms_alt 0)
+# pico_enable_stdio_uart(usb_comms_alt 1)
 
 target_sources(${target_name} PRIVATE
     usb_stack/usb_descriptors.c
     usb_stack/device_callbacks.c
     usb_stack/hid_callbacks.c
     demo/demo.cpp
+    demo/demoUtils.cpp
     report_queue/BufferedReportQueue.cpp
     report_queue/MulticoreFifoReportQueue.cpp
     report_queue/PicoQueueReportQueue.cpp

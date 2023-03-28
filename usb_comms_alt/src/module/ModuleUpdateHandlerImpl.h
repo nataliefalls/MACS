@@ -28,6 +28,7 @@ bool ModuleUpdateHandler<T>::update(T *newState) {
     if (newState->isEquivalent(this->state)) {
         return false;
     } else if (this->sendReport(newState)) {
+        delete this->state;
         this->state = newState;
         return true;
     } else {

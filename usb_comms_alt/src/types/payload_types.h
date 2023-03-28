@@ -22,6 +22,8 @@ typedef struct joystick_data_t {
     uint8_t x;
     // displacement of the joystick on the y-axis
     uint8_t y;
+    // button on the joystick
+    uint8_t button;
 } joystick_data_t;
 
 // a union of all the different types of data sent in a USB report

@@ -1,82 +1,139 @@
-#include "bsp/board.h"
-#include "hardware/adc.h"
-
 #include "demo.h"
-#include "report_types.h"
 #include "ReportQueueController.h"
 #include "ReportQueueHandler.h"
 #include "PicoQueueReportQueue.h"
 
 #include "ModuleUpdateHandler.h"
 #include "ButtonPayload.h"
+#include "JoystickPayload.h"
+#include "demoUtils.h"
 
-#define BUTTON_PIN 14
-#define JOYSTICK_X_PIN 0
-#define JOYSTICK_Y_PIN 1
+#define buttonModuleID 0x68
+#define joystickModuleID 0x69
 
 queue_t sharedQueue;
 IReportQueue *queue = new PicoQueueReportQueue(&sharedQueue);
 ReportQueueHandler *handler = new ReportQueueHandler(queue);
 ReportQueueController *controller = new ReportQueueController(queue);
 
-ModuleUpdateHandler<ButtonPayload> *module;
-const uint8_t moduleID = 0x68;
+ModuleUpdateHandler<ButtonPayload> *buttonModule;
+ModuleUpdateHandler<JoystickPayload> *joystickModule;
 
-void connectModule() {
-  module_coordinates_t coordinates = { 3, 3 };
-  module = new ModuleUpdateHandler<ButtonPayload>(moduleID, coordinates, controller);
+bool toggleJoystickConnection(bool &connected);
+bool toggleButtonConnection(bool &connected);
+void connectButtonModule();
+void connectJoystickModule();
+bool updateButtonModule();
+bool updateJoystickModule();
+
+void send_button_report() {
+  static bool buttonConnected = false;
+
+  if (toggleButtonConnection(buttonConnected)) {
+    return;
+  } else if (buttonConnected && updateButtonModule()) {
+    handler->sendNextReport();
+  }
 }
 
-bool updateModule() {
-  ButtonPayload *button = new ButtonPayload({ read_button(BUTTON_PIN) });
-  return module->update(button);
-}
+void send_joystick_report() {
+  static bool joystickConnected = false;
 
-void removeModule() {
-  delete module;
+  if (toggleJoystickConnection(joystickConnected)) {
+    return;
+  } else if (joystickConnected && updateJoystickModule()) {
+    handler->sendNextReport();
+  }
 }
 
 void send_demo_report() {
-  static bool connected = false;
-  static uint8_t count = 0;
+  static bool joystickOrButton = true;
 
-  uint8_t button = read_button(BUTTON_PIN);
-
-  if (!connected && button) {
-    connectModule();
-    connected = true;
-    return;
+  if (joystickOrButton) {
+    send_joystick_report();
+  } else {
+    send_button_report();
   }
 
-  if (connected && updateModule() && button) {
-    count++;
-    return;
+  joystickOrButton = !joystickOrButton;
+}
+
+/********************
+ * HELPER FUNCTIONS
+********************/
+
+void connectButtonModule() {
+  buttonModule = new ModuleUpdateHandler<ButtonPayload>(buttonModuleID, { 0, 1 }, controller);
+}
+
+void connectJoystickModule() {
+  joystickModule = new ModuleUpdateHandler<JoystickPayload>(joystickModuleID, { 1, 1 }, controller);
+}
+
+bool updateButtonModule() {
+  ButtonPayload *button = new ButtonPayload({ read_button(BUTTON_PIN) });
+  if (!buttonModule->update(button)) {
+    delete button;
+    return false;
   }
+  return true;
+}
 
-  if (count == 6) {
-    removeModule();
-    connected = false;
-    count = 0;
+bool updateJoystickModule() {
+  JoystickPayload *joystick = new JoystickPayload({
+    adc_read_pin(JOYSTICK_X_PIN),
+    adc_read_pin(JOYSTICK_Y_PIN),
+    read_button(JOYSTICK_BUTTON_PIN),
+  });
+  if (!joystickModule->update(joystick)) {
+    delete joystick;
+    return false;
   }
-
-  handler->sendNextReport();
+  return true;
 }
 
-void init_adc_gpio() {
-  gpio_init(BUTTON_PIN);
-  gpio_set_dir(BUTTON_PIN, GPIO_IN);
-  gpio_pull_down(BUTTON_PIN);
-
-  adc_init();
-  adc_gpio_init(JOYSTICK_X_PIN);
-  adc_gpio_init(JOYSTICK_Y_PIN);
+void removeButtonModule() {
+  delete buttonModule;
 }
 
-inline uint16_t adc_read_pin(uint pin) {
-  adc_select_input(pin);
-  return adc_read();
+void removeJoystickModule() {
+  delete joystickModule;
 }
 
-inline uint8_t read_button(uint pin) {
-  return gpio_get(pin) ? 1 : 0;
+bool toggleButtonConnection(bool &connected) {
+  static bool currentlyPressed = false;
+  static bool previouslyPressed = false;
+  bool ret = false;
+
+  currentlyPressed = read_button(MODULE_CONNECT_PIN) != 0;
+
+  // triggers only on positive edge of button
+  // this way, it won't toggle connection if we hold down the button
+  if (currentlyPressed && !previouslyPressed) {
+    connected ? removeButtonModule() : connectButtonModule();
+    connected = !connected;
+    handler->sendNextReport();
+    ret = true;
+  }
+  previouslyPressed = currentlyPressed;
+  return ret;
+}
+
+bool toggleJoystickConnection(bool &connected) {
+  static bool currentlyPressed = false;
+  static bool previouslyPressed = false;
+  bool ret = false;
+
+  currentlyPressed = read_button(MODULE_CONNECT_PIN) != 0;
+
+  // triggers only on positive edge of button
+  // this way, it won't toggle connection if we hold down the button
+  if (currentlyPressed && !previouslyPressed) {
+    connected ? removeJoystickModule() : connectJoystickModule();
+    connected = !connected;
+    handler->sendNextReport();
+    ret = true;
+  }
+  previouslyPressed = currentlyPressed;
+  return ret;
 }

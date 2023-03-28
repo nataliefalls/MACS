@@ -146,7 +146,7 @@
         HID_LOGICAL_MIN(0),\
         HID_LOGICAL_MAX(255),\
         HID_REPORT_SIZE(8),\
-        HID_REPORT_COUNT(2),\
+        HID_REPORT_COUNT(3),\
         HID_INPUT(HID_DATA | HID_VARIABLE | HID_ABSOLUTE),\
     HID_COLLECTION_END\
 
@@ -154,17 +154,11 @@
  *  USAGE_PAGE (Generic Desktop)
  *  USAGE (Game Pad)
  *  COLLECTION (Application)
- * 
  *      module connected message
- * 
  *      module disconnected message
- * 
- *      1 button data message
- * 
+ *      button data message
  *      d-pad data message
- * 
  *      joystick data message
- * 
  *  END COLLECTION
 */
 
