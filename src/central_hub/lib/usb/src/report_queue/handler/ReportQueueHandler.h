@@ -22,9 +22,11 @@ class ReportQueueHandler {
     ReportQueueHandler() = default;
     
     /**
-     * send the next report in the report queue over usb
+     * send the next report in the report queue over usb.
+     * in the case of a E_USB_TRANSFER_FAILED, the missing report
+     * will be contained in the given report.
     */
-    send_report_status_t sendNextReport() const;
+    send_report_status_t sendNextReport(report_t &report) const;
 
     private:
     bool send_report(const report_t &report) const;

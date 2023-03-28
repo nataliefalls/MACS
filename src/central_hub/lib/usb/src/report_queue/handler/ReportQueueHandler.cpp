@@ -5,14 +5,11 @@ ReportQueueHandler::ReportQueueHandler(const IReportQueue *_queue) {
     this->queue = _queue;
 }
 
-send_report_status_t ReportQueueHandler::sendNextReport() const {
-    report_t nextReport;
-    bool success = this->queue->queue_pop(&nextReport);
-
+send_report_status_t ReportQueueHandler::sendNextReport(report_t &report) const {
+    bool success = this->queue->queue_pop(&report);
     if (!success) return E_QUEUE_EMPTY;
 
-    success = this->send_report(nextReport);
-
+    success = this->send_report(report);
     if (!success) return E_USB_TRANSFER_FAILED;
 
     return SEND_SUCCESS;
