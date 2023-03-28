@@ -30,7 +30,7 @@ int main() {
 
     Pwm module_pwm(pwm_out, pwm_in, NUM_PWM_PINS);
 
-    module_pwm.setPWMOut((uint32_t)addr);
+    module_pwm.setPWMOut((uint16_t)addr);
     // sleep for some time to let neigbors initialize if necessary
     sleep_us(500000);
 

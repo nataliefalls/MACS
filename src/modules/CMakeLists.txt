@@ -21,7 +21,7 @@ function(string_split_at_last partb input separator)
   set(${partb} ${pb} PARENT_SCOPE)
 endfunction(string_split_at_last partb input separator)
 
-set(TARGET "button_1" "button_2" "switch_1" "joystick_1" "slider_1")
+set(TARGET "joystick_1" "button_1" "button_2" "switch_1" "slider_1")
 foreach(element ${TARGET})
     add_executable(${element})
 

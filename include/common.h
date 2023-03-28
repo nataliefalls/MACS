@@ -19,8 +19,7 @@ enum Module : uint8_t {
 };
 
 inline Module parse_address(uint8_t address) {
-    // should this be how it works?
-    return static_cast<Module>(address & 0b00000111);
+    return static_cast<Module>(address & 0x07);
 }
 
 #endif
