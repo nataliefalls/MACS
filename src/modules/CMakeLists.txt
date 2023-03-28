@@ -21,7 +21,7 @@ function(string_split_at_last partb input separator)
   set(${partb} ${pb} PARENT_SCOPE)
 endfunction(string_split_at_last partb input separator)
 
-set(TARGET "button_1" "button_2" "switch_1" "joystick_1" "linear_potentiometer_1")
+set(TARGET "joystick_1" "button_1" "button_2" "switch_1" "slider_1")
 foreach(element ${TARGET})
     add_executable(${element})
 
@@ -33,48 +33,36 @@ foreach(element ${TARGET})
 
     include_directories(${CMAKE_CURRENT_LIST_DIR}/include)
 
-    string_starts_with(BUTTON ${element} "button")
-    string_starts_with(SWITCH ${element} "switch")
-    string_starts_with(ROTARY_POTENTIOMETER ${element} "rotary_potentiometer")
-    string_starts_with(LINEAR_POTENTIOMETER ${element} "linear_potentiometer")
-    string_starts_with(JOYSTICK ${element} "joystick")
+    string_starts_with(HAS_BUTTON ${element} "button")
+    string_starts_with(HAS_SWITCH ${element} "switch")
+    string_starts_with(HAS_POTENTIOMETER ${element} "potentiometer")
+    string_starts_with(HAS_SLIDER ${element} "slider")
+    string_starts_with(HAS_JOYSTICK ${element} "joystick")
     string_split_at_last(ID_NUM ${element} "_")
-    set(ID "ID_${ID_NUM}")
 
-    if(BUTTON STREQUAL TRUE)
+    if(HAS_BUTTON)
         target_compile_definitions(${element} PRIVATE 
-            "BUTTON"
-            DIGITAL
-            ${ID}
+            BUTTON DIGITAL ID=${ID_NUM}
         )
     endif()
-    if(SWITCH)
+    if(HAS_SWITCH)
         target_compile_definitions(${element} PRIVATE
-            SWITCH
-            DIGITAL
-            ${ID}
+            SWITCH DIGITAL ID=${ID_NUM}
         )
     endif()
-    if(ROTARY_POTENTIOMETER)
+    if(HAS_POTENTIOMETER)
         target_compile_definitions(${element} PRIVATE
-            ROTARY_POTENTIOMETER
-            ANALOG
-            ${ID}
+            POTENTIOMETER ANALOG ID=${ID_NUM}
         )
     endif()
-    if(LINEAR_POTENTIOMETER)
+    if(HAS_SLIDER)
         target_compile_definitions(${element} PRIVATE
-            LINEAR_POTENTIOMETER
-            ANALOG
-            ${ID}
+            SLIDER ANALOG ID=${ID_NUM}
         )
     endif()
-    if(JOYSTICK)
+    if(HAS_JOYSTICK)
         target_compile_definitions(${element} PRIVATE
-            JOYSTICK
-            ANALOG
-            DIGITAL
-            ${ID}
+            JOYSTICK ANALOG DIGITAL ID=${ID_NUM}
         )
     endif()
 
@@ -87,7 +75,7 @@ foreach(element ${TARGET})
 
     target_sources(${element} PUBLIC
             src/module.cpp
-            src/inputs.cpp
+            src/mod_utils.cpp
     )
 
     # Add the standard library to the build
@@ -99,6 +87,7 @@ foreach(element ${TARGET})
             pico_multicore
             pwm_pio
             hardware_gpio
+            hardware_adc
     )
 
     pico_add_extra_outputs(${element})

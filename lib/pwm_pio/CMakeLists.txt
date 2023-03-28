@@ -1,6 +1,6 @@
 add_library(pwm_pio INTERFACE)
 
-pico_generate_pio_header(pwm_pio ${CMAKE_CURRENT_LIST_DIR}/PwmIn.pio)
+pico_generate_pio_header(pwm_pio ${CMAKE_CURRENT_LIST_DIR}/Pwm.pio)
 
 target_include_directories(pwm_pio
     INTERFACE
@@ -9,7 +9,7 @@ target_include_directories(pwm_pio
 
 target_sources(pwm_pio
     INTERFACE
-    PwmIn.cpp
+    Pwm.cpp
 )
 
 target_link_libraries(pwm_pio

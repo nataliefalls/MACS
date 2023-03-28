@@ -9,13 +9,17 @@
 #define PWM_IN_SIDE_4 15
 #define PWM_IN_SIDE_5 14
 #define PWM_IN_SIDE_6 13
-
+    
 enum Module : uint8_t {
-    BUTTON = 0,
-    SWITCH,
-    SLIDE_POTENTIOMETER,
-    ROTARY_POTENTIOMETER,
-    JOYSTICK
+    kButton,
+    kSwitch,
+    kSlider,
+    kPotentiometer,
+    kJoystick
 };
+
+inline Module parse_address(uint8_t address) {
+    return static_cast<Module>(address & 0x07);
+}
 
 #endif
