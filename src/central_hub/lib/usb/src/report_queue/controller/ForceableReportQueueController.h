@@ -3,8 +3,14 @@
 
 class ForceableReportQueueController: public IForceableReportQueueController {
     private:
+    bool controllerOwner;
+
+    protected:
     const IForceableReportQueue *reportQueue;
     const IReportQueueController *controller;
+
+    private:
+    ForceableReportQueueController(IForceableReportQueue *_reportQueue, IReportQueueController *_controller, bool _controllerOwner);
 
     public:
     ForceableReportQueueController() = default;

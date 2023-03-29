@@ -3,13 +3,13 @@
 #include "usbTask.h"
 #include "constants.h"
 #include "PicoTimer.h"
+
 #include "ReportQueueHandler.h"
 #include "ForceableReportQueueController.h"
 
 void hidTask(ReportQueueHandler *handler, IForceableReportQueueController *controller);
 bool initialStartUpFinished();
 bool pollingIntervalWait();
-// void requeueReport(report_t &report);
 
 int usbMain(IForceableReportQueue *queue) {
   board_init();
@@ -35,13 +35,13 @@ void hidTask(ReportQueueHandler *handler, IForceableReportQueueController *contr
   switch (handler->sendNextReport(report)) {
     case E_USB_TRANSFER_FAILED:
       /**
-       * In this case, the report was queued, but for some reason, the transfer failed, so
-       * we have to force this report back onto the queue to be processed again later.
-       * Otherwise, in the case of an...
+       * In this case, the report was queued, but for some reason, the USB transfer failed.
+       * We have to make sure this report makes it back onto the queue to be processed
+       * again later. Otherwise, in the case of an...
        * 
        * - input report: the module won't update until the next state change
-       * - connected report: the connected module won't appear on the application
-       * - disconnected report: the disconnected module won't disappear from the screen
+       * - connected report: the connected module won't appear in the application
+       * - disconnected report: the disconnected module won't disappear from the application
       */
       controller->forceReport(report);
     default: return;

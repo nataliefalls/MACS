@@ -18,4 +18,32 @@ class IReportQueue {
      *      contains the report that was popped
     */
     virtual bool pop(report_t *report) const = 0;
+
+    /**
+     * is this queue empty?
+    */
+    virtual bool empty() const {
+        return false;
+    }
+
+    /**
+     * is this queue full?
+    */
+    virtual bool full() const {
+        return false;
+    }
+
+    /**
+     * how many reports are in this queue?
+    */
+    virtual uint32_t count() const {
+        return 0;
+    }
+
+    /**
+     * what is the total capacity of this queue?
+    */
+    virtual uint32_t capacity() const {
+        return 0;
+    }
 };

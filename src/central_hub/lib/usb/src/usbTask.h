@@ -1,4 +1,4 @@
 #pragma once
-#include "IReportQueue.h"
+#include "IForceableReportQueue.h"
 
-int usbMain(IReportQueue *queue);
+int usbMain(IForceableReportQueue *queue);

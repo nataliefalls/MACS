@@ -1,15 +1,18 @@
 #include "ForceableReportQueueController.h"
 #include "ReportQueueController.h"
 
+ForceableReportQueueController::ForceableReportQueueController(
+    IForceableReportQueue *_reportQueue, IReportQueueController *_controller, bool _controllerOwner):
+    reportQueue(_reportQueue), controller(_controller), controllerOwner(_controllerOwner) {}
+
 ForceableReportQueueController::ForceableReportQueueController(IForceableReportQueue *_reportQueue, IReportQueueController *_controller):
-    reportQueue(_reportQueue), controller(_controller) {}
+    ForceableReportQueueController(_reportQueue, _controller, false) {}
 
 ForceableReportQueueController::ForceableReportQueueController(IForceableReportQueue *_reportQueue):
-    ForceableReportQueueController(_reportQueue, new ReportQueueController(_reportQueue)) {}
+    ForceableReportQueueController(_reportQueue, new ReportQueueController(_reportQueue), true) {}
 
 ForceableReportQueueController::~ForceableReportQueueController() {
-    delete this->reportQueue;
-    delete this->controller;
+    if (this->controllerOwner) delete this->controller;
 }
 
 bool ForceableReportQueueController::forceReport(report_t &report) const {
