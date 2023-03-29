@@ -6,7 +6,7 @@ ReportQueueHandler::ReportQueueHandler(const IReportQueue *_queue) {
 }
 
 send_report_status_t ReportQueueHandler::sendNextReport(report_t &report) const {
-    bool success = this->queue->queue_pop(&report);
+    bool success = this->queue->pop(&report);
     if (!success) return E_QUEUE_EMPTY;
 
     success = this->send_report(report);

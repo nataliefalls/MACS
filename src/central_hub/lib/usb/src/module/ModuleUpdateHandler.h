@@ -2,7 +2,7 @@
 
 #include "report_ids.h"
 #include "IPayload.h"
-#include "ReportQueueController.h"
+#include "IReportQueueController.h"
 
 /**
  * Handles all state updates for a module.
@@ -14,7 +14,7 @@
 template <class T> class ModuleUpdateHandler {
     protected:
     const uint8_t moduleID;
-    const ReportQueueController *controller;
+    const IReportQueueController *controller;
     T *state;
 
     public:
@@ -22,7 +22,7 @@ template <class T> class ModuleUpdateHandler {
      * construct a ModuleUpdateHandler with the given moduleID, and coordinates.
      * sends a module_connected_report
     */
-    ModuleUpdateHandler(uint8_t _moduleID, module_coordinates_t _coordinates, ReportQueueController *_controller);
+    ModuleUpdateHandler(uint8_t _moduleID, module_coordinates_t _coordinates, IReportQueueController *_controller);
 
     ModuleUpdateHandler() = default;
     

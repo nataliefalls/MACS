@@ -12,8 +12,6 @@ class PicoQueueReportQueue: public IReportQueue {
 
     queue_t *queue;
 
-    bool init;
-
     public:
     /**
      * constructs a PicoQueueReportQueue with the given queue_t
@@ -35,7 +33,7 @@ class PicoQueueReportQueue: public IReportQueue {
      *  returns false on failure
      *  returns true on success
     */
-    virtual bool queue_push(const report_t &report) const;
+    virtual bool push(const report_t &report) const;
 
     /**
      * pop the first report off of the queue.
@@ -43,11 +41,5 @@ class PicoQueueReportQueue: public IReportQueue {
      *  returns true on success, in which case, the report argument
      *      contains the report that was popped
     */
-    virtual bool queue_pop(report_t *report) const;
-
-    protected:
-    /**
-     * check if a timeout has occured
-    */
-    bool timeout();
+    virtual bool pop(report_t *report) const;
 };
