@@ -19,6 +19,8 @@ class ForceableReportQueue: public IForceableReportQueue {
 
     ForceableReportQueue(queue_t *queue, uint32_t capacity);
 
+    ForceableReportQueue(queue_t *queue);
+
     ForceableReportQueue(IReportQueue *_reportQueue);
 
     ~ForceableReportQueue();

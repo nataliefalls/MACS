@@ -15,6 +15,11 @@ send_report_status_t ReportQueueHandler::sendNextReport(report_t &report) const 
     return SEND_SUCCESS;
 }
 
+send_report_status_t ReportQueueHandler::sendNextReport() const {
+    report_t report;
+    return this->sendNextReport(report);
+}
+
 bool ReportQueueHandler::send_report(const report_t &report) const {
     bool ready = tud_hid_ready();
     if ( !ready ) return false;

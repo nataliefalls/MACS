@@ -6,6 +6,9 @@ ForceableReportQueue::ForceableReportQueue(queue_t *queue, uint32_t capacity):
     this->reportQueue = new PicoQueueReportQueue(queue, capacity * 2);
 }
 
+ForceableReportQueue::ForceableReportQueue(queue_t *queue):
+    ForceableReportQueue(queue, 4) {}
+
 ForceableReportQueue::ForceableReportQueue(IReportQueue *_reportQueue):
     reportQueue(_reportQueue), threshold(_reportQueue->capacity() / 2), queueOwner(false) {}
 
