@@ -1,13 +1,11 @@
 #include <mod_utils.h>
 //#include <hardware/gpio.h>
 
-uint8_t read_digital_input(uint pin) {
-    if(gpio_get_dir(pin) == GPIO_IN) {
-        return gpio_get(pin);
-    }
-    return UINT8_MAX;
+uint8_t module::map_16_to_8(uint16_t x) {
+    return static_cast<uint8_t>((x - 4095) * UINT8_MAX / 4095);
 }
 
+#if DIGITAL
 uint module::get_digital_pin() {
     #if BUTTON || SWITCH
     return 10;
@@ -15,6 +13,7 @@ uint module::get_digital_pin() {
     return 18;
     #endif
 }
+#endif
 
 uint8_t module::get_address() {
     Module type;
@@ -52,28 +51,52 @@ uint8_t module::get_address() {
 void module::init_inputs() {
     #if DIGITAL
     uint digital_pin = get_digital_pin();
+    // printf("\nDigital Pin is GP%d\n", digital_pin);
 
     gpio_init(digital_pin);
     gpio_set_dir(digital_pin, GPIO_IN);
+    gpio_pull_down(digital_pin);
     #endif
     #if ANALOG
+    adc_init();
     uint analog_pin = 26;
-    adc_gpio_init(analog_pin);
+    adc_gpio_init(0);
     #if JOYSTICK
-    analog_pin = 28;
-    adc_gpio_init(analog_pin);
+    analog_pin = 27;
+    adc_gpio_init(1);
     #endif
+    adc_select_input(0);
     #endif
 
 }
 
-uint8_t module::get_input(uint pin, uint8_t* buf) {
+uint8_t module::get_input(uint8_t* buf) {
+    uint8_t i = 0;
+
     #if DIGITAL
+    // Switch or Button input (including joystick button)
     uint digital_pin = get_digital_pin();
     uint8_t digital_in = gpio_get(digital_pin);
+    buf[i++] = digital_in;
+    // printf("\nBuffer: %d", buf[0]);
     #endif
+
     #if ANALOG
+    // Potentiometer or X-axis of joystick
     adc_select_input(0);
-    uint16_t analog_in;
+    uint8_t analog_in;
+    auto in = adc_read();
+    analog_in = map_16_to_8(in);
+    buf[i++] = analog_in;
+
+    #if JOYSTICK
+    // Y-axis of joystick
+    adc_select_input(1);
+    in = adc_read();
+    analog_in = map_16_to_8(in);
+    buf[i++] = analog_in;
     #endif
+
+    #endif
+    return i;
 }

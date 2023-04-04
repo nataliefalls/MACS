@@ -25,10 +25,9 @@ static inline uint8_t hw_size_from_type(Module type) {
     {
     case kButton:
     case kSwitch:
-        return 1;
     case kSlider:
     case kPotentiometer:
-        return 2;
+        return 1;
     case kJoystick:
         return 3;
     default:
@@ -68,13 +67,15 @@ class I2C_Module : public I2C_Base {
 public:
     I2C_Module(uint8_t address, uint8_t neighbor_side, uint8_t neighbor_address,
 	       uint sda, uint scl, Module type);
+    ~I2C_Module();
     void worker_callback(i2c_inst_t *i2c, i2c_worker_event_t event);
     void setup();
-    void update_input(uint8_t* hardware_input, Module type);
+    void update_input(uint8_t* hardware_input);
 protected:
 private:
     uint8_t* hw_status;
     Module hw_type;
+    uint8_t hw_size;
     uint8_t _neighbor_side;
     uint8_t _neighbor_address;
 };

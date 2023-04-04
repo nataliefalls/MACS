@@ -1,4 +1,4 @@
-#include <functional>
+#include <cstdio>
 
 #include "i2c_modules.h"
 
@@ -23,6 +23,12 @@ I2C_Module::I2C_Module(uint8_t address,  uint8_t neighbor_side, uint8_t neighbor
   : I2C_Base(address, sda, scl),
     _neighbor_side(neighbor_side), _neighbor_address(neighbor_address) {
     hw_type = type;
+    hw_size = hw_size_from_type(hw_type);
+    hw_status = new uint8_t[hw_size];
+}
+
+I2C_Module::~I2C_Module() {
+    delete hw_status;
 }
 
 void I2C_Module::worker_callback(i2c_inst_t *i2c, i2c_worker_event_t event) {
@@ -32,10 +38,12 @@ void I2C_Module::worker_callback(i2c_inst_t *i2c, i2c_worker_event_t event) {
     }
 }
 
-// Hardware Input must be the correct size corresponding with the type of module
-void I2C_Module::update_input(uint8_t* hardware_input, Module type) {
-    hw_status = hardware_input;
-    hw_type = type;
+void I2C_Module::update_input(uint8_t* hardware_input) {
+    // Data is copied to disallow input functions from mutating a private I2C_Module data member
+    std::copy(hardware_input, hardware_input + hw_size, hw_status);
+    for (int i = 0; i < hw_size; i++) {
+        printf("%d ", hw_status[i]);
+    }
 }
 
 void I2C_Module::setup() {
