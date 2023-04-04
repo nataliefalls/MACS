@@ -5,6 +5,8 @@
 #include <i2c_device.h>
 #include <common.h>
 #include <set>
+#include <map>
+#include "coordinates.h"
 
 /* Utility functions */
 
@@ -42,7 +44,7 @@ static inline i2c_inst_t* i2c_block_from_gpio(uint pin) {
 //} else if (pin == 26 || pin == 27) {
 //    return i2c_get_instance(1);
 //}
-  return NULL;
+    return NULL;
 }
 
 class I2C_Base {
@@ -58,15 +60,14 @@ protected:
 
   struct init_module_buffer {
     uint8_t addr;
-    uint8_t neighbor_address;
-    uint8_t neighbor_side;
+    uint8_t neighbor_address[6];
   };
 };
 
 class I2C_Module : public I2C_Base {
 public:
-    I2C_Module(uint8_t address, uint8_t neighbor_side, uint8_t neighbor_address,
-	       uint sda, uint scl, Module type);
+    I2C_Module(uint8_t address, uint8_t neighbor_address[],
+	           uint sda, uint scl, Module type);
     ~I2C_Module();
     void worker_callback(i2c_inst_t *i2c, i2c_worker_event_t event);
     void setup();
@@ -76,8 +77,7 @@ private:
     uint8_t* hw_status;
     Module hw_type;
     uint8_t hw_size;
-    uint8_t _neighbor_side;
-    uint8_t _neighbor_address;
+    uint8_t* _neighbor_address;
 };
 
 class I2C_Hub : public I2C_Base {
@@ -89,9 +89,19 @@ public:
     void worker_callback(i2c_inst_t *i2c, i2c_worker_event_t event);
 protected:
 private:
+    
+    struct module_side {
+        uint8_t module_addr;
+        uint8_t side;
+    };
+
+    void coordinate_helper(uint8_t address, uint8_t neighbor_side, uint8_t neighbor_address);
+  
     uint queen_sda;
     uint queen_scl;
     std::set<uint8_t> modules;
+    std::map<uint8_t, module_coordinates_t> coordinates;
+    std::map<uint8_t, std::vector<module_side>> coordinate_dependencies;
 };
 
 #endif

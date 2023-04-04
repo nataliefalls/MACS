@@ -47,19 +47,18 @@ int main() {
     // sleep for some time to let neigbors initialize if necessary
     sleep_us(500000);
 
-    bool found_neighbor = false;
+    uint8_t neighbor_address[6];
     uint side = 0;
-    while(!found_neighbor) {
-      side = (side + 1) % NUM_PWM_PINS;
-      if (module_pwm.isConnected(side))
-	break;
+    for (int ii = 0; ii < 6; ii++) {
+        if (module_pwm.isConnected(ii))
+            neighbor_address[ii] = module_pwm.read_PW(side) & 0x00FF;
+        else
+            neighbor_address[ii] = 0x0000;
     }
 
-    uint8_t neighbor_address = module_pwm.read_PW(side) & 0x00FF;
-
-    I2C_Module module(addr, side, neighbor_address,
-		      PICO_DEFAULT_I2C_SDA_PIN, PICO_DEFAULT_I2C_SCL_PIN,
-		      type);
+    I2C_Module module(addr, neighbor_address,
+                      PICO_DEFAULT_I2C_SDA_PIN, PICO_DEFAULT_I2C_SCL_PIN,
+                      type);
     
     module.setup();
 

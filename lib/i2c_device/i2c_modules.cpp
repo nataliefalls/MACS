@@ -18,10 +18,10 @@ I2C_Base::~I2C_Base() {
 
 /* I2C Module Definition */
 
-I2C_Module::I2C_Module(uint8_t address,  uint8_t neighbor_side, uint8_t neighbor_address,
+I2C_Module::I2C_Module(uint8_t address, uint8_t neighbor_address[],
 		       uint sda, uint scl, Module type)
   : I2C_Base(address, sda, scl),
-    _neighbor_side(neighbor_side), _neighbor_address(neighbor_address) {
+     _neighbor_address(neighbor_address) {
     hw_type = type;
     hw_size = hw_size_from_type(hw_type);
     hw_status = new uint8_t[hw_size];
@@ -50,7 +50,11 @@ void I2C_Module::setup() {
     initialize_i2c(i2c0, sda, scl);
 
     // create buffer containing address and neighbor data to send to hub
-    init_module_buffer send_buffer = {addr, _neighbor_address, _neighbor_side};
+    init_module_buffer send_buffer;
+    send_buffer.addr = addr;
+    for (int ii = 0; ii < 6; ii++) {
+      send_buffer.neighbor_address[ii] = _neighbor_address[ii];
+    }
         
     // send address to hub
     int success = i2c_write_timeout_us(i2c0, HUB_I2C_ADDRESS, (uint8_t*)(&send_buffer), sizeof(send_buffer), false, 100000);
@@ -126,9 +130,82 @@ void I2C_Hub::worker_callback(i2c_inst_t *i2c, i2c_worker_event_t event) {
     if (event == I2C_WORKER_RECEIVE) {
         // only getting receives
         init_module_buffer received;
-        i2c_read_raw_blocking(i2c, (uint8_t*)(&received), sizeof(received));
-	
-        // if modules does not contain this address, add it
-        auto success = modules.insert(received.addr);
+        i2c_read_raw_blocking(i2c, (uint8_t *)(&received), sizeof(received));
+
+        bool have_coords = false;
+        // check to see if neighboring side has coordinates
+        std::map<uint8_t, module_coordinates_t>::iterator coord_it;
+
+        for (int ii = 0; ii < 6; ii++) {
+            coord_it = coordinates.find(received.neighbor_address[ii]);
+            if (coord_it != coordinates.end()) {
+                have_coords = true;
+                // if coord_it does, find the coordinates of the new module
+                coordinate_helper(received.addr, ii, received.neighbor_address[ii]);
+                break;
+            }
+        }
+
+        std::map<uint8_t, std::vector<module_side>>::iterator depend_it;
+        // if coordinates found, try to resolve other dependencies
+        if (have_coords) {
+            depend_it = coordinate_dependencies.find(received.addr);
+            if (depend_it != coordinate_dependencies.end()) {
+                std::vector<module_side> depending_modules =
+                    coordinate_dependencies[received.addr];
+
+                for (module_side depender : depending_modules) {
+                    // find neighbors that don't have addresses yet
+                    if (coordinates.find(depender.module_addr) == coordinates.end()) {
+                        // assign them addresses
+                        coordinate_helper(depender.module_addr, depender.side, received.addr);
+                    }
+                }
+            }
+        }
+        // if coordinates were not found, add this module as dependencies for its neighbors
+        else {
+            for (uint8_t ii = 0; ii < 6; ii++) {
+                coordinate_dependencies[received.neighbor_address[ii]]
+                    .push_back({received.addr, ii});
+            }
+        }
     }
+}
+
+void I2C_Hub::coordinate_helper(uint8_t address, uint8_t neighbor_side, uint8_t neighbor_address) {
+
+    module_coordinates_t neighbor_coords = coordinates[neighbor_address];
+    uint8_t u = neighbor_coords.u;
+    uint8_t v = neighbor_coords.v;
+    // find out what side the new module is connected on for the neighbor
+    uint8_t side = (neighbor_side + 3) % 6;
+
+    module_coordinates_t new_coords;
+
+    switch (side) {
+    case 0:
+        new_coords = {(uint8_t)(u - 1), (uint8_t)(v + 1)};
+        break;
+    case 1:
+        new_coords = {u, (uint8_t)(v + 1)};
+        break;
+    case 2:
+        new_coords = {(uint8_t)(u + 1), v};
+        break;
+    case 3:
+        new_coords = {uint8_t(u + 1), (uint8_t)(v - 1)};
+        break;
+    case 4:
+        new_coords = {u, (uint8_t)(v - 1)};
+        break;
+    case 5:
+        new_coords = {(uint8_t)(u - 1), v};
+        break;
+    }
+
+    coordinates[address] = new_coords;
+    // if modules does not contain this address, add coord_it
+    auto success = modules.insert(address);
+    // TODO: create module class here that does the USB stuff
 }
