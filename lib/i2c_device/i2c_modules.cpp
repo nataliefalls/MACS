@@ -159,7 +159,7 @@ void I2C_Hub::worker_callback(i2c_inst_t *i2c, i2c_worker_event_t event) {
 	      // find neighbors that don't have addresses yet
 	      if (coordinates.find(depender.module_addr) == coordinates.end()) {
 		// assign them addresses
-		coordinate_helper(depender.module_addr, depender.side, received.addr)
+		coordinate_helper(depender.module_addr, depender.side, received.addr);
 	      }
 	    }
 	  }
@@ -211,7 +211,7 @@ void I2C_Hub::coordinate_helper(uint8_t address, uint8_t neighbor_side, uint8_t 
 
   coordinates[address] = new_coords;
   // if modules does not contain this address, add coord_it
-  auto success = modules.insert(received.addr);
+  auto success = modules.insert(address);
   // TODO: create module class here that does the USB stuff
   
 }
