@@ -91,11 +91,11 @@ protected:
 private:
 
     struct module_side {
-      uint8_t module;
+      uint8_t module_addr;
       uint8_t side;
     };
 
-    module_coordinates_t coordinate_helper(uint8_t neighbor_side, uint8_t neighbor_address);
+    void coordinate_helper(uint8_t address, uint8_t neighbor_side, uint8_t neighbor_address);
   
     uint queen_sda;
     uint queen_scl;
