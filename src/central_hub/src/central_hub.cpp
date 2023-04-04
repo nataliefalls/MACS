@@ -19,12 +19,12 @@ int main() {
     gpio_put(25, 1);
 
     uint pwm_in[6] = {
-		   PWM_IN_SIDE_1,
-		   PWM_IN_SIDE_2,
-		   PWM_IN_SIDE_3,
-		   PWM_IN_SIDE_4,
-		   PWM_IN_SIDE_5,
-		   PWM_IN_SIDE_6
+        PWM_IN_SIDE_1,
+        PWM_IN_SIDE_2,
+        PWM_IN_SIDE_3,
+        PWM_IN_SIDE_4,
+        PWM_IN_SIDE_5,
+        PWM_IN_SIDE_6
     };
     uint pwm_out = PWM_OUT_PIN;
 
