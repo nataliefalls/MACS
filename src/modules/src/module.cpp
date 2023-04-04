@@ -1,9 +1,13 @@
+// #include <memory>
+
 #include <pico/stdlib.h>
 #include <hardware/pwm.h>
 
 #include <i2c_modules.h>
 #include <Pwm.h>
 #include <mod_utils.h>
+// #include "tusb.h"
+// #include <cstdio>
 
 
 #define NUM_PWM_PINS 6
@@ -15,8 +19,17 @@ int main() {
     gpio_set_dir(25, GPIO_OUT);
     gpio_put(25, 1);
 
-    uint8_t addr = module::get_address();
+    // printf("waiting for usb host");
+    // while (!tud_cdc_connected()) {
+    //   printf(".");
+    //   sleep_ms(500);
+    // }
+    // printf("connected to usb\n\n");
 
+    uint8_t addr = module::get_address();
+    Module type = parse_address(addr);
+
+    module::init_inputs();
     
     uint pwm_in[6] = {
 		   PWM_IN_SIDE_1,
@@ -46,11 +59,19 @@ int main() {
 
     I2C_Module module(addr, side, neighbor_address,
 		      PICO_DEFAULT_I2C_SDA_PIN, PICO_DEFAULT_I2C_SCL_PIN,
-		      parse_address(addr));
+		      type);
     
     module.setup();
 
+    uint8_t* buf = new uint8_t[hw_size_from_type(type)];
+    uint8_t count;
+
     while(1) {
+        count = module::get_input(buf);
+        assert(count == hw_size_from_type(type));
+        module.update_input(buf);
         tight_loop_contents();
     }
+
+    delete buf;
 }
