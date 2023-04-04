@@ -28,7 +28,7 @@ target_link_libraries(central_hub PUBLIC
         hardware_pwm
         pico_multicore
         pwm_pio
-        #usb
+        usb_comms
 )
 
 pico_add_extra_outputs(central_hub)

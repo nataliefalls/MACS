@@ -6,6 +6,8 @@ class JoystickPayload: public IPayload {
     private:
     const joystick_data_t data;
 
+    static const uint8_t TOLERANCE = 2;
+
     public:
     /**
      * construct a JoystickPayload with the given data
@@ -29,4 +31,7 @@ class JoystickPayload: public IPayload {
      * precondition: other is a JoystickPayload
     */
     virtual bool isEquivalent(const IPayload *other) const;
+
+    private:
+    bool isWithinTolerance(uint8_t value1, uint8_t value2) const;
 };

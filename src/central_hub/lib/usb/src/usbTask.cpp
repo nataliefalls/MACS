@@ -1,5 +1,4 @@
 #include "tusb.h"
-#include "bsp/board.h"
 #include "usbTask.h"
 #include "constants.h"
 #include "PicoTimer.h"
@@ -9,9 +8,17 @@ void hidTask(ReportQueueHandler *handler);
 bool initialStartUpFinished();
 bool pollingIntervalWait();
 
-int usbMain(IReportQueue *queue) {
-  board_init();
-  tud_init(BOARD_TUD_RHPORT); // init device stack on configured roothub port
+void usbInit() {
+  do {
+    tud_task();
+  } while (!initialStartUpFinished());
+}
+
+void usbMain(IReportQueue *queue) {
+  // init device stack on configured roothub port
+  tud_init(BOARD_TUD_RHPORT);
+  // wait for usb enumeration to finish before sending reports
+  usbInit();
 
   ReportQueueHandler *handler = new ReportQueueHandler(queue);
 
@@ -19,15 +26,12 @@ int usbMain(IReportQueue *queue) {
     tud_task();
     hidTask(handler);
   }
-
-  return 0;
 }
 
 void hidTask(ReportQueueHandler *handler) {
-  if (!initialStartUpFinished()) return;
-  if (pollingIntervalWait()) return;
-  
-  handler->sendNextReport();
+  if (pollingIntervalWait()) {
+    handler->sendNextReport();
+  }
 }
 
 bool initialStartUpFinished() {
