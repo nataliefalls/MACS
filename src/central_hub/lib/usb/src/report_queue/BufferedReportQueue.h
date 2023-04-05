@@ -17,18 +17,9 @@ class BufferedReportQueue: public IReportQueue {
 
     BufferedReportQueue() = default;
 
-    /**
-     * push the given report to the queue.
-     *  returns false on failure
-     *  returns true on success
-    */
-    virtual bool queue_push(const report_t &report) const;
+    virtual bool queuePush(const report_t &report) const;
 
-    /**
-     * pop the first report off of the queue.
-     *  returns false on failure
-     *  returns true on success, in which case, the report argument
-     *      contains the report that was popped
-    */
-    virtual bool queue_pop(report_t *report) const;
+    virtual bool queuePop(report_t *report) const;
+
+    virtual bool queuePeek(report_t *report) const;
 };

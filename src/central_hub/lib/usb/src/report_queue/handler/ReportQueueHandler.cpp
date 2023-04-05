@@ -7,7 +7,7 @@ ReportQueueHandler::ReportQueueHandler(const IReportQueue *_queue) {
 
 send_report_status_t ReportQueueHandler::sendNextReport() const {
     report_t nextReport;
-    bool success = this->queue->queue_pop(&nextReport);
+    bool success = this->queue->queuePop(&nextReport);
 
     if (!success) return E_QUEUE_EMPTY;
 
@@ -19,8 +19,7 @@ send_report_status_t ReportQueueHandler::sendNextReport() const {
 }
 
 bool ReportQueueHandler::send_report(const report_t &report) const {
-    bool ready = tud_hid_ready();
-    if ( !ready ) return false;
+    if ( !tud_hid_ready() ) return false;
     switch (report.reportID) {
         case REPORT_ID_MODULE_CONNECTED:
             return this->send_module_connected_report(report);

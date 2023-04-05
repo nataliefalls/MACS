@@ -4,12 +4,12 @@
 ReportQueueController::ReportQueueController(const IReportQueue *_queue): queue(_queue)  {}
 
 bool ReportQueueController::inputReport(uint8_t moduleID, report_id_t reportID, const payload_t &payload) const {
-    report_t report = {
+    report_t newReport = {
         reportID,   // .reportID
         moduleID,   // .moduleID
         payload,    // .payload
     };
-    return this->queue->queue_push(report);
+    return this->queue->queuePush(newReport);
 }
 
 bool ReportQueueController::moduleConnectedReport(uint8_t moduleID, const module_coordinates_t &coordinates) const {
@@ -18,7 +18,7 @@ bool ReportQueueController::moduleConnectedReport(uint8_t moduleID, const module
         moduleID,                       // .moduleID
         { .coordinates = coordinates }, // .payload.coordinates
     };
-    return this->queue->queue_push(newReport);
+    return this->queue->queuePush(newReport);
 }
 
 bool ReportQueueController::moduleDisconnectedReport(uint8_t moduleID) const {
@@ -26,5 +26,5 @@ bool ReportQueueController::moduleDisconnectedReport(uint8_t moduleID) const {
         REPORT_ID_MODULE_DISCONNECTED,  // .reportID
         moduleID,                       // .moduleID
     };
-    return this->queue->queue_push(newReport);
+    return this->queue->queuePush(newReport);
 }
