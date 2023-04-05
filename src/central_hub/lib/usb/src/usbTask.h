@@ -1,4 +1,6 @@
 #pragma once
 #include "IReportQueue.h"
 
-void usbMain(IReportQueue *queue);
+void usbTask(IReportQueue *inputQueue, IReportQueue *connectionQueue);
+
+void usbInit();

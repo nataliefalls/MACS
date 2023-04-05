@@ -1,26 +1,25 @@
 #include <stdio.h>
-#include <set>
-
-#include <pico/stdlib.h>
-#include <hardware/pwm.h>
 #include <pico/multicore.h>
 #include "bsp/board.h"
 
 #include <i2c_modules.h>
+#include <hardware/pwm.h>
 #include <Pwm.h>
 #include "hub_utils.h"
-#include <common.h>
 
 #include "demo.h"
 #include "PicoQueueReportQueue.h"
 #include "ReportQueueController.h"
 #include "usbTask.h"
 
-IReportQueue *reportQueue;
-queue_t queue;
+IReportQueue *inputReportQueue;
+IReportQueue *connectionReportQueue;
+queue_t inputQueue;
+queue_t connectionQueue;
 
-void usbTask() {
-    usbMain(reportQueue);
+void usbMain() {
+    usbInit();
+    usbTask(inputReportQueue, connectionReportQueue);
 }
 
 int main() {
@@ -35,16 +34,16 @@ int main() {
     I2C_Hub hub(hub::QUEEN_SDA_PIN, hub::QUEEN_SCL_PIN, hub::WORKER_SDA_PIN, hub::WORKER_SCL_PIN);
     hub.setup();
 
-    reportQueue = new PicoQueueReportQueue(&queue);
-    multicore_launch_core1(usbTask);
+    inputReportQueue = new PicoQueueReportQueue(&inputQueue);
+    connectionReportQueue = new PicoQueueReportQueue(&connectionQueue);
+    multicore_launch_core1(usbMain);
 
     // usb core will handle the reports, so in this thread, we will send demo reports
     // we do this via a report queue controller
-    ReportQueueController *controller = new ReportQueueController(reportQueue);
+    ReportQueueController *controller = new ReportQueueController(inputReportQueue, connectionReportQueue);
 
     while (true) {
         queueDemoReport(controller);
-        // controller->inputReport(0x68, REPORT_ID_BUTTON_DATA, {.button = 0});
     }
     
     // while(1) {
@@ -53,6 +52,4 @@ int main() {
 
     // set pwm out pin
     // initialize pwm reader for pins
-
-    // set up core 1 (usb)
 }

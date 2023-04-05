@@ -6,7 +6,7 @@ class JoystickPayload: public IPayload {
     private:
     const joystick_data_t data;
 
-    static const uint8_t TOLERANCE = 2;
+    static const uint8_t TOLERANCE = 3;
 
     public:
     /**
@@ -16,20 +16,10 @@ class JoystickPayload: public IPayload {
 
     JoystickPayload() = default;
 
-    /**
-     * retrieve the data in this IPayload as a payload_t
-    */
     virtual payload_t toPayload() const;
 
-    /**
-     * retrieve the reportID for this payload type
-    */
     virtual report_id_t reportID() const;
 
-    /**
-     * is the given IPayload equal to this JoystickPayload?
-     * precondition: other is a JoystickPayload
-    */
     virtual bool isEquivalent(const IPayload *other) const;
 
     private:

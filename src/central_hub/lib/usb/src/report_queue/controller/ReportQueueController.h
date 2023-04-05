@@ -5,13 +5,18 @@
 
 class ReportQueueController {
     private:
-    const IReportQueue *queue;
+    const IReportQueue *inputQueue;
+    // inputs are less important to process than connect / disconnect messages, so
+    // we should have a separate queue for them so that they don't get drowned out
+    const IReportQueue *connectionQueue;
 
     public:
     /**
-     * construct a USB controller for the given report queue
+     * construct a report queue controller for the given report queues
+     * first arg is the input queue
+     * second arg is the connection queue
     */
-    ReportQueueController(const IReportQueue *_queue);
+    ReportQueueController(const IReportQueue *_inputQueue, const IReportQueue *_connectionQueue);
 
     ReportQueueController() = default;
 
