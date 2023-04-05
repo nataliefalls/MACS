@@ -28,6 +28,7 @@ class ReportQueueHandler {
     
     /**
      * send the next report in the report queue over usb
+     * 
     */
     send_report_status_t sendNextReport() const;
 

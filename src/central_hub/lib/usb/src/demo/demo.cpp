@@ -7,7 +7,7 @@
 #include "ReportQueueHandler.h"
 #include "PicoQueueReportQueue.h"
 
-#include "ModuleUpdateHandler.h"
+#include "Module.h"
 #include "ButtonPayload.h"
 #include "JoystickPayload.h"
 
@@ -16,17 +16,17 @@
 #define JOYSTICK_X_PIN 0
 #define JOYSTICK_Y_PIN 1
 
-ModuleUpdateHandler<ButtonPayload> *buttonModule;
-ModuleUpdateHandler<JoystickPayload> *joystickModule;
+Module *buttonModule;
+Module *joystickModule;
 const uint8_t buttonModuleID = 0x68;
 const uint8_t joystickModuleID = 0x69;
 
 void connectButtonModule(ReportQueueController *controller) {
-  buttonModule = new ModuleUpdateHandler<ButtonPayload>(buttonModuleID, { 0, 1 }, controller);
+  buttonModule = new Module(buttonModuleID, { 0, 1 }, controller);
 }
 
 void connectJoystickModule(ReportQueueController *controller) {
-  joystickModule = new ModuleUpdateHandler<JoystickPayload>(joystickModuleID, { 1, 1 }, controller);
+  joystickModule = new Module(joystickModuleID, { 1, 1 }, controller);
 }
 
 bool updateButtonModule() {

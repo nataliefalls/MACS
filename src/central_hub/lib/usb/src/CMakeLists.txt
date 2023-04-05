@@ -7,6 +7,7 @@ target_sources(${target_name} PRIVATE
     ${CMAKE_CURRENT_LIST_DIR}/usb_stack/usb_descriptors.c
     ${CMAKE_CURRENT_LIST_DIR}/usb_stack/device_callbacks.c
     ${CMAKE_CURRENT_LIST_DIR}/usb_stack/hid_callbacks.c
+    ${CMAKE_CURRENT_LIST_DIR}/module/Module.cpp
     ${CMAKE_CURRENT_LIST_DIR}/report_queue/BufferedReportQueue.cpp
     ${CMAKE_CURRENT_LIST_DIR}/report_queue/MulticoreFifoReportQueue.cpp
     ${CMAKE_CURRENT_LIST_DIR}/report_queue/PicoQueueReportQueue.cpp
