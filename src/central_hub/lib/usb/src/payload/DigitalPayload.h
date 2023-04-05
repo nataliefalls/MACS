@@ -2,17 +2,17 @@
 
 #include "IPayload.h"
 
-class ButtonPayload: public IPayload {
+class DigitalPayload: public IPayload {
     private:
-    const button_data_t data;
+    const digital_data_t data;
 
     public:
     /**
-     * construct a ButtonPayload with the given data
+     * construct a DigitalPayload with the given data
     */
-    ButtonPayload(button_data_t _data): data(_data) {};
+    DigitalPayload(digital_data_t _data): data(_data) {};
 
-    ButtonPayload() = default;
+    DigitalPayload() = default;
 
     virtual payload_t toPayload() const;
 

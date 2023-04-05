@@ -4,12 +4,12 @@
 #include <stdint.h>
 #include "coordinates.h"
 
-// the state of the button on a module
-typedef struct button_data_t {
+// the state of the digital on a module
+typedef struct digital_data_t {
     // - 0: not pressed
     // - 1: pressed
-    uint8_t button;
-} button_data_t;
+    uint8_t digital;
+} digital_data_t;
 
 // the state of the analog on a module
 typedef struct analog_data_t {
@@ -22,14 +22,14 @@ typedef struct joystick_data_t {
     uint8_t x;
     // displacement of the joystick on the y-axis
     uint8_t y;
-    // button on the joystick
-    uint8_t button;
+    // digital on the joystick
+    uint8_t digital;
 } joystick_data_t;
 
 // a union of all the different types of data sent in a USB report
 typedef union payload_t {
     module_coordinates_t coordinates;
-    button_data_t button;
+    digital_data_t digital;
     analog_data_t analog;
     joystick_data_t joystick;
 } payload_t;

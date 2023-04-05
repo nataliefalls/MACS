@@ -11,7 +11,7 @@ bool JoystickPayload::isEquivalent(const IPayload *other) const {
     
     return this->isWithinTolerance(this->data.x, otherJoystick.x)
         && this->isWithinTolerance(this->data.y, otherJoystick.y)
-        && this->data.button == otherJoystick.button;
+        && this->data.digital == otherJoystick.digital;
 }
 
 bool JoystickPayload::isWithinTolerance(uint8_t value1, uint8_t value2) const {

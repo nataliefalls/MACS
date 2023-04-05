@@ -8,7 +8,7 @@
 #include "PicoQueueReportQueue.h"
 
 #include "Module.h"
-#include "ButtonPayload.h"
+#include "DigitalPayload.h"
 #include "JoystickPayload.h"
 
 #define TOGGLE_CONNECTION_PIN 13
@@ -30,7 +30,7 @@ void connectJoystickModule(ReportQueueController *controller) {
 }
 
 bool updateButtonModule() {
-  ButtonPayload *buttonPayload = new ButtonPayload({ read_button(BUTTON_PIN) });
+  DigitalPayload *buttonPayload = new DigitalPayload({ read_button(BUTTON_PIN) });
   bool updated = buttonModule->update(buttonPayload);
   if (!updated) {
     delete buttonPayload;

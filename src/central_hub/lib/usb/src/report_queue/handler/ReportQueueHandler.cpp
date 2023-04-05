@@ -42,8 +42,8 @@ bool ReportQueueHandler::sendReport(report_t &report) const {
             return this->sendModuleConnectedReport(report);
         case REPORT_ID_MODULE_DISCONNECTED:
             return this->sendModuleDisconnectedReport(report);
-        case REPORT_ID_BUTTON_DATA: 
-            return this->sendButtonReport(report);
+        case REPORT_ID_DIGITAL_DATA: 
+            return this->sendDigitalReport(report);
         case REPORT_ID_ANALOG_DATA:
             return this->sendAnalogReport(report);
         case REPORT_ID_JOYSTICK_DATA:
@@ -77,12 +77,12 @@ bool ReportQueueHandler::sendModuleDisconnectedReport(report_t &report) const {
     return false;
 }
 
-bool ReportQueueHandler::sendButtonReport(report_t &report) const {
-    button_report_t button = {
+bool ReportQueueHandler::sendDigitalReport(report_t &report) const {
+    digital_report_t digital = {
         .moduleID = report.moduleID,
-        .button = report.payload.button
+        .digital = report.payload.digital
     };
-    if (tud_hid_report(REPORT_ID_BUTTON_DATA, (void *) (&button), sizeof(button))) {
+    if (tud_hid_report(REPORT_ID_DIGITAL_DATA, (void *) (&digital), sizeof(digital))) {
         // report was successfully sent, so we can pop it off of the input queue
         this->inputQueue->queuePop(&report);
         return true;
