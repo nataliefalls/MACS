@@ -430,7 +430,7 @@ async function createWindow() {
                     // console.log("entered loop");
                     configuration?.forEach((module, index) => {
                       if (module?.index === 1) {
-                        console.log(module);
+                        // console.log(module);
                         // console.log(module?.configuration?.input);
                         if (module?.configuration?.behavior === "default") {
                           // controller.axis.leftX.setValue(0.5); // move left stick 50% to the left

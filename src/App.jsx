@@ -63,94 +63,93 @@ import GlobalStyles from "@mui/material/GlobalStyles";
 const { ipcRenderer } = require("electron");
 
 const Hexagons = [
+  {
+    id: nanoid(),
+    q: 0,
+    r: 2,
+    s: -2,
+    moduleType: undefined,
+    mainModule: true,
+  },
   // {
   //   id: nanoid(),
   //   q: 0,
-  //   r: -3,
-  //   s: 3,
+  //   r: -2,
+  //   s: 2,
   //   moduleType: undefined,
-  //   mainModule: true,
+  //   configuration: {},
   // },
+  {
+    id: nanoid(),
+    q: -1,
+    r: 0,
+    s: 1,
+    moduleType: undefined,
+    configuration: {},
+  },
+  {
+    id: nanoid(),
+    q: 1,
+    r: -1,
+    s: 0,
+    moduleType: "dial",
+    configuration: {},
+  },
+  {
+    id: nanoid(),
+    q: 0,
+    r: 1,
+    s: -1,
+    moduleType: "dpad",
+    configuration: {},
+  },
+  {
+    id: nanoid(),
+    q: 1,
+    r: 0,
+    s: -1,
+    moduleType: "button",
+    configuration: {},
+  },
+  {
+    id: nanoid(),
+    q: 0,
+    r: -1,
+    s: 1,
+    moduleType: "slider",
+    configuration: {},
+  },
+  {
+    id: nanoid(),
+    q: -1,
+    r: 1,
+    s: 0,
+    moduleType: "joystick",
+    configuration: {
+      behavior: "default",
+    },
+  },
+  {
+    id: nanoid(),
+    q: 2,
+    r: -1,
+    s: -1,
+    moduleType: "switch",
+    configuration: {},
+  },
   {
     id: nanoid(),
     q: 0,
     r: 0,
     s: 0,
-    moduleType: undefined,
-    mainModule: true,
+    moduleType: "button",
     configuration: {},
   },
   // {
   //   id: nanoid(),
-  //   q: 1,
-  //   r: -2,
-  //   s: 1,
-  //   moduleType: undefined,
-  //   configuration: {},
-  // },
-  // {
-  //   id: nanoid(),
-  //   q: 0,
-  //   r: 0,
-  //   s: 0,
-  //   moduleType: "dial",
-  //   configuration: {},
-  // },
-  // {
-  //   id: nanoid(),
-  //   q: 0,
-  //   r: -1,
-  //   s: 1,
-  //   moduleType: "dpad",
-  //   configuration: {},
-  // },
-  // {
-  //   id: nanoid(),
-  //   q: 0,
-  //   r: 1,
-  //   s: -1,
-  //   moduleType: "button",
-  //   configuration: {},
-  // },
-  // {
-  //   id: nanoid(),
-  //   q: 1,
-  //   r: -1,
-  //   s: 0,
-  //   moduleType: "slider",
-  //   configuration: {},
-  // },
-  // {
-  //   id: nanoid(),
-  //   q: 1,
-  //   r: 0,
-  //   s: -1,
-  //   moduleType: "joystick",
-  //   configuration: {
-  //     behavior: "default",
-  //   },
-  // },
-  // {
-  //   id: nanoid(),
   //   q: -1,
-  //   r: 1,
-  //   s: 0,
-  //   moduleType: "switch",
-  //   configuration: {},
-  // },
-  // {
-  //   id: nanoid(),
-  //   q: -1,
-  //   r: 0,
-  //   s: 1,
-  //   moduleType: "button",
-  //   configuration: {},
-  // },
-  // {
-  //   id: nanoid(),
-  //   q: -2,
-  //   r: 0,
-  //   s: 1,
+  //   r: -1,
+  //   s: 2,
   //   moduleType: "button",
   //   configuration: {},
   // },
@@ -511,6 +510,112 @@ function App() {
     }
   };
 
+  const getWidthOffset = (controllerWidth, controllerHeight) => {
+    switch (controllerWidth) {
+      case 1:
+        switch (controllerHeight) {
+          case 1:
+            return 1.75; // done
+          case 2:
+            return 1.75; // done
+          case 3:
+            return 1.5; // done
+          default:
+            return 1.4;
+        }
+      case 2:
+        switch (controllerHeight) {
+          case 1:
+            return 2.125;
+          case 2: //done
+            return 1.4;
+          case 3: // done
+            return 1.7;
+          default:
+            return 1;
+        }
+      case 3:
+        switch (controllerHeight) {
+          case 1: // done
+            return 1.6;
+          case 2: //done
+            return 1.6;
+          case 3: // done
+            return 1.35;
+          default:
+            return 1.4;
+        }
+      case 4:
+        switch (controllerHeight) {
+          case 1:
+            return 1.6;
+          case 2:
+            return 1.6;
+          case 3: // done
+            return 1.8;
+          default:
+            return 1.4;
+        }
+      default:
+        return 1;
+    }
+  };
+
+  const getHeightOffset = (controllerHeight, controllerWidth) => {
+    switch (controllerHeight) {
+      case 1:
+        return 1.4; // done
+      case 2:
+        switch (controllerWidth) {
+          case 1:
+            return 1.35; // done
+          case 2: // done
+            return 1.75;
+          case 3:
+            return 1.25;
+          default:
+            return 1;
+        }
+      case 3:
+        switch (controllerWidth) {
+          case 1: // done
+            return 1.2;
+          case 2: // done
+            return 1.2;
+          case 3: // done
+            return 1.15;
+          default:
+            return 1.3;
+        }
+      case 5:
+        switch (controllerWidth) {
+          case 1: // done
+            return 1.2;
+          case 2: // done
+            return 1.2;
+          case 3: // done
+            return 1.15;
+          default:
+            return 1;
+        }
+
+      default:
+        return 1;
+    }
+  };
+
+  const gridScaler = (width, height) => {
+    if (width < 3 && height < 3) {
+      return 1.5;
+    } else if (width === 3) {
+      return height <= 3 ? 1.3 : 1.1;
+    } else if (width === 4) {
+      return height <= 4 ? 1.0 : 1;
+    } else {
+      return 0.7;
+    }
+  };
+
   const positionSVG = () => {
     if (controllerFound) {
       const svgGrid = document.getElementById("module-grid");
@@ -525,7 +630,28 @@ function App() {
         },
         {}
       );
-      const viewBox = `${xMin} ${yMin} ${xMax - xMin} ${yMax - yMin}`;
+      const heightMin = Math.min(...hexagons.map((hexagon) => hexagon.r));
+      const heightMax = Math.max(...hexagons.map((hexagon) => hexagon.r));
+      const widthMin = Math.min(...hexagons.map((hexagon) => hexagon.q));
+      const widthMax = Math.max(...hexagons.map((hexagon) => hexagon.q));
+      console.log(widthMin, widthMax, heightMin, heightMax);
+      const controllerWidth =
+        Math.abs(
+          Math.max(...hexagons.map((hexagon) => hexagon.q)) -
+            Math.min(...hexagons.map((hexagon) => hexagon.q))
+        ) + 1;
+      const controllerHeight =
+        Math.abs(
+          Math.max(...hexagons.map((hexagon) => hexagon.r)) -
+            Math.min(...hexagons.map((hexagon) => hexagon.r))
+        ) + 1;
+      console.log(controllerWidth, controllerHeight);
+      const viewBox = `${
+        xMin * getWidthOffset(controllerWidth, controllerHeight)
+      } ${yMin * getHeightOffset(controllerHeight, controllerWidth)} ${
+        (xMax - xMin) * gridScaler(controllerWidth, controllerHeight)
+      } ${(yMax - yMin) * gridScaler(controllerWidth, controllerHeight)}`;
+
       console.log(viewBox);
       setViewBox(viewBox);
     }
@@ -863,7 +989,7 @@ function App() {
       return (
         <HexGrid
           id="module-grid"
-          height={"80vh"}
+          height={"90vh"}
           width={"70vw"}
           viewBox={viewBox}
           preserveAspectRatio="xMidYMid meet"
@@ -992,7 +1118,10 @@ function App() {
               fontSize: "1rem",
             }}
             sx={{ zIndex: 10000 }}
-            onClick={() => setActiveHexagon(null)}
+            onClick={() => {
+              panRef?.current?.resetTransform();
+              setActiveHexagon(null);
+            }}
           >
             <ChevronLeft color="primary" />
           </Button>
@@ -1575,7 +1704,7 @@ function App() {
       ipcRenderer.send("initialize", hexagons);
     }
     panRef?.current?.resetTransform();
-    panRef?.current?.centerView();
+    // panRef?.current?.centerView();
   }, [controllerFound, hexagons]);
 
   // On initial render
@@ -1605,41 +1734,41 @@ function App() {
       panRef?.current?.resetTransform();
       panRef?.current?.centerView();
     });
-    ipcRenderer.on("module_connected", (event, arg) => {
-      console.log("connected received");
-      console.log(arg);
-      setHexagons((prevHexagons) => {
-        console.log("old");
-        console.log(prevHexagons);
-        console.log(
-          !prevHexagons.some((localHexagon) => localHexagon.id === arg.id)
-        );
-        if (!prevHexagons.some((localHexagon) => localHexagon.id === arg.id)) {
-          console.log([...prevHexagons, arg]);
-          return [...prevHexagons, arg];
-        }
-        console.log("already exists");
-        return prevHexagons;
-      });
-    });
-    ipcRenderer.on("module_removed", (event, arg) => {
-      console.log("removed received");
-      console.log(arg);
-      setHexagons((prevHexagons) => {
-        console.log("old");
-        console.log(prevHexagons);
-        console.log(
-          prevHexagons.some((localHexagon) => localHexagon.id === arg.id)
-        );
-        if (prevHexagons.some((localHexagon) => localHexagon.id === arg.id)) {
-          console.log("new");
-          console.log(prevHexagons.filter((hex) => hex.id !== arg.id));
-          return prevHexagons.filter((hex) => hex.id !== arg.id);
-        }
-        console.log("not in list");
-        return prevHexagons;
-      });
-    });
+    // ipcRenderer.on("module_connected", (event, arg) => {
+    //   console.log("connected received");
+    //   console.log(arg);
+    //   setHexagons((prevHexagons) => {
+    //     console.log("old");
+    //     console.log(prevHexagons);
+    //     console.log(
+    //       !prevHexagons.some((localHexagon) => localHexagon.id === arg.id)
+    //     );
+    //     if (!prevHexagons.some((localHexagon) => localHexagon.id === arg.id)) {
+    //       console.log([...prevHexagons, arg]);
+    //       return [...prevHexagons, arg];
+    //     }
+    //     console.log("already exists");
+    //     return prevHexagons;
+    //   });
+    // });
+    // ipcRenderer.on("module_removed", (event, arg) => {
+    //   console.log("removed received");
+    //   console.log(arg);
+    //   setHexagons((prevHexagons) => {
+    //     console.log("old");
+    //     console.log(prevHexagons);
+    //     console.log(
+    //       prevHexagons.some((localHexagon) => localHexagon.id === arg.id)
+    //     );
+    //     if (prevHexagons.some((localHexagon) => localHexagon.id === arg.id)) {
+    //       console.log("new");
+    //       console.log(prevHexagons.filter((hex) => hex.id !== arg.id));
+    //       return prevHexagons.filter((hex) => hex.id !== arg.id);
+    //     }
+    //     console.log("not in list");
+    //     return prevHexagons;
+    //   });
+    // });
     panRef?.current?.resetTransform();
     panRef?.current?.centerView();
   }, []);
