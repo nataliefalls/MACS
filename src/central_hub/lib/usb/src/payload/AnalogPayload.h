@@ -2,17 +2,17 @@
 
 #include "IPayload.h"
 
-class DpadPayload: public IPayload {
+class AnalogPayload: public IPayload {
     private:
-    const dpad_data_t data;
+    const analog_data_t data;
 
     public:
     /**
-     * construct a DpadPayload with the given data
+     * construct an analog payload with the given data
     */
-    DpadPayload(dpad_data_t _data): data(_data) {};
+    AnalogPayload(analog_data_t _data): data(_data) {};
 
-    DpadPayload() = default;
+    AnalogPayload() = default;
 
     virtual payload_t toPayload() const;
 

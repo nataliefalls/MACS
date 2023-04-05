@@ -11,10 +11,10 @@ typedef struct button_data_t {
     uint8_t button;
 } button_data_t;
 
-// the state of the dpad on a module
-typedef struct dpad_data_t {
-    uint8_t dpad;
-} dpad_data_t;
+// the state of the analog on a module
+typedef struct analog_data_t {
+    uint8_t analog;
+} analog_data_t;
 
 // the state of the joystick on a module
 typedef struct joystick_data_t {
@@ -30,7 +30,7 @@ typedef struct joystick_data_t {
 typedef union payload_t {
     module_coordinates_t coordinates;
     button_data_t button;
-    dpad_data_t dpad;
+    analog_data_t analog;
     joystick_data_t joystick;
 } payload_t;
 

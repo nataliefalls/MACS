@@ -44,8 +44,8 @@ bool ReportQueueHandler::sendReport(report_t &report) const {
             return this->sendModuleDisconnectedReport(report);
         case REPORT_ID_BUTTON_DATA: 
             return this->sendButtonReport(report);
-        case REPORT_ID_DPAD_DATA:
-            return this->sendDpadReport(report);
+        case REPORT_ID_ANALOG_DATA:
+            return this->sendAnalogReport(report);
         case REPORT_ID_JOYSTICK_DATA:
             return this->sendJoystickReport(report);
         default: return false;
@@ -90,12 +90,12 @@ bool ReportQueueHandler::sendButtonReport(report_t &report) const {
     return false;
 }
 
-bool ReportQueueHandler::sendDpadReport(report_t &report) const {
-    dpad_report_t dpad = {
+bool ReportQueueHandler::sendAnalogReport(report_t &report) const {
+    analog_report_t analog = {
         .moduleID = report.moduleID,
-        .dpad = report.payload.dpad
+        .analog = report.payload.analog
     };
-    if (tud_hid_report(REPORT_ID_DPAD_DATA, (void *) (&dpad), sizeof(dpad))) {
+    if (tud_hid_report(REPORT_ID_ANALOG_DATA, (void *) (&analog), sizeof(analog))) {
         // report was successfully sent, so we can pop it off of the input queue
         this->inputQueue->queuePop(&report);
         return true;

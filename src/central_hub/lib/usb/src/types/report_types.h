@@ -21,8 +21,8 @@ typedef struct TU_ATTR_PACKED {
 
 typedef struct TU_ATTR_PACKED {
     uint8_t moduleID;
-    dpad_data_t dpad;
-} dpad_report_t;
+    analog_data_t analog;
+} analog_report_t;
 
 typedef struct TU_ATTR_PACKED {
     uint8_t moduleID;

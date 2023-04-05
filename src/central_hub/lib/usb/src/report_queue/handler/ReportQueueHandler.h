@@ -38,6 +38,6 @@ class ReportQueueHandler {
     bool sendModuleConnectedReport(report_t &report) const;
     bool sendModuleDisconnectedReport(report_t &report) const;
     bool sendButtonReport(report_t &report) const;
-    bool sendDpadReport(report_t &report) const;
+    bool sendAnalogReport(report_t &report) const;
     bool sendJoystickReport(report_t &report) const;
 };

@@ -5,7 +5,7 @@ enum report_id_t {
     REPORT_ID_MODULE_CONNECTED = 1,
     REPORT_ID_MODULE_DISCONNECTED,
     REPORT_ID_BUTTON_DATA,
-    REPORT_ID_DPAD_DATA,
+    REPORT_ID_ANALOG_DATA,
     REPORT_ID_JOYSTICK_DATA,
     LAST
 } __attribute__ ((__packed__));

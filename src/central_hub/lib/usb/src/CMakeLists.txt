@@ -14,7 +14,7 @@ target_sources(${target_name} PRIVATE
     ${CMAKE_CURRENT_LIST_DIR}/report_queue/handler/ReportQueueHandler.cpp
     ${CMAKE_CURRENT_LIST_DIR}/report_queue/controller/ReportQueueController.cpp
     ${CMAKE_CURRENT_LIST_DIR}/payload/ButtonPayload.cpp
-    ${CMAKE_CURRENT_LIST_DIR}/payload/DpadPayload.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/payload/AnalogPayload.cpp
     ${CMAKE_CURRENT_LIST_DIR}/payload/JoystickPayload.cpp
     ${CMAKE_CURRENT_LIST_DIR}/demo/demo.cpp
     ${CMAKE_CURRENT_LIST_DIR}/util/PicoTimer.cpp
