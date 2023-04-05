@@ -46,9 +46,6 @@ int main() {
 
     module_pwm.setPWMOut((uint16_t)HUB_I2C_ADDRESS);
 
-    I2C_Hub hub(hub::QUEEN_SDA_PIN, hub::QUEEN_SCL_PIN, hub::WORKER_SDA_PIN, hub::WORKER_SCL_PIN);
-    hub.setup();
-
     inputReportQueue = new PicoQueueReportQueue(&inputQueue);
     connectionReportQueue = new PicoQueueReportQueue(&connectionQueue);
     multicore_launch_core1(usbMain);
@@ -56,6 +53,9 @@ int main() {
     // usb core will handle the reports, so in this thread, we will send demo reports
     // we do this via a report queue controller
     ReportQueueController *controller = new ReportQueueController(inputReportQueue, connectionReportQueue);
+
+    I2C_Hub hub(hub::QUEEN_SDA_PIN, hub::QUEEN_SCL_PIN, hub::WORKER_SDA_PIN, hub::WORKER_SCL_PIN, controller);
+    hub.setup();
 
     while (true) {
         queueDemoReport(controller);

@@ -27,7 +27,7 @@ int main() {
     // printf("connected to usb\n\n");
 
     uint8_t addr = module::get_address();
-    Module type = parse_address(addr);
+    ModuleType type = parse_address(addr);
 
     module::init_inputs();
     

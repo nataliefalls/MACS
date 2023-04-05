@@ -16,7 +16,7 @@ uint module::get_digital_pin() {
 #endif
 
 uint8_t module::get_address() {
-    Module type;
+    ModuleType type;
     uint8_t id;
 
     #if BUTTON

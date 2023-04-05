@@ -21,7 +21,7 @@ function(string_split_at_last partb input separator)
   set(${partb} ${pb} PARENT_SCOPE)
 endfunction(string_split_at_last partb input separator)
 
-set(TARGET "joystick_1")
+set(TARGET "joystick_1" "joystick_2" "button_1" "button_2" "slider_1" "slider_2" "switch_1" "potentiometer_1")
 foreach(element ${TARGET})
     add_executable(${element})
 
@@ -29,7 +29,7 @@ foreach(element ${TARGET})
     pico_set_program_version(${element} "0.1")
 
     pico_enable_stdio_uart(${element} 0)
-    pico_enable_stdio_usb(${element} 1)
+    pico_enable_stdio_usb(${element} 0)
 
     include_directories(${CMAKE_CURRENT_LIST_DIR}/include)
 

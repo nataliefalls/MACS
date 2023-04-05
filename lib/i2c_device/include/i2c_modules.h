@@ -7,6 +7,8 @@
 #include <set>
 #include <map>
 #include "coordinates.h"
+#include <ReportQueueController.h>
+#include <Module.h>
 
 /* Utility functions */
 
@@ -22,7 +24,7 @@ static inline void initialize_i2c(i2c_inst_t* i2c, uint sda, uint scl) {
     i2c_init(i2c, I2C_BAUDRATE);
 }
 
-static inline uint8_t hw_size_from_type(Module type) {
+static inline uint8_t hw_size_from_type(ModuleType type) {
     switch (type)
     {
     case kButton:
@@ -67,7 +69,7 @@ protected:
 class I2C_Module : public I2C_Base {
 public:
     I2C_Module(uint8_t address, uint8_t neighbor_address[],
-	           uint sda, uint scl, Module type);
+	           uint sda, uint scl, ModuleType type);
     ~I2C_Module();
     void worker_callback(i2c_inst_t *i2c, i2c_worker_event_t event);
     void setup();
@@ -75,7 +77,7 @@ public:
 protected:
 private:
     uint8_t* hw_status;
-    Module hw_type;
+    ModuleType hw_type;
     uint8_t hw_size;
     uint8_t* _neighbor_address;
 };
@@ -83,7 +85,7 @@ private:
 class I2C_Hub : public I2C_Base {
     // contains worker and queen running simultaneously
 public:
-    I2C_Hub(uint queen_sda, uint queen_scl, uint worker_sda, uint worker_scl);
+    I2C_Hub(uint queen_sda, uint queen_scl, uint worker_sda, uint worker_scl, ReportQueueController *controller);
     void i2c_task(/* Pass queue to USB thread here */);
     void setup();
     void worker_callback(i2c_inst_t *i2c, i2c_worker_event_t event);
@@ -99,9 +101,11 @@ private:
   
     uint queen_sda;
     uint queen_scl;
-    std::set<uint8_t> modules;
+    // std::set<uint8_t> modules;
+    std::map<uint8_t, Module*> modules;
     std::map<uint8_t, module_coordinates_t> coordinates;
     std::map<uint8_t, std::vector<module_side>> coordinate_dependencies;
+    ReportQueueController* _controller;
 };
 
 #endif

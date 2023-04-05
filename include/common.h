@@ -10,7 +10,7 @@
 #define PWM_IN_SIDE_5 14
 #define PWM_IN_SIDE_6 13
     
-enum Module : uint8_t {
+enum ModuleType : uint8_t {
     kButton,
     kSwitch,
     kSlider,
@@ -18,8 +18,8 @@ enum Module : uint8_t {
     kJoystick
 };
 
-inline Module parse_address(uint8_t address) {
-    return static_cast<Module>(address & 0x07);
+inline ModuleType parse_address(uint8_t address) {
+    return static_cast<ModuleType>(address & 0x07);
 }
 
 #endif

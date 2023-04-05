@@ -1,6 +1,9 @@
 #include <cstdio>
 
 #include "i2c_modules.h"
+#include <DigitalPayload.h>
+#include <AnalogPayload.h>
+#include <JoystickPayload.h>
 
 using namespace std::placeholders;
 
@@ -19,7 +22,7 @@ I2C_Base::~I2C_Base() {
 /* I2C Module Definition */
 
 I2C_Module::I2C_Module(uint8_t address, uint8_t neighbor_address[],
-		       uint sda, uint scl, Module type)
+		       uint sda, uint scl, ModuleType type)
   : I2C_Base(address, sda, scl),
      _neighbor_address(neighbor_address) {
     hw_type = type;
@@ -68,49 +71,62 @@ void I2C_Module::setup() {
 
 /* I2C Hub Definitoin */
 
-I2C_Hub::I2C_Hub(uint queen_sda, uint queen_scl, uint worker_sda, uint worker_scl) 
+I2C_Hub::I2C_Hub(uint queen_sda, uint queen_scl, uint worker_sda, uint worker_scl, ReportQueueController *controller) 
         : I2C_Base(HUB_I2C_ADDRESS, worker_sda, worker_scl) {
     this->queen_sda = queen_sda;
     this->queen_scl = queen_scl;
+    _controller = controller;
 }
 
 void I2C_Hub::i2c_task(/* queue to USB task */) {
-    for (uint8_t address : modules) {
+    for (auto mod : modules) {
 
+        uint8_t address = mod.first;
+        Module* this_module = mod.second;
+        
         // Parse address for module type
-        Module type = parse_address(address);
+        ModuleType type = parse_address(address);
 
         int count;
         uint8_t *buf;
 
         count = i2c_read_blocking(i2c1, address, buf, hw_size_from_type(type), false);
 
+        IPayload* payload;
+
         // format buf into appropriate HID reports and queue them into USB object
         switch (type)
         {
         case kButton:
-            
-            break;
         case kSwitch:
-            
-            break;
-        
-        case kJoystick:
-            
+            payload = new DigitalPayload({ buf[0] });
+            if (!this_module->update(payload)) {
+                delete payload;
+            }
             break;
 
         case kSlider:
-            break;
         case kPotentiometer:
-            
+            payload = new AnalogPayload({ buf[0] });
+            if (!this_module->update(payload)) {
+                delete payload;
+            }
             break;
-        
+
+        case kJoystick:
+            payload = new JoystickPayload({ buf[0], buf[1], buf[2] });
+            if (!this_module->update(payload)) {
+                delete payload;
+            }
+            break;
+
         default:
             break;
         }
 
         if (count == PICO_ERROR_GENERIC) {
             //printf("Device not recognized at address %#04X\n", address);
+            delete modules[address];
             modules.erase(address);
             continue;
         }
@@ -206,6 +222,31 @@ void I2C_Hub::coordinate_helper(uint8_t address, uint8_t neighbor_side, uint8_t 
 
     coordinates[address] = new_coords;
     // if modules does not contain this address, add coord_it
-    auto success = modules.insert(address);
+    // auto success = modules.insert(address);
     // TODO: create module class here that does the USB stuff
+    ModuleType type = parse_address(address);
+    Module* module;
+    switch (type)
+    {
+    case kButton:
+    case kSwitch:
+        module = new Module(address, new_coords, _controller);
+        modules.insert({address, module});
+        break;
+    
+    case kSlider:
+    case kPotentiometer:
+        module = new Module(address, new_coords, _controller);
+        modules.insert({address, module});
+        break;
+    
+    case kJoystick:
+        module = new Module(address, new_coords, _controller);
+        modules.insert({address, module});
+        break;
+    
+    default:
+        break;
+    }
+
 }

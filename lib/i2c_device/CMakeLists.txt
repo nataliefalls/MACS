@@ -14,4 +14,5 @@ target_link_libraries(i2c_device
     INTERFACE
     hardware_i2c
     hardware_irq
+    usb_comms
 )
