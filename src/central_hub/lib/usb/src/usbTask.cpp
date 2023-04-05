@@ -1,4 +1,3 @@
-#include "tusb.h"
 #include "usbTask.h"
 #include "constants.h"
 #include "PicoTimer.h"
@@ -8,19 +7,30 @@ void hidTask(ReportQueueHandler *handler);
 bool initialStartUpFinished();
 bool pollingIntervalWait();
 
+/**
+ * initialize the tinyUSB stack and identify as a human interface device
+ * this function blocks until USB enumeration is complete, usually within 50ms
+*/
 void usbInit() {
+  // init device stack on configured roothub port
+  tud_init(BOARD_TUD_RHPORT);
+  // let USB enumeration finish before sending any reports
   do {
     tud_task();
   } while (!initialStartUpFinished());
 }
 
-void usbMain(IReportQueue *queue) {
-  // init device stack on configured roothub port
-  tud_init(BOARD_TUD_RHPORT);
-  // wait for usb enumeration to finish before sending reports
-  usbInit();
+/**
+ * main entry point for the USB thread. Responsibilities:
+ * - handle reports off of the input queue
+ * - facilitate USB communication
+ * 
+ * @param inputQueue the shared queue for controller input messages
+ * @param connectionQueue the shared queue for module (dis)connection messages
+*/
+void usbTask(IReportQueue *inputQueue, IReportQueue *connectionQueue) {
 
-  ReportQueueHandler *handler = new ReportQueueHandler(queue);
+  ReportQueueHandler *handler = new ReportQueueHandler(inputQueue, connectionQueue);
 
   while (1) {
     tud_task();

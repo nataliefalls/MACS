@@ -11,13 +11,18 @@ enum send_report_status_t {
 
 class ReportQueueHandler {
     private:
-    const IReportQueue *queue;
+    const IReportQueue *inputQueue;
+    // inputs are less important to process than connect / disconnect messages, so
+    // we should have a separate queue for them so that they don't get drowned out
+    const IReportQueue *connectionQueue;
 
     public:
     /**
-     * Construct a handler for the given report queue
+     * Construct a handler for the given report queues
+     * first arg is the input queue
+     * second arg is the connection queue
     */
-    ReportQueueHandler(const IReportQueue *_queue);
+    ReportQueueHandler(const IReportQueue *_inputQueue, const IReportQueue *_connectionQueue);
 
     ReportQueueHandler() = default;
     
@@ -27,10 +32,11 @@ class ReportQueueHandler {
     send_report_status_t sendNextReport() const;
 
     private:
-    bool send_report(const report_t &report) const;
-    bool send_module_connected_report(const report_t &report) const;
-    bool send_module_disconnected_report(const report_t &report) const;
-    bool send_button_report(const report_t &report) const;
-    bool send_dpad_report(const report_t &report) const;
-    bool send_joystick_report(const report_t &report) const;
+    bool getNextReport(report_t *report) const;
+    bool sendReport(report_t &report) const;
+    bool sendModuleConnectedReport(report_t &report) const;
+    bool sendModuleDisconnectedReport(report_t &report) const;
+    bool sendButtonReport(report_t &report) const;
+    bool sendDpadReport(report_t &report) const;
+    bool sendJoystickReport(report_t &report) const;
 };

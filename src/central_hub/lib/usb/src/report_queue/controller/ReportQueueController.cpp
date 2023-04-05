@@ -1,7 +1,8 @@
 #include "IReportQueue.h"
 #include "ReportQueueController.h"
 
-ReportQueueController::ReportQueueController(const IReportQueue *_queue): queue(_queue)  {}
+ReportQueueController::ReportQueueController(const IReportQueue *_inputQueue, const IReportQueue *_connectionQueue):
+    inputQueue(_inputQueue), connectionQueue(_connectionQueue) {}
 
 bool ReportQueueController::inputReport(uint8_t moduleID, report_id_t reportID, const payload_t &payload) const {
     report_t newReport = {
@@ -9,7 +10,7 @@ bool ReportQueueController::inputReport(uint8_t moduleID, report_id_t reportID, 
         moduleID,   // .moduleID
         payload,    // .payload
     };
-    return this->queue->queuePush(newReport);
+    return this->inputQueue->queuePush(newReport);
 }
 
 bool ReportQueueController::moduleConnectedReport(uint8_t moduleID, const module_coordinates_t &coordinates) const {
@@ -18,7 +19,7 @@ bool ReportQueueController::moduleConnectedReport(uint8_t moduleID, const module
         moduleID,                       // .moduleID
         { .coordinates = coordinates }, // .payload.coordinates
     };
-    return this->queue->queuePush(newReport);
+    return this->connectionQueue->queuePush(newReport);
 }
 
 bool ReportQueueController::moduleDisconnectedReport(uint8_t moduleID) const {
@@ -26,5 +27,5 @@ bool ReportQueueController::moduleDisconnectedReport(uint8_t moduleID) const {
         REPORT_ID_MODULE_DISCONNECTED,  // .reportID
         moduleID,                       // .moduleID
     };
-    return this->queue->queuePush(newReport);
+    return this->connectionQueue->queuePush(newReport);
 }

@@ -14,19 +14,9 @@ class DpadPayload: public IPayload {
 
     DpadPayload() = default;
 
-    /**
-     * retrieve the data in this IPayload as a payload_t
-    */
     virtual payload_t toPayload() const;
 
-    /**
-     * retrieve the reportID for this payload type
-    */
     virtual report_id_t reportID() const;
 
-    /**
-     * is the given IPayload equal to this DpadPayload?
-     * precondition: other is a DpadPayload
-    */
     virtual bool isEquivalent(const IPayload *other) const;
 };
