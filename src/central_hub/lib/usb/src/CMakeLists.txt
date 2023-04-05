@@ -1,8 +1,6 @@
 set(target_name usb_comms)
 add_library(${target_name})
 
-pico_enable_stdio_usb(${target_name} 1)
-
 target_sources(${target_name} PRIVATE
     ${CMAKE_CURRENT_LIST_DIR}/usb_stack/usb_descriptors.c
     ${CMAKE_CURRENT_LIST_DIR}/usb_stack/device_callbacks.c
