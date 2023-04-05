@@ -6,7 +6,7 @@
 #include "coordinates.h"
 
 template <class T>
-ModuleUpdateHandler<T>::ModuleUpdateHandler(uint8_t _moduleID, module_coordinates_t coordinates, ReportQueueController *_controller)
+ModuleUpdateHandler<T>::ModuleUpdateHandler(uint8_t _moduleID, module_coordinates_t coordinates, IReportQueueController *_controller)
     : moduleID(_moduleID), controller(_controller), state(nullptr) {
     // verify at compile-time that T is a subclass of IPayload
     static_assert(std::is_base_of<IPayload, T>::value, "template parameter not a subclass of IPayload");
