@@ -3,11 +3,8 @@
 #include "IPayload.h"
 
 class JoystickPayload: public IPayload {
-    protected:
-    const joystick_data_t data;
-
     private:
-    static const uint8_t TOLERANCE = 1;
+    const joystick_data_t data;
 
     public:
     /**
@@ -32,7 +29,4 @@ class JoystickPayload: public IPayload {
      * precondition: other is a JoystickPayload
     */
     virtual bool isEquivalent(const IPayload *other) const;
-
-    private:
-    bool isWithinTolerance(uint8_t x, uint8_t y) const;
 };

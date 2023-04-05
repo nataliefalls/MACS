@@ -1,8 +1,9 @@
 #pragma once
 
-#include "IReportQueueController.h"
+#include "payload_types.h"
+#include "IReportQueue.h"
 
-class ReportQueueController: public IReportQueueController {
+class ReportQueueController {
     private:
     const IReportQueue *queue;
 
@@ -14,13 +15,24 @@ class ReportQueueController: public IReportQueueController {
 
     ReportQueueController() = default;
 
-    ~ReportQueueController();
+    /**
+     *  prepare an input report to be sent over usb.
+     *  false return indicates that the report could not be queued
+     *  true return indicates success
+    */
+    bool inputReport(uint8_t moduleID, report_id_t reportID, const payload_t &payload) const;
 
-    virtual bool report(report_t &report) const;
+    /**
+     *  prepare a module connected report to be sent over usb.
+     *  false return indicates that the report could not be queued
+     *  true return indicates success
+    */
+    bool moduleConnectedReport(uint8_t moduleID, const module_coordinates_t &coordinates) const;
 
-    virtual bool inputReport(uint8_t moduleID, report_id_t reportID, const payload_t &payload) const;
-
-    virtual bool moduleConnectedReport(uint8_t moduleID, const module_coordinates_t &coordinates) const;
-
-    virtual bool moduleDisconnectedReport(uint8_t moduleID) const;
+    /**
+     *  prepare a module disconnected report to be sent over usb.
+     *  false return indicates that the report could not be queued
+     *  true return indicates success
+    */
+    bool moduleDisconnectedReport(uint8_t moduleID) const;
 };

@@ -22,26 +22,7 @@ class ReportQueueHandler {
     ReportQueueHandler() = default;
     
     /**
-     * pop a report off of the report queue and send it over usb.
-     * 
-     * return value indicates the status of the send:
-     * - SEND_SUCCESS: the send was successful
-     * - E_QUEUE_EMPTY: the queue was empty, so nothing was sent
-     * - E_USB_TRANSFER_FAILED: a report was popped off of the queue, but it
-     *      could not be sent over USB. In this case, the given report will
-     *      contain this report. If nothing is done with the given report,
-     *      it will be dropped.
-    */
-    send_report_status_t sendNextReport(report_t &report) const;
-    
-    /**
-     * pop a report off of the report queue and send it over usb.
-     * 
-     * return value indicates the status of the send:
-     * - SEND_SUCCESS: the send was successful
-     * - E_QUEUE_EMPTY: the queue was empty, so nothing was sent
-     * - E_USB_TRANSFER_FAILED: a report was popped off of the queue, but it
-     *      could not be sent over USB and was dropped
+     * send the next report in the report queue over usb
     */
     send_report_status_t sendNextReport() const;
 
