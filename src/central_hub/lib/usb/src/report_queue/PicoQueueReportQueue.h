@@ -12,16 +12,13 @@ class PicoQueueReportQueue: public IReportQueue {
 
     queue_t *queue;
 
+    bool init;
+
     public:
     /**
      * constructs a PicoQueueReportQueue with the given queue_t
     */
     PicoQueueReportQueue(queue_t *_queue);
-    
-    /**
-     * constructs a PicoQueueReportQueue with the given queue_t and capacity
-    */
-    PicoQueueReportQueue(queue_t *_queue, uint32_t capacity);
 
     /**
      * default constructor
@@ -33,15 +30,24 @@ class PicoQueueReportQueue: public IReportQueue {
     */
     ~PicoQueueReportQueue();
 
-    virtual bool push(const report_t &report) const;
+    /**
+     * push the given report to the queue.
+     *  returns false on failure
+     *  returns true on success
+    */
+    virtual bool queue_push(const report_t &report) const;
 
-    virtual bool pop(report_t *report) const;
+    /**
+     * pop the first report off of the queue.
+     *  returns false on failure
+     *  returns true on success, in which case, the report argument
+     *      contains the report that was popped
+    */
+    virtual bool queue_pop(report_t *report) const;
 
-    virtual bool empty() const;
-
-    virtual bool full() const;
-
-    virtual uint32_t count() const;
-
-    virtual uint32_t capacity() const;
+    protected:
+    /**
+     * check if a timeout has occured
+    */
+    bool timeout();
 };
