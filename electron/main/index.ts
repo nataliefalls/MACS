@@ -182,11 +182,19 @@ async function createWindow() {
           switch (data.readInt8(0)) {
             case 1:
               console.log("connected");
+              console.log({
+                id: data.readInt8(1),
+                q: 0 - (0 - data.readInt8(2) + (0 - data.readInt8(3))),
+                r: 0 - data.readInt8(3),
+                s: 0 - data.readInt8(2),
+                moduleType: undefined,
+                configuration: {},
+              });
               win?.webContents.send("module_connected", {
                 id: data.readInt8(1),
-                q: data.readInt8(2) + data.readInt8(3),
-                r: -data.readInt8(3),
-                s: -data.readInt8(2),
+                q: 0 - (0 - data.readInt8(2) + (0 - data.readInt8(3))),
+                r: 0 - data.readInt8(3),
+                s: 0 - data.readInt8(2),
                 moduleType: undefined,
                 configuration: {},
               });
@@ -195,19 +203,80 @@ async function createWindow() {
               console.log("removed");
               win?.webContents.send("module_removed", {
                 id: data.readInt8(1),
-                q: data.readInt8(2) + data.readInt8(3),
-                r: -data.readInt8(3),
-                s: -data.readInt8(2),
+                q: 0 - (0 - data.readInt8(2) + (0 - data.readInt8(3))),
+                r: 0 - data.readInt8(3),
+                s: 0 - data.readInt8(2),
               });
               break;
             case 3:
               // console.log("buttons");
+              console.log("buttonState: " + data.readInt8(2));
+              try {
+                if (controller?.type) {
+                  // console.log("entered loop");
+                  configuration?.forEach((module, index) => {
+                    if (module?.index === 0) {
+                      // console.log(module);
+                      // console.log(module?.configuration?.input);
+                      const buttonState = data.readInt8(2);
+                      // console.log(buttons);
+                      controller?.button[
+                        buttons[getInputIndex(module?.configuration?.input)]
+                      ].setValue(buttonState);
+                      controller?.update();
+                    } else {
+                      // console.log("not found");
+                    }
+                  });
+                } else {
+                  // console.log("controller is null");
+                }
+              } catch (e) {
+                // controller is not on
+              }
               break;
             case 4:
               // console.log("dpad");
               break;
             case 5:
-              // console.log("joystick");
+              // console.log(data);
+              const joystickHorizontal = data.readUInt8(2);
+              const joystickVertical = data.readUInt8(3);
+              const joystickButtonState = data.readUInt8(4);
+              console.log(joystickButtonState);
+              // console.log(joystickHorizontal);
+              // console.log(joystickVertical);
+              // console.log("x " + (joystickHorizontal - 128) / 128);
+              // console.log("y " + (joystickVertical - 128) / 128);
+              // console.log("before loop");
+              try {
+                if (controller?.type) {
+                  // console.log("entered loop");
+                  configuration?.forEach((module, index) => {
+                    if (module?.index === 1) {
+                      // console.log(module);
+                      // console.log(module?.configuration?.input);
+                      if (module?.configuration?.behavior === "default") {
+                        // controller.axis.leftX.setValue(0.5); // move left stick 50% to the left
+                        // controller.axis.leftY.setValue(-0.5); // move left stick 50% down
+                        controller.axis.leftX.setValue(
+                          (joystickHorizontal - 128) / 128
+                        );
+                        controller.axis.leftY.setValue(
+                          (joystickVertical - 128) / 128
+                        );
+                        controller?.update();
+                      }
+                    } else {
+                      // console.log("not found");
+                    }
+                  });
+                } else {
+                  // console.log("controller is null");
+                }
+              } catch (e) {
+                // controller is not on
+              }
               break;
             default:
               console.log("unknown");
@@ -366,11 +435,19 @@ async function createWindow() {
             switch (data.readInt8(0)) {
               case 1:
                 console.log("connected");
+                console.log({
+                  id: data.readInt8(1),
+                  q: 0 - (0 - data.readInt8(2) + (0 - data.readInt8(3))),
+                  r: 0 - data.readInt8(3),
+                  s: 0 - data.readInt8(2),
+                  moduleType: undefined,
+                  configuration: {},
+                });
                 win?.webContents.send("module_connected", {
                   id: data.readInt8(1),
-                  q: data.readInt8(2) + data.readInt8(3),
-                  r: -data.readInt8(3),
-                  s: -data.readInt8(2),
+                  q: 0 - (0 - data.readInt8(2) + (0 - data.readInt8(3))),
+                  r: 0 - data.readInt8(3),
+                  s: 0 - data.readInt8(2),
                   moduleType: undefined,
                   configuration: {},
                 });
@@ -379,9 +456,9 @@ async function createWindow() {
                 console.log("removed");
                 win?.webContents.send("module_removed", {
                   id: data.readInt8(1),
-                  q: data.readInt8(2) + data.readInt8(3),
-                  r: -data.readInt8(3),
-                  s: -data.readInt8(2),
+                  q: 0 - (0 - data.readInt8(2) + (0 - data.readInt8(3))),
+                  r: 0 - data.readInt8(3),
+                  s: 0 - data.readInt8(2),
                 });
                 break;
               case 3:

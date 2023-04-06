@@ -345,7 +345,17 @@ const ControllerInputs = [
 
 function App() {
   const [inputTypes, setInputTypes] = useState(InputTypes);
-  const [hexagons, setHexagons] = useState(Hexagons);
+  const [hexagons, setHexagons] = useState([
+    {
+      id: nanoid(),
+      q: 0,
+      r: 0,
+      s: 0,
+      configuration: {},
+      moduleType: undefined,
+      mainModule: true,
+    },
+  ]);
   const [controllerFound, setControllerFound] = useState(false);
   const [controllerStatus, setControllerStatus] = useState(false);
   const [activeHexagon, setActiveHexagon] = useState(null);
@@ -1729,46 +1739,54 @@ function App() {
         ipcRenderer.send("initialize", hexagons);
       } else {
         setDropzones([]);
-        setHexagons(Hexagons);
+        setHexagons({
+          id: nanoid(),
+          q: 0,
+          r: 0,
+          s: 0,
+          configuration: {},
+          moduleType: undefined,
+          mainModule: true,
+        });
       }
       panRef?.current?.resetTransform();
       panRef?.current?.centerView();
     });
-    // ipcRenderer.on("module_connected", (event, arg) => {
-    //   console.log("connected received");
-    //   console.log(arg);
-    //   setHexagons((prevHexagons) => {
-    //     console.log("old");
-    //     console.log(prevHexagons);
-    //     console.log(
-    //       !prevHexagons.some((localHexagon) => localHexagon.id === arg.id)
-    //     );
-    //     if (!prevHexagons.some((localHexagon) => localHexagon.id === arg.id)) {
-    //       console.log([...prevHexagons, arg]);
-    //       return [...prevHexagons, arg];
-    //     }
-    //     console.log("already exists");
-    //     return prevHexagons;
-    //   });
-    // });
-    // ipcRenderer.on("module_removed", (event, arg) => {
-    //   console.log("removed received");
-    //   console.log(arg);
-    //   setHexagons((prevHexagons) => {
-    //     console.log("old");
-    //     console.log(prevHexagons);
-    //     console.log(
-    //       prevHexagons.some((localHexagon) => localHexagon.id === arg.id)
-    //     );
-    //     if (prevHexagons.some((localHexagon) => localHexagon.id === arg.id)) {
-    //       console.log("new");
-    //       console.log(prevHexagons.filter((hex) => hex.id !== arg.id));
-    //       return prevHexagons.filter((hex) => hex.id !== arg.id);
-    //     }
-    //     console.log("not in list");
-    //     return prevHexagons;
-    //   });
-    // });
+    ipcRenderer.on("module_connected", (event, arg) => {
+      console.log("connected received");
+      console.log(arg);
+      setHexagons((prevHexagons) => {
+        console.log("old");
+        console.log(prevHexagons);
+        console.log(
+          !prevHexagons.some((localHexagon) => localHexagon.id === arg.id)
+        );
+        if (!prevHexagons.some((localHexagon) => localHexagon.id === arg.id)) {
+          console.log([...prevHexagons, arg]);
+          return [...prevHexagons, arg];
+        }
+        console.log("already exists");
+        return prevHexagons;
+      });
+    });
+    ipcRenderer.on("module_removed", (event, arg) => {
+      console.log("removed received");
+      console.log(arg);
+      setHexagons((prevHexagons) => {
+        console.log("old");
+        console.log(prevHexagons);
+        console.log(
+          prevHexagons.some((localHexagon) => localHexagon.id === arg.id)
+        );
+        if (prevHexagons.some((localHexagon) => localHexagon.id === arg.id)) {
+          console.log("new");
+          console.log(prevHexagons.filter((hex) => hex.id !== arg.id));
+          return prevHexagons.filter((hex) => hex.id !== arg.id);
+        }
+        console.log("not in list");
+        return prevHexagons;
+      });
+    });
     panRef?.current?.resetTransform();
     panRef?.current?.centerView();
   }, []);
