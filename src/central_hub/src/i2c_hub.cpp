@@ -33,6 +33,15 @@ void I2C_Hub::i2c_task(/* queue to USB task */) {
 
         count = i2c_read_blocking(i2c1, address, buf, hw_size_from_type(type), false);
 
+        if (count == PICO_ERROR_GENERIC) {
+            //printf("Device not recognized at address %#04X\n", address);
+            coordinates.erase(address);
+            coordinate_dependencies.erase(address);
+            delete modules[address];
+            modules.erase(address);
+            continue;
+        }
+
         IPayload* payload;
 
         // format buf into appropriate HID reports and queue them into USB object
@@ -63,13 +72,6 @@ void I2C_Hub::i2c_task(/* queue to USB task */) {
 
         default:
             break;
-        }
-
-        if (count == PICO_ERROR_GENERIC) {
-            //printf("Device not recognized at address %#04X\n", address);
-            delete modules[address];
-            modules.erase(address);
-            continue;
         }
 
 

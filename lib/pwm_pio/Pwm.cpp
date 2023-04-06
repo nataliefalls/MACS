@@ -14,6 +14,15 @@ Pwm::Pwm(uint pwm_out, uint *pin_in_list, uint num_of_pins)
   _num_of_pins = num_of_pins;
 
   _pwm_out = pwm_out;
+
+  pwm_config cfg = pwm_get_default_config();
+  pwm_init(pwm_gpio_to_slice_num(_pwm_out), &cfg, true);
+
+  gpio_set_function(_pwm_out, GPIO_FUNC_PWM);
+
+  uint pwm1_slice = pwm_gpio_to_slice_num(_pwm_out);
+    
+  pwm_set_clkdiv_int_frac(pwm1_slice, 2, 0);
     
   // load the pio program into the pio memory
   uint offset1 = pio_add_program(pio0, &Pwm_program);
@@ -81,8 +90,7 @@ bool Pwm::isConnected(uint pin)
 
 void Pwm::setPWMOut(uint16_t value)
 {
-  gpio_set_function(_pwm_out, GPIO_FUNC_PWM);
-  pwm_set_gpio_level(_pwm_out, value);
+    pwm_set_gpio_level(_pwm_out, value);
 }
 
 uint32_t Pwm::pulsewidth[8];
