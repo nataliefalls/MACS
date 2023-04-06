@@ -16,7 +16,8 @@ target_include_directories(central_hub INTERFACE
 )
 
 target_sources(central_hub PUBLIC
-        src/central_hub.cpp)
+        src/central_hub.cpp
+        src/i2c_hub.cpp)
 
 # Add the standard library to the build
 target_link_libraries(central_hub PUBLIC

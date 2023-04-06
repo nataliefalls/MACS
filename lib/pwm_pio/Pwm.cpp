@@ -3,6 +3,7 @@
 #include "pico/stdlib.h"
 #include "hardware/pio.h"
 #include "hardware/irq.h"
+#include "hardware/pwm.h"
 
 #include "Pwm.h"
 #include "Pwm.pio.h"
@@ -81,7 +82,7 @@ bool Pwm::isConnected(uint pin)
 void Pwm::setPWMOut(uint16_t value)
 {
   gpio_set_function(_pwm_out, GPIO_FUNC_PWM);
-  
+  pwm_set_gpio_level(_pwm_out, value);
 }
 
 uint32_t Pwm::pulsewidth[8];

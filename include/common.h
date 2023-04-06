@@ -8,7 +8,7 @@
 #define PWM_IN_SIDE_3 17
 #define PWM_IN_SIDE_4 15
 #define PWM_IN_SIDE_5 14
-#define PWM_IN_SIDE_6 13
+#define PWM_IN_SIDE_6 6
     
 enum ModuleType : uint8_t {
     kButton,

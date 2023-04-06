@@ -2,7 +2,7 @@
 //#include <hardware/gpio.h>
 
 uint8_t module::map_16_to_8(uint16_t x) {
-    return static_cast<uint8_t>((x - 4095) * UINT8_MAX / 4095);
+    return static_cast<uint8_t>(x >> 4);
 }
 
 #if DIGITAL

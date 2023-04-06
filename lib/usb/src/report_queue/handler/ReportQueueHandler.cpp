@@ -1,5 +1,5 @@
 #include "ReportQueueHandler.h"
-#include "tusb.h"
+#include <tusb.h>
 
 ReportQueueHandler::ReportQueueHandler(const IReportQueue *_inputQueue, const IReportQueue *_connectionQueue):
     inputQueue(_inputQueue), connectionQueue(_connectionQueue) {}

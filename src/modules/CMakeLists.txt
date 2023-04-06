@@ -29,7 +29,7 @@ foreach(element ${TARGET})
     pico_set_program_version(${element} "0.1")
 
     pico_enable_stdio_uart(${element} 0)
-    pico_enable_stdio_usb(${element} 0)
+    pico_enable_stdio_usb(${element} 1)
 
     include_directories(${CMAKE_CURRENT_LIST_DIR}/include)
 
@@ -76,6 +76,7 @@ foreach(element ${TARGET})
     target_sources(${element} PUBLIC
             src/module.cpp
             src/mod_utils.cpp
+            src/i2c_module.cpp
     )
 
     # Add the standard library to the build
@@ -85,8 +86,10 @@ foreach(element ${TARGET})
             hardware_i2c
             hardware_pwm
             pwm_pio
-            hardware_adc
+            # tinyusb_device
     )
+    target_link_libraries(${element} PUBLIC
+            hardware_adc)
 
     pico_add_extra_outputs(${element})
 endforeach(element ${TARGET})
