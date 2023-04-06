@@ -137,6 +137,7 @@ void I2C_Hub::i2c_task(/* queue to USB task */) {
 }
 
 void I2C_Hub::setup() {
+    coordinates.insert({addr, {0,0}});
     initialize_i2c(i2c0, sda, scl);
     i2c_worker_init(i2c0, addr, std::bind(&I2C_Hub::worker_callback, this, _1, _2));
     initialize_i2c(i2c1, queen_sda, queen_scl);

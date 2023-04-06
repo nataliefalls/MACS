@@ -56,15 +56,8 @@ int main() {
 
     I2C_Hub hub(hub::QUEEN_SDA_PIN, hub::QUEEN_SCL_PIN, hub::WORKER_SDA_PIN, hub::WORKER_SCL_PIN, controller);
     hub.setup();
-
-    while (true) {
-        queueDemoReport(controller);
-    }
     
-    // while(1) {
-    //     hub.i2c_task();
-    // }
-
-    // set pwm out pin
-    // initialize pwm reader for pins
+    while(1) {
+        hub.i2c_task();
+    }
 }
