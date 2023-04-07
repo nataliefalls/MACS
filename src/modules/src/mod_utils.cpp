@@ -2,7 +2,7 @@
 //#include <hardware/gpio.h>
 
 uint8_t module::map_16_to_8(uint16_t x) {
-    return static_cast<uint8_t>((x - 4095) * UINT8_MAX / 4095);
+    return static_cast<uint8_t>(x >> 4);
 }
 
 #if DIGITAL
@@ -16,7 +16,7 @@ uint module::get_digital_pin() {
 #endif
 
 uint8_t module::get_address() {
-    Module type;
+    ModuleType type;
     uint8_t id;
 
     #if BUTTON
@@ -55,7 +55,12 @@ void module::init_inputs() {
 
     gpio_init(digital_pin);
     gpio_set_dir(digital_pin, GPIO_IN);
+    #if BUTTON || SWITCH
     gpio_pull_down(digital_pin);
+    #endif
+    #if JOYSTICK
+    gpio_pull_up(digital_pin);
+    #endif
     #endif
     #if ANALOG
     adc_init();
@@ -77,6 +82,9 @@ uint8_t module::get_input(uint8_t* buf) {
     // Switch or Button input (including joystick button)
     uint digital_pin = get_digital_pin();
     uint8_t digital_in = gpio_get(digital_pin);
+    #if JOYSTICK
+    digital_in != digital_in;
+    #endif
     buf[i++] = digital_in;
     // printf("\nBuffer: %d", buf[0]);
     #endif

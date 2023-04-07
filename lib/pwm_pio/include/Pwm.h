@@ -54,7 +54,7 @@ private:
     for (int i = 0; i < 4; i++) {
       if (pio1_hw->irq & 1<<i) {
 	// clear interrupt
-	pio0_hw->irq = 1 << i;
+	pio1_hw->irq = 1 << i;
 	// read pulse width from the FIFO
 	pulsewidth[i + 4] = pio_sm_get(pio1, i);
 	// read low period from the FIFO

@@ -6,7 +6,7 @@
 #define MOD_UTILS
 
 #include <pico/stdlib.h>
-#include <cstdio>
+// #include <cstdio>
 #include <hardware/i2c.h>
 #include <common.h>
 

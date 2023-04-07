@@ -21,7 +21,7 @@ function(string_split_at_last partb input separator)
   set(${partb} ${pb} PARENT_SCOPE)
 endfunction(string_split_at_last partb input separator)
 
-set(TARGET "joystick_1")
+set(TARGET "joystick_1" "joystick_2" "button_1" "button_2" "slider_1" "slider_2" "switch_1" "potentiometer_1")
 foreach(element ${TARGET})
     add_executable(${element})
 
@@ -76,6 +76,7 @@ foreach(element ${TARGET})
     target_sources(${element} PUBLIC
             src/module.cpp
             src/mod_utils.cpp
+            src/i2c_module.cpp
     )
 
     # Add the standard library to the build
@@ -85,8 +86,10 @@ foreach(element ${TARGET})
             hardware_i2c
             hardware_pwm
             pwm_pio
-            hardware_adc
+            # tinyusb_device
     )
+    target_link_libraries(${element} PUBLIC
+            hardware_adc)
 
     pico_add_extra_outputs(${element})
 endforeach(element ${TARGET})
