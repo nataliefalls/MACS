@@ -71,6 +71,6 @@ uint8_t I2C_Module::get_request_type() {
   return request_type_register;
 }
 
-void I2CModule::set_request_type(uint8_t request_id) {
+void I2C_Module::set_request_type(uint8_t request_id) {
   request_type_register = request_id;
 }

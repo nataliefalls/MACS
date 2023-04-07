@@ -11,6 +11,17 @@
 #define NUM_PWM_PINS 6
 
 I2C_Module *i2c_module;
+
+uint pwm_in[6] = {
+  PWM_IN_SIDE_1,
+  PWM_IN_SIDE_2,
+  PWM_IN_SIDE_3,
+  PWM_IN_SIDE_4,
+  PWM_IN_SIDE_5,
+  PWM_IN_SIDE_6
+};
+uint pwm_out = PWM_OUT_PIN;
+
 Pwm module_pwm(pwm_out, pwm_in, NUM_PWM_PINS);
 
 
@@ -21,14 +32,14 @@ static void module_worker_callback(i2c_inst_t *i2c, i2c_worker_event_t event) {
         // for(int i = 0; i < i2c_module->get_size(); i++) {
         //     printf("%d ", i2c_module->get_status()[i]);
         // }
-      uint8_t request_type = i2c_module.get_request_type();
+      uint8_t request_type = i2c_module->get_request_type();
 
       if (request_type == 0) {
         i2c_write_raw_blocking(i2c, i2c_module->get_status(), i2c_module->get_size());
       }
       else {
 	bool neighbor_found = false;
-	uint8_t side = 6
+	uint8_t side = 6;
 	for (uint8_t ii = 0; ii < 6; ii++) {
 	  if (module_pwm.isConnected(ii) &&
 	      (module_pwm.read_PW(ii) & 0x00FF) == request_type) {
@@ -43,7 +54,7 @@ static void module_worker_callback(i2c_inst_t *i2c, i2c_worker_event_t event) {
     if (event == I2C_WORKER_RECEIVE) {
       uint8_t request_type;
       i2c_read_raw_blocking(i2c, &request_type, sizeof(request_type));
-      i2c_module.set_request_type(request_type);
+      i2c_module->set_request_type(request_type);
     }
 }
 
@@ -90,15 +101,7 @@ int main() {
     module::init_inputs();
     //printf("\rInitialized inputs!          ");
     
-    uint pwm_in[6] = {
-		   PWM_IN_SIDE_1,
-		   PWM_IN_SIDE_2,
-		   PWM_IN_SIDE_3,
-		   PWM_IN_SIDE_4,
-		   PWM_IN_SIDE_5,
-		   PWM_IN_SIDE_6
-    };
-    uint pwm_out = PWM_OUT_PIN;
+    
 
     //printf("\rInitializing PWM.............");
     //printf("\rInitialized PWM!             ");
