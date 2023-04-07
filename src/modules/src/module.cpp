@@ -11,6 +11,8 @@
 #define NUM_PWM_PINS 6
 
 I2C_Module *i2c_module;
+Pwm module_pwm(pwm_out, pwm_in, NUM_PWM_PINS);
+
 
 static void module_worker_callback(i2c_inst_t *i2c, i2c_worker_event_t event) {
     if (event == I2C_WORKER_REQUEST) {
@@ -19,7 +21,29 @@ static void module_worker_callback(i2c_inst_t *i2c, i2c_worker_event_t event) {
         // for(int i = 0; i < i2c_module->get_size(); i++) {
         //     printf("%d ", i2c_module->get_status()[i]);
         // }
+      uint8_t request_type = i2c_module.get_request_type();
+
+      if (request_type == 0) {
         i2c_write_raw_blocking(i2c, i2c_module->get_status(), i2c_module->get_size());
+      }
+      else {
+	bool neighbor_found = false;
+	uint8_t side = 6
+	for (uint8_t ii = 0; ii < 6; ii++) {
+	  if (module_pwm.isConnected(ii) &&
+	      (module_pwm.read_PW(ii) & 0x00FF) == request_type) {
+	    side = ii;
+	    break;
+	    
+	  }
+	}
+	i2c_write_raw_blocking(i2c, &side, sizeof(side));	
+      }
+    }
+    if (event == I2C_WORKER_RECEIVE) {
+      uint8_t request_type;
+      i2c_read_raw_blocking(i2c, &request_type, sizeof(request_type));
+      i2c_module.set_request_type(request_type);
     }
 }
 
@@ -77,7 +101,6 @@ int main() {
     uint pwm_out = PWM_OUT_PIN;
 
     //printf("\rInitializing PWM.............");
-    Pwm module_pwm(pwm_out, pwm_in, NUM_PWM_PINS);
     //printf("\rInitialized PWM!             ");
 
     module_pwm.setPWMOut((uint16_t)addr);

@@ -14,12 +14,16 @@ public:
     void update_input(uint8_t* hardware_input);
     const uint8_t* get_status() const;
     uint8_t get_size();
+
+    uint8_t get_request_type();
+    void set_request_type(uint8_t request_id);
 protected:
 private:
     uint8_t* hw_status;
     ModuleType hw_type;
     uint8_t hw_size;
     uint8_t* _neighbor_address;
+    uint8_t request_type_register;
     std::function<void (i2c_inst_t *, i2c_worker_event_t)> _handler;
 };
 
