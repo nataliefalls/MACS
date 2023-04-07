@@ -41,25 +41,25 @@ int main() {
     ModuleType type = parse_address(addr);
 
     //printf("Module's address: %d\n", addr);
-    switch (type) {
-    case kButton:
-        //printf("Module type: Button\n");
-        break;
-    case kSwitch:
-        //printf("Module type: Switch\n");
-        break;
-    case kSlider:
-        //printf("Module type: Slider\n");
-        break;
-    case kPotentiometer:
-        //printf("Module type: Knob\n");
-        break;
-    case kJoystick:
-        //printf("Module type: Joystick\n");
-        break;
-    default:
-        break;
-    }
+    // switch (type) {
+    // case kButton:
+    //     printf("Module type: Button\n");
+    //     break;
+    // case kSwitch:
+    //     printf("Module type: Switch\n");
+    //     break;
+    // case kSlider:
+    //     printf("Module type: Slider\n");
+    //     break;
+    // case kPotentiometer:
+    //     printf("Module type: Knob\n");
+    //     break;
+    // case kJoystick:
+    //     printf("Module type: Joystick\n");
+    //     break;
+    // default:
+    //     break;
+    // }
     //printf("Expected buffer size: %d\n\n", hw_size_from_type(type));
 
     //printf("Initializing inputs..........");
