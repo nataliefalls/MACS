@@ -83,7 +83,7 @@ int main() {
     module_pwm.setPWMOut((uint16_t)addr);
     // sleep for some time to let neigbors initialize if necessary
     //printf("\nSleeping.....................");
-    sleep_us(1000000);
+    sleep_us(500000);
     //printf("\rI hath awoken from my slumber");
 
     uint8_t neighbor_address[6];
