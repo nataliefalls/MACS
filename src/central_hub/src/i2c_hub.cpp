@@ -29,7 +29,7 @@ void I2C_Hub::i2c_task(/* queue to USB task */) {
         ModuleType type = parse_address(address);
 
         int count;
-        uint8_t *buf;
+        uint8_t *buf = new uint8_t[hw_size_from_type(type)];
 
         count = i2c_read_blocking(i2c1, address, buf, hw_size_from_type(type), false);
 
@@ -74,7 +74,7 @@ void I2C_Hub::i2c_task(/* queue to USB task */) {
             break;
         }
 
-
+        delete buf;
         // do stuff with read buffer here? or in case block?
     }
 }

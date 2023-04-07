@@ -6,7 +6,7 @@
 #include <i2c_module.h>
 #include <Pwm.h>
 #include <mod_utils.h>
-// #include <tusb.h>
+#include <tusb.h>
 
 #define NUM_PWM_PINS 6
 
@@ -15,6 +15,10 @@ I2C_Module *i2c_module;
 static void module_worker_callback(i2c_inst_t *i2c, i2c_worker_event_t event) {
     if (event == I2C_WORKER_REQUEST) {
         //printf("\nPOLLED!\n");
+        // printf("\nWriting buffer to hub: Bytes sent: ");
+        // for(int i = 0; i < i2c_module->get_size(); i++) {
+        //     printf("%d ", i2c_module->get_status()[i]);
+        // }
         i2c_write_raw_blocking(i2c, i2c_module->get_status(), i2c_module->get_size());
     }
 }
@@ -26,12 +30,12 @@ int main() {
     gpio_set_dir(25, GPIO_OUT);
     gpio_put(25, 1);
 
-    // //printf("waiting for usb host");
+    // printf("waiting for usb host");
     // while (!tud_cdc_connected()) {
     //   //printf(".");
     //   sleep_ms(500);
     // }
-    // //printf("connected to usb\n\n");
+    // printf("connected to usb\n\n");
 
     uint8_t addr = module::get_address();
     ModuleType type = parse_address(addr);
