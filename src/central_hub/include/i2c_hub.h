@@ -4,6 +4,7 @@
 #include <coordinates.h>
 #include <ReportQueueController.h>
 #include <Module.h>
+#include <Pwm.h>
 
 class I2C_Hub : public I2C_Base {
     // contains worker and queen running simultaneously
@@ -22,12 +23,14 @@ private:
     };
 
     void coordinate_helper(uint8_t address, uint8_t neighbor_side, uint8_t neighbor_address);
-  
+
+    Pwm _hub_pwm;
     uint queen_sda;
     uint queen_scl;
     // std::set<uint8_t> modules;
     std::map<uint8_t, Module*> modules;
     std::map<uint8_t, module_coordinates_t> coordinates;
+    std::map<uint8_t, uint8_t> module_orientation;
     std::map<uint8_t, std::vector<module_side>> coordinate_dependencies;
     ReportQueueController* _controller;
     std::function<void (i2c_inst_t *, i2c_worker_event_t)> _handler;

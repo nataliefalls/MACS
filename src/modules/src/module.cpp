@@ -38,7 +38,6 @@ static void module_worker_callback(i2c_inst_t *i2c, i2c_worker_event_t event) {
         i2c_write_raw_blocking(i2c, i2c_module->get_status(), i2c_module->get_size());
       }
       else {
-	bool neighbor_found = false;
 	uint8_t side = 6;
 	for (uint8_t ii = 0; ii < 6; ii++) {
 	  if (module_pwm.isConnected(ii) &&
