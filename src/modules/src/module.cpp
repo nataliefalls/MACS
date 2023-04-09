@@ -7,6 +7,7 @@
 #include <Pwm.h>
 #include <mod_utils.h>
 #include <tusb.h>
+#include <hardware/watchdog.h>
 
 #define NUM_PWM_PINS 6
 
@@ -26,6 +27,7 @@ Pwm module_pwm(pwm_out, pwm_in, NUM_PWM_PINS);
 
 
 static void module_worker_callback(i2c_inst_t *i2c, i2c_worker_event_t event) {
+    watchdog_update();
     if (event == I2C_WORKER_REQUEST) {
         //printf("\nPOLLED!\n");
         // printf("\nWriting buffer to hub: Bytes sent: ");
@@ -63,6 +65,8 @@ int main() {
     gpio_init(25);
     gpio_set_dir(25, GPIO_OUT);
     gpio_put(25, 1);
+
+    
 
     // printf("waiting for usb host");
     // while (!tud_cdc_connected()) {
@@ -110,6 +114,8 @@ int main() {
     //printf("\nSleeping.....................");
     sleep_us(500000);
     //printf("\rI hath awoken from my slumber");
+
+    watchdog_enable(10, 1);
 
     uint8_t neighbor_address[6];
     // uint side = 0;
