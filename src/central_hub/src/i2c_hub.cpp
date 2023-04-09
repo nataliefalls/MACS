@@ -36,7 +36,7 @@ IPayload *payloadFromType(ModuleType type, uint8_t *buf) {
     }
 }
 
-void I2C_Hub::i2c_task(/* queue to USB task */) {
+void I2C_Hub::i2c_task() {
     std::vector<uint8_t> toRemove;
     for (auto mod : modules) {
         // retrieve address + module from map
@@ -49,6 +49,7 @@ void I2C_Hub::i2c_task(/* queue to USB task */) {
         // if module is unresponsive, add it to a list to be removed later
         if (count == PICO_ERROR_GENERIC) {
             toRemove.push_back(address);
+            //sleep_us(500000);
             continue;
         }
         // attempt to update the module with the new data
@@ -66,6 +67,7 @@ void I2C_Hub::i2c_task(/* queue to USB task */) {
         if (module->disconnect()) {
             modules.erase(address);
             coordinates.erase(address);
+            coordinate_dependencies[address].clear();
             coordinate_dependencies.erase(address);
             delete module;
         }
@@ -97,25 +99,9 @@ bool I2C_Hub::i2c_handle(i2c_inst_t* i2c) {
         }
     }
 
-    std::map<uint8_t, std::vector<module_side>>::iterator depend_it;
-    // if coordinates found, try to resolve other dependencies
-    if (have_coords) {
-        depend_it = coordinate_dependencies.find(received.addr);
-        if (depend_it != coordinate_dependencies.end()) {
-            std::vector<module_side> depending_modules =
-                coordinate_dependencies[received.addr];
 
-            for (module_side depender : depending_modules) {
-                // find neighbors that don't have addresses yet
-                if (coordinates.find(depender.module_addr) == coordinates.end()) {
-                    // assign them addresses
-                    coordinate_helper(depender.module_addr, depender.side, received.addr);
-                }
-            }
-        }
-    }
     // if coordinates were not found, add this module as dependencies for its neighbors
-    else {
+    if(!have_coords) {
         for (uint8_t ii = 0; ii < 6; ii++) {
             coordinate_dependencies[received.neighbor_address[ii]]
                 .push_back({received.addr, ii});
@@ -161,4 +147,22 @@ void I2C_Hub::coordinate_helper(uint8_t address, uint8_t neighbor_side, uint8_t 
     Module* module = new Module(address, new_coords, _controller);
     module->connect();
     modules.insert({address, module});
+
+    std::map<uint8_t, std::vector<module_side>>::iterator depend_it;
+    // if coordinates found, try to resolve other dependencies
+
+    depend_it = coordinate_dependencies.find(address);
+    if (depend_it != coordinate_dependencies.end()) {
+        std::vector<module_side> depending_modules =
+            coordinate_dependencies[address];
+
+        for (module_side depender : depending_modules) {
+            // find neighbors that don't have addresses yet
+            if (coordinates.find(depender.module_addr) == coordinates.end()) {
+                // assign them addresses
+                coordinate_helper(depender.module_addr, depender.side, address);
+            }
+        }
+    }
+    
 }
