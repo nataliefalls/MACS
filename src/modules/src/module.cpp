@@ -90,8 +90,6 @@ int main() {
     sleep_us(500000);
     //printf("\rI hath awoken from my slumber");
 
-    watchdog_enable(10, 1);
-
     uint8_t neighbor_address[6];
     // uint side = 0;
     for (int ii = 0; ii < 6; ii++) {
@@ -117,6 +115,8 @@ int main() {
     uint8_t count;
 
     //printf("\nStarting input loop\n");
+
+    watchdog_enable(10, 1);
 
     while(1) {
         //printf("Retrieving input\r");
