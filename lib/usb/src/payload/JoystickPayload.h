@@ -6,7 +6,7 @@ class JoystickPayload: public IPayload {
     private:
     const joystick_data_t data;
 
-    static const uint8_t TOLERANCE = 3;
+    static const uint8_t TOLERANCE = 4;
 
     public:
     /**
