@@ -67,8 +67,6 @@ void I2C_Hub::i2c_task() {
         if (module->disconnect()) {
             modules.erase(address);
             coordinates.erase(address);
-            coordinate_dependencies[address].clear();
-            coordinate_dependencies.erase(address);
             delete module;
         }
     }
@@ -163,6 +161,8 @@ void I2C_Hub::coordinate_helper(uint8_t address, uint8_t neighbor_side, uint8_t 
                 coordinate_helper(depender.module_addr, depender.side, address);
             }
         }
+        coordinate_dependencies[address].clear();
+        coordinate_dependencies.erase(address);
     }
     
 }
