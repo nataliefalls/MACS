@@ -22,6 +22,17 @@ let count = 0;
 
 let id = 1;
 
+function typeFromAddress(address: number): string | undefined {
+  switch (address & 7) {
+    case 0: return 'button';
+    case 1: return 'switch';
+    case 2: return 'slider';
+    case 3: return 'dial';
+    case 4: return 'joystick';
+    default: return undefined;
+  }
+}
+
 // The built directory structure
 //
 // ├─┬ dist-electron
@@ -178,7 +189,7 @@ async function createWindow() {
         // });
         inputReportConnected.on("data", function (data) {
           // console.log(data);
-          console.log(count);
+          // console.log(count);
           switch (data.readInt8(0)) {
             case 1:
               console.log("connected");
@@ -187,7 +198,7 @@ async function createWindow() {
                 q: 0 - (0 - data.readInt8(2) + (0 - data.readInt8(3))),
                 r: 0 - data.readInt8(3),
                 s: 0 - data.readInt8(2),
-                moduleType: undefined,
+                moduleType: typeFromAddress(data.readInt8(1)),
                 configuration: {},
               });
               win?.webContents.send("module_connected", {
@@ -195,7 +206,7 @@ async function createWindow() {
                 q: 0 - (0 - data.readInt8(2) + (0 - data.readInt8(3))),
                 r: 0 - data.readInt8(3),
                 s: 0 - data.readInt8(2),
-                moduleType: undefined,
+                moduleType: typeFromAddress(data.readInt8(1)),
                 configuration: {},
               });
               break;
@@ -236,7 +247,8 @@ async function createWindow() {
               }
               break;
             case 4:
-              // console.log("dpad");
+              const analogValue = data.readUInt8(2);
+              console.log("analog: " + analogValue);
               break;
             case 5:
               // console.log(data);
@@ -440,7 +452,7 @@ async function createWindow() {
                   q: 0 - (0 - data.readInt8(2) + (0 - data.readInt8(3))),
                   r: 0 - data.readInt8(3),
                   s: 0 - data.readInt8(2),
-                  moduleType: undefined,
+                  moduleType: typeFromAddress(data.readInt8(1)),
                   configuration: {},
                 });
                 win?.webContents.send("module_connected", {
@@ -448,7 +460,7 @@ async function createWindow() {
                   q: 0 - (0 - data.readInt8(2) + (0 - data.readInt8(3))),
                   r: 0 - data.readInt8(3),
                   s: 0 - data.readInt8(2),
-                  moduleType: undefined,
+                  moduleType: typeFromAddress(data.readInt8(1)),
                   configuration: {},
                 });
                 break;
@@ -462,17 +474,12 @@ async function createWindow() {
                 });
                 break;
               case 3:
-                // console.log("buttons");
                 console.log("buttonState: " + data.readInt8(2));
                 try {
                   if (controller?.type) {
-                    // console.log("entered loop");
                     configuration?.forEach((module, index) => {
                       if (module?.index === 0) {
-                        // console.log(module);
-                        // console.log(module?.configuration?.input);
                         const buttonState = data.readInt8(2);
-                        // console.log(buttons);
                         controller?.button[
                           buttons[getInputIndex(module?.configuration?.input)]
                         ].setValue(buttonState);
@@ -489,7 +496,8 @@ async function createWindow() {
                 }
                 break;
               case 4:
-                // console.log("dpad");
+                const analogValue = data.readUInt8(2);
+                console.log("analog: " + analogValue);
                 break;
               case 5:
                 // console.log(data);

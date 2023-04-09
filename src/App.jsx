@@ -1739,7 +1739,7 @@ function App() {
         ipcRenderer.send("initialize", hexagons);
       } else {
         setDropzones([]);
-        setHexagons({
+        setHexagons([{
           id: nanoid(),
           q: 0,
           r: 0,
@@ -1747,7 +1747,7 @@ function App() {
           configuration: {},
           moduleType: undefined,
           mainModule: true,
-        });
+        }]);
       }
       panRef?.current?.resetTransform();
       panRef?.current?.centerView();
