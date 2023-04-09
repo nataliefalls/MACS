@@ -141,7 +141,7 @@ int main() {
 
     //printf("\nStarting input loop\n");
 
-    watchdog_enable(10, 1);
+    watchdog_enable(1000, 1);
 
     while(1) {
         //printf("Retrieving input\r");

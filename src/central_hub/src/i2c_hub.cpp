@@ -63,7 +63,10 @@ void I2C_Hub::i2c_task() {
         // Parse address for module type
         ModuleType type = parse_address(address);
         uint8_t *buf = new uint8_t[hw_size_from_type(type)];
-        int count = i2c_read_blocking(i2c1, address, buf, hw_size_from_type(type), false);
+
+        uint8_t mode = 0x0000;
+        int count = i2c_write_blocking(i2c1, address, &mode, sizeof(mode), true);
+        count = i2c_read_blocking(i2c1, address, buf, hw_size_from_type(type), false);
         // if module is unresponsive, add it to a list to be removed later
         if (count == PICO_ERROR_GENERIC) {
             toRemove.push_back(address);
@@ -84,6 +87,7 @@ void I2C_Hub::i2c_task() {
         Module *module = modules[address];
         if (module->disconnect()) {
             modules.erase(address);
+            module_orientation.erase(address);
             coordinates.erase(address);
             delete module;
         }
@@ -137,33 +141,32 @@ void I2C_Hub::coordinate_helper(uint8_t address, uint8_t neighbor_side, uint8_t 
     
     uint8_t address_request = address;
     uint8_t side;
-    if (address_request == HUB_I2C_ADDRESS) {
-	side = 6;
-	for (uint8_t ii = 0; ii < 6; ii++) {
-	  if (_hub_pwm.isConnected(ii) &&
-	      (_hub_pwm.read_PW(ii) & 0x00FF) == address) {
-	    side = ii;
-	    break;
-	    
-	  }
-	}
-    }
-    else {
+    if (neighbor_address == HUB_I2C_ADDRESS) {
+        side = 6;
+        for (uint8_t ii = 0; ii < 6; ii++) {
+        if (_hub_pwm.isConnected(ii) &&
+            (_hub_pwm.read_PW(ii) & 0x00FF) == address_request) {
+            side = ii;
+            break;
+            
+        }
+        }
+    } else {
       int success = i2c_write_blocking(i2c1, neighbor_address, &address_request, sizeof(address_request), true);
 
-      uint8_t count = i2c_read_blocking(i2c1, address, &side, sizeof(side), true);
+      uint8_t count = i2c_read_blocking(i2c1, neighbor_address, &side, sizeof(side), false);
 
       if (count == PICO_ERROR_GENERIC) {
-	//printf("Device not recognized at address %#04X\n", address);
-	coordinates.erase(address);
-	coordinate_dependencies.erase(address);
-	delete modules[address];
-	modules.erase(address);
+        //printf("Device not recognized at address %#04X\n", address);
+        coordinates.erase(address);
+        delete modules[address];
+        modules.erase(address);
       }
+
+    
     }
 
-    address_request = 0x0000;
-    int success = i2c_write_blocking(i2c1, neighbor_address, &address_request, sizeof(address_request), false);
+    
     
     //side = (neighbor_side + 3) % 6;
     uint8_t absolute_side = (side + module_orientation[neighbor_address]) % 6;
@@ -192,7 +195,7 @@ void I2C_Hub::coordinate_helper(uint8_t address, uint8_t neighbor_side, uint8_t 
     }
     
     coordinates[address] = new_coords;
-    module_orientation[address] = ((int)(absolute_side) - (int)(neighbor_side))%6;
+    module_orientation[address] = ((int)(absolute_side) - (int)(neighbor_side) + 3)%6;
     // if modules does not contain this address, add coord_it
     ModuleType type = parse_address(address);
     Module* module = new Module(address, new_coords, _controller);
