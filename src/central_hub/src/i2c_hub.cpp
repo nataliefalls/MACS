@@ -199,9 +199,6 @@ void I2C_Hub::coordinate_helper(uint8_t address, uint8_t neighbor_side, uint8_t 
     module->connect();
     modules.insert({address, module});
 
-<<<<<<< HEAD
-}
-=======
     std::map<uint8_t, std::vector<module_side>>::iterator depend_it;
     // if coordinates found, try to resolve other dependencies
 
@@ -222,4 +219,3 @@ void I2C_Hub::coordinate_helper(uint8_t address, uint8_t neighbor_side, uint8_t 
     }
     
 }
->>>>>>> CE
