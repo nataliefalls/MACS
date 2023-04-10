@@ -48,7 +48,7 @@ IPayload *payloadFromType(ModuleType type, uint8_t *buf) {
     case kPotentiometer:
         return new AnalogPayload({ buf[0] });
     case kJoystick:
-        return new JoystickPayload({ buf[0], buf[1], buf[2] });
+        return new JoystickPayload({ buf[1], buf[2], buf[0] });
     default:
         return nullptr;
     }
@@ -154,13 +154,14 @@ void I2C_Hub::coordinate_helper(uint8_t address, uint8_t neighbor_side, uint8_t 
     } else {
       int success = i2c_write_blocking(i2c1, neighbor_address, &address_request, sizeof(address_request), true);
 
-      uint8_t count = i2c_read_blocking(i2c1, neighbor_address, &side, sizeof(side), false);
+      uint8_t count = i2c_read_blocking(i2c1, neighbor_address, &side, sizeof(side), true);
 
-      if (count == PICO_ERROR_GENERIC) {
-        //printf("Device not recognized at address %#04X\n", address);
-        coordinates.erase(address);
-        delete modules[address];
-        modules.erase(address);
+      while (count == PICO_ERROR_GENERIC) {
+        count = i2c_read_blocking(i2c1, neighbor_address, &side, sizeof(side), true);
+        // //printf("Device not recognized at address %#04X\n", address);
+        // coordinates.erase(address);
+        // delete modules[address];
+        // modules.erase(address);
       }
 
     
