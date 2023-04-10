@@ -25,13 +25,22 @@ import "@fontsource/k2d/800-italic.css";
 import "./index.scss";
 import { ThemeProvider } from "@mui/material";
 import theme from "./theme";
+import { Toaster } from "react-hot-toast";
 
 ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
-  <React.StrictMode>
-    <ThemeProvider theme={theme}>
-      <App />
-    </ThemeProvider>
-  </React.StrictMode>
+  // <React.StrictMode>
+  <ThemeProvider theme={theme}>
+    <Toaster
+      position="bottom-center"
+      toastOptions={{
+        style: {
+          zIndex: 99999999999,
+        },
+      }}
+    />
+    <App />
+  </ThemeProvider>
+  // </React.StrictMode>
 );
 
 setTimeout(() => postMessage({ payload: "removeLoading" }, "*"), 5000);

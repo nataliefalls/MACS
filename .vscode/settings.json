@@ -16,6 +16,7 @@
     "dropzones",
     "hexgrid",
     "svgr",
+    "tanstack",
     "vigemclient"
   ]
 }

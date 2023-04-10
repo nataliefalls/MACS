@@ -4,32 +4,66 @@ import { join } from "node:path";
 const ViGEmClient = require("vigemclient");
 const HID = require("node-hid");
 
+const Store = require("electron-store");
+
+const store = new Store();
+
 let client = new ViGEmClient();
 let controller;
 let controllerListen;
 let controllerListenRestart;
 let controllerFound = false;
 let MACS_CONTROLLER;
-let inputReportButtons;
-let inputReportConnected;
-let inputReportRemoved;
-let inputReportDpad;
-let inputReportJoysticks;
+let macsReports;
 let buttons;
 let axes;
 let configuration = [];
 let count = 0;
+let configs;
 
 let id = 1;
 
 function typeFromAddress(address: number): string | undefined {
   switch (address & 7) {
-    case 0: return 'button';
-    case 1: return 'switch';
-    case 2: return 'slider';
-    case 3: return 'dial';
-    case 4: return 'joystick';
-    default: return undefined;
+    case 0:
+      return "button";
+    case 1:
+      return "switch";
+    case 2:
+      return "slider";
+    case 3:
+      return "dial";
+    case 4:
+      return "joystick";
+    default:
+      return undefined;
+  }
+}
+
+function configFromMemory(id: number) {
+  const foundConfig = configs.find((config: any) => config.id === id);
+  if (foundConfig) {
+    console.log("found config");
+    console.log(foundConfig.configuration);
+    return foundConfig.configuration;
+  } else {
+    console.log("no config found");
+    switch (id & 7) {
+      case 2:
+      case 3:
+        return {
+          input: {
+            start: 0,
+            end: 100,
+          },
+        };
+      case 4:
+        return {
+          behavior: "default",
+        };
+      default:
+        return {};
+    }
   }
 }
 
@@ -101,95 +135,19 @@ async function createWindow() {
     win.loadFile(indexHtml);
   }
 
-  // win.webContents.session.on(
-  //   "select-hid-device",
-  //   (event, details, callback) => {
-  //     if ("hid" in navigator) {
-  //       // The WebHID API is supported.
-  //       console.log("please");
-  //     }
-  //     //Add events to handle devices being added or removed before the callback on
-  //     //`select-hid-device` is called.
-  //     // win.webContents.session.on("hid-device-added", (event, device) => {
-  //     //   console.log("hid-device-added FIRED WITH", device);
-  //     //   //Optionally update details.deviceList
-  //     // });
-
-  //     // win.webContents.session.on("hid-device-removed", (event, device) => {
-  //     //   console.log("hid-device-removed FIRED WITH", device);
-  //     //   //Optionally update details.deviceList
-  //     // });
-
-  //     event.preventDefault();
-  //     if (details.deviceList && details.deviceList.length > 0) {
-  //       callback(details.deviceList[0].deviceId);
-  //     }
-  //   }
-  // );
-
-  // win.webContents.session.setPermissionCheckHandler(
-  //   (webContents, permission, requestingOrigin, details) => {
-  //     if (permission === "hid" && details.securityOrigin === "file:///") {
-  //       return true;
-  //     }
-  //   }
-  // );
-
-  // win.webContents.session.setDevicePermissionHandler((details) => {
-  //   console.log("ran from permission");
-  //   if (details.deviceType === "hid" && details.origin === "file://") {
-  //     return true;
-  //   }
-  // });
-
   const listenerLoop = () => {
     // read the controller data;
     console.log("searching for controller");
+    processMACS();
+  };
+
+  const processMACS = () => {
     try {
       MACS_CONTROLLER = HID.devices(0xcafe, 0x0000);
       console.log(MACS_CONTROLLER);
       if (MACS_CONTROLLER.length > 0 && !controllerFound) {
-        inputReportConnected = new HID.HID(MACS_CONTROLLER[0].path); // connected
-        // inputReportRemoved = new HID.HID(MACS_CONTROLLER[1].path); // removed
-        // inputReportButtons = new HID.HID(MACS_CONTROLLER[2].path); // buttons
-        // inputReportDpad = new HID.HID(MACS_CONTROLLER[3].path); // dpad
-        // inputReportJoysticks = new HID.HID(MACS_CONTROLLER[4].path); // joysticks
-        console.log("before");
-        // inputReportButtons.on("data", function (data) {
-        //   // console.log("buttonState: " + data.readInt8(2));
-        //   console.log(data);
-        //   try {
-        //     if (controller?.type) {
-        //       // console.log("entered loop");
-        //       configuration?.forEach((module, index) => {
-        //         if (module?.index === 7) {
-        //           // console.log(module);
-        //           // console.log(module?.configuration?.input);
-        //           const buttonState = data.readInt8(2);
-        //           // console.log(buttons);
-        //           controller?.button[
-        //             buttons[getInputIndex(module?.configuration?.input)]
-        //           ].setValue(buttonState);
-        //           controller?.update();
-        //         } else {
-        //           // console.log("not found");
-        //         }
-        //       });
-        //     } else {
-        //       // console.log("controller is null");
-        //     }
-        //   } catch (e) {
-        //     // controller is not on
-        //   }
-        // });
-        // inputReportButtons.on("error", function (error) {
-        //   console.log(error);
-        //   win?.webContents.send("controller_found", false);
-        //   controllerFound = false;
-        // });
-        inputReportConnected.on("data", function (data) {
-          // console.log(data);
-          // console.log(count);
+        macsReports = new HID.HID(MACS_CONTROLLER[0].path); // connected
+        macsReports.on("data", function (data) {
           switch (data.readInt8(0)) {
             case 1:
               console.log("connected");
@@ -199,7 +157,7 @@ async function createWindow() {
                 r: 0 - data.readInt8(3),
                 s: 0 - data.readInt8(2),
                 moduleType: typeFromAddress(data.readInt8(1)),
-                configuration: {},
+                configuration: configFromMemory(data.readInt8(1)),
               });
               win?.webContents.send("module_connected", {
                 id: data.readInt8(1),
@@ -207,7 +165,7 @@ async function createWindow() {
                 r: 0 - data.readInt8(3),
                 s: 0 - data.readInt8(2),
                 moduleType: typeFromAddress(data.readInt8(1)),
-                configuration: {},
+                configuration: configFromMemory(data.readInt8(1)),
               });
               break;
             case 2:
@@ -220,17 +178,12 @@ async function createWindow() {
               });
               break;
             case 3:
-              // console.log("buttons");
               console.log("buttonState: " + data.readInt8(2));
               try {
                 if (controller?.type) {
-                  // console.log("entered loop");
                   configuration?.forEach((module, index) => {
                     if (module?.index === 0) {
-                      // console.log(module);
-                      // console.log(module?.configuration?.input);
                       const buttonState = data.readInt8(2);
-                      // console.log(buttons);
                       controller?.button[
                         buttons[getInputIndex(module?.configuration?.input)]
                       ].setValue(buttonState);
@@ -294,351 +247,40 @@ async function createWindow() {
               console.log("unknown");
               break;
           }
-          count++;
         });
-        inputReportConnected.on("error", function (error) {
+        macsReports.on("error", function (error) {
           console.log(error);
           win?.webContents.send("controller_found", false);
           controllerFound = false;
           controllerListenRestart = setInterval(() => listenerLoop(), 1000);
         });
-        // inputReportRemoved.on("data", function (data) {
-        //   console.log("remove received");
-        //   console.log(data);
-        // });
-        // inputReportRemoved.on("error", function (error) {
-        //   console.log(error);
-        //   win?.webContents.send("controller_found", false);
-        //   controllerFound = false;
-        // });
-        // inputReportDpad.on("data", function (data) {
-        //   // console.log("dpad received");
-        //   console.log(data);
-        // });
-        // inputReportDpad.on("error", function (error) {
-        //   console.log(error);
-        //   win?.webContents.send("controller_found", false);
-        //   controllerFound = false;
-        // });
-        // inputReportJoysticks.on("data", function (data) {
-        //   console.log(data);
-        //   const joystickHorizontal = data.readUInt16LE(2);
-        //   const joystickVertical = data.readUInt16LE(4);
-        //   console.log(
-        //     "x " +
-        //       ((parseInt(joystickHorizontal, 16) / 16600) * 2 - 1).toString()
-        //   );
-        //   console.log(
-        //     "y " + ((parseInt(joystickVertical, 16) / 16600) * 2 - 1).toString()
-        //   );
-        //   // console.log("before loop");
-        //   try {
-        //     if (controller?.type) {
-        //       // console.log("entered loop");
-        //       configuration?.forEach((module, index) => {
-        //         if (module?.index === 5) {
-        //           console.log(module);
-        //           // console.log(module?.configuration?.input);
-        //           if (module?.configuration?.behavior === "default") {
-        //             // controller.axis.leftX.setValue(0.5); // move left stick 50% to the left
-        //             // controller.axis.leftY.setValue(-0.5); // move left stick 50% down
-        //             controller.axis.leftX.setValue(
-        //               (parseInt(joystickHorizontal, 16) / 16600) * 2 - 1
-        //             );
-        //             controller.axis.leftY.setValue(
-        //               (parseInt(joystickHorizontal, 16) / 16000) * 2 - 1
-        //             );
-        //             controller?.update();
-        //           }
-        //         } else {
-        //           // console.log("not found");
-        //         }
-        //       });
-        //     } else {
-        //       // console.log("controller is null");
-        //     }
-        //   } catch (e) {
-        //     // controller is not on
-        //   }
-        // });
-        // inputReportJoysticks.on("error", function (error) {
-        //   console.log(error);
-        //   win?.webContents.send("controller_found", false);
-        //   controllerFound = false;
-        // });
-        console.log("after");
         win?.webContents.send("controller_found", true);
         controllerFound = true;
         console.log("controller found");
         clearInterval(controllerListen);
         clearInterval(controllerListenRestart);
-      } else if (controllerFound && MACS_CONTROLLER.length > 0) {
-        clearInterval(controllerListen);
-        clearInterval(controllerListenRestart);
       } else {
-        console.log("controller not found");
+        controllerFound = false;
         win?.webContents.send("controller_found", false);
+        console.log("controller not found");
       }
     } catch (e) {
+      controllerFound = false;
       console.log("controller not found");
+      win?.webContents.send("controller_found", false);
     }
   };
 
   // Test actively push message to the Electron-Renderer
   win.webContents.on("did-finish-load", () => {
-    console.log("did-finish-load");
+    configs = store.get("configuration");
     controllerListen = setInterval(() => {
-      console.log("controllerListen");
       console.log("searching for controller");
       // read the controller data
-      try {
-        // MACS_CONTROLLER = devices.filter((device) => {
-        //   if (device.vendorId === 0xcafe && device.productId === 0x0000) {
-        //     return true;
-        //   } else {
-        //     return false;
-        //   }
-        // });
-        MACS_CONTROLLER = HID.devices(0xcafe, 0x0000);
-        console.log(MACS_CONTROLLER);
-        if (MACS_CONTROLLER.length > 0 && !controllerFound) {
-          inputReportConnected = new HID.HID(MACS_CONTROLLER[0].path); // connected
-          // inputReportRemoved = new HID.HID(MACS_CONTROLLER[1].path); // removed
-          // inputReportButtons = new HID.HID(MACS_CONTROLLER[2].path); // buttons
-          // inputReportDpad = new HID.HID(MACS_CONTROLLER[3].path); // dpad
-          // inputReportJoysticks = new HID.HID(MACS_CONTROLLER[4].path); // joysticks
-          // console.log("before");
-          // inputReportButtons.on("data", function (data) {
-          //   // console.log("buttonState: " + data.readInt8(2));
-          //   console.log(data);
-          //   try {
-          //     if (controller?.type) {
-          //       // console.log("entered loop");
-          //       configuration?.forEach((module, index) => {
-          //         if (module?.index === 7) {
-          //           // console.log(module);
-          //           // console.log(module?.configuration?.input);
-          //           const buttonState = data.readInt8(2);
-          //           // console.log(buttons);
-          //           controller?.button[
-          //             buttons[getInputIndex(module?.configuration?.input)]
-          //           ].setValue(buttonState);
-          //           controller?.update();
-          //         } else {
-          //           // console.log("not found");
-          //         }
-          //       });
-          //     } else {
-          //       // console.log("controller is null");
-          //     }
-          //   } catch (e) {
-          //     // controller is not on
-          //   }
-          // });
-          // inputReportButtons.on("error", function (error) {
-          //   console.log(error);
-          //   win?.webContents.send("controller_found", false);
-          //   controllerFound = false;
-          // });
-          inputReportConnected.on("data", function (data) {
-            // console.log("connected received");
-            // console.log(data);
-            // console.log(count);
-            switch (data.readInt8(0)) {
-              case 1:
-                console.log("connected");
-                console.log({
-                  id: data.readInt8(1),
-                  q: 0 - (0 - data.readInt8(2) + (0 - data.readInt8(3))),
-                  r: 0 - data.readInt8(3),
-                  s: 0 - data.readInt8(2),
-                  moduleType: typeFromAddress(data.readInt8(1)),
-                  configuration: {},
-                });
-                win?.webContents.send("module_connected", {
-                  id: data.readInt8(1),
-                  q: 0 - (0 - data.readInt8(2) + (0 - data.readInt8(3))),
-                  r: 0 - data.readInt8(3),
-                  s: 0 - data.readInt8(2),
-                  moduleType: typeFromAddress(data.readInt8(1)),
-                  configuration: {},
-                });
-                break;
-              case 2:
-                console.log("removed");
-                win?.webContents.send("module_removed", {
-                  id: data.readInt8(1),
-                  q: 0 - (0 - data.readInt8(2) + (0 - data.readInt8(3))),
-                  r: 0 - data.readInt8(3),
-                  s: 0 - data.readInt8(2),
-                });
-                break;
-              case 3:
-                console.log("buttonState: " + data.readInt8(2));
-                try {
-                  if (controller?.type) {
-                    configuration?.forEach((module, index) => {
-                      if (module?.index === 0) {
-                        const buttonState = data.readInt8(2);
-                        controller?.button[
-                          buttons[getInputIndex(module?.configuration?.input)]
-                        ].setValue(buttonState);
-                        controller?.update();
-                      } else {
-                        // console.log("not found");
-                      }
-                    });
-                  } else {
-                    // console.log("controller is null");
-                  }
-                } catch (e) {
-                  // controller is not on
-                }
-                break;
-              case 4:
-                const analogValue = data.readUInt8(2);
-                console.log("analog: " + analogValue);
-                break;
-              case 5:
-                // console.log(data);
-                const joystickHorizontal = data.readUInt8(2);
-                const joystickVertical = data.readUInt8(3);
-                const joystickButtonState = data.readUInt8(4);
-                console.log(joystickButtonState);
-                // console.log(joystickHorizontal);
-                // console.log(joystickVertical);
-                // console.log("x " + (joystickHorizontal - 128) / 128);
-                // console.log("y " + (joystickVertical - 128) / 128);
-                // console.log("before loop");
-                try {
-                  if (controller?.type) {
-                    // console.log("entered loop");
-                    configuration?.forEach((module, index) => {
-                      if (module?.index === 1) {
-                        // console.log(module);
-                        // console.log(module?.configuration?.input);
-                        if (module?.configuration?.behavior === "default") {
-                          // controller.axis.leftX.setValue(0.5); // move left stick 50% to the left
-                          // controller.axis.leftY.setValue(-0.5); // move left stick 50% down
-                          controller.axis.leftX.setValue(
-                            (joystickHorizontal - 128) / 128
-                          );
-                          controller.axis.leftY.setValue(
-                            (joystickVertical - 128) / 128
-                          );
-                          controller?.update();
-                        }
-                      } else {
-                        // console.log("not found");
-                      }
-                    });
-                  } else {
-                    // console.log("controller is null");
-                  }
-                } catch (e) {
-                  // controller is not on
-                }
-                break;
-              default:
-                console.log("unknown");
-                break;
-            }
-            count++;
-            // console.log(data.readInt8(0));
-          });
-          inputReportConnected.on("error", function (error) {
-            console.log(error);
-            win?.webContents.send("controller_found", false);
-            controllerFound = false;
-            controllerListenRestart = setInterval(() => listenerLoop(), 1000);
-          });
-          // inputReportRemoved.on("data", function (data) {
-          //   console.log("remove received");
-          //   console.log(data);
-          // });
-          // inputReportRemoved.on("error", function (error) {
-          //   console.log(error);
-          //   win?.webContents.send("controller_found", false);
-          //   controllerFound = false;
-          // });
-          // // inputReportDpad.on("data", function (data) {
-          // //   // console.log("dpad received");
-          // //   console.log(data);
-          // // });
-          // inputReportDpad.on("error", function (error) {
-          //   console.log(error);
-          //   win?.webContents.send("controller_found", false);
-          //   controllerFound = false;
-          // });
-          // inputReportJoysticks.on("data", function (data) {
-          //   console.log(data);
-          //   const joystickHorizontal = data.readUInt16LE(2);
-          //   const joystickVertical = data.readUInt16LE(4);
-          //   console.log(
-          //     "x " +
-          //       ((parseInt(joystickHorizontal, 16) / 16600) * 2 - 1).toString()
-          //   );
-          //   console.log(
-          //     "y " +
-          //       ((parseInt(joystickVertical, 16) / 16600) * 2 - 1).toString()
-          //   );
-          //   // console.log("before loop");
-          //   try {
-          //     if (controller?.type) {
-          //       // console.log("entered loop");
-          //       configuration?.forEach((module, index) => {
-          //         if (module?.index === 5) {
-          //           console.log(module);
-          //           // console.log(module?.configuration?.input);
-          //           if (module?.configuration?.behavior === "default") {
-          //             // controller.axis.leftX.setValue(0.5); // move left stick 50% to the left
-          //             // controller.axis.leftY.setValue(-0.5); // move left stick 50% down
-          //             controller.axis.leftX.setValue(
-          //               (parseInt(joystickHorizontal, 16) / 16600) * 2 - 1
-          //             );
-          //             controller.axis.leftY.setValue(
-          //               (parseInt(joystickHorizontal, 16) / 16000) * 2 - 1
-          //             );
-          //             controller?.update();
-          //           }
-          //         } else {
-          //           // console.log("not found");
-          //         }
-          //       });
-          //     } else {
-          //       // console.log("controller is null");
-          //     }
-          //   } catch (e) {
-          //     // controller is not on
-          //   }
-          // });
-          // inputReportJoysticks.on("error", function (error) {
-          //   console.log(error);
-          //   win?.webContents.send("controller_found", false);
-          //   controllerFound = false;
-          // });
-          console.log("after");
-          win?.webContents.send("controller_found", true);
-          controllerFound = true;
-          console.log("controller found");
-          clearInterval(controllerListen);
-          clearInterval(controllerListenRestart);
-        } else {
-          controllerFound = false;
-          win?.webContents.send("controller_found", false);
-          console.log("controller not found");
-        }
-      } catch (e) {
-        controllerFound = false;
-        console.log("controller not found");
-        win?.webContents.send("controller_found", false);
-      }
+      processMACS();
     }, 1000);
-    // MACS_CONTROLLER = new HID.HID(0x54c, 0xce6); // ps5 version
-    // MACS_CONTROLLER.on("data", function (data) {
-    //   console.log(data);
-    // });
     win?.webContents.send("main-process-message", new Date().toLocaleString());
+    console.log("did-finish-load");
   });
   // Make all links open with the browser, not with the application
   win.webContents.setWindowOpenHandler(({ url }) => {
@@ -696,7 +338,10 @@ ipcMain.on("initialize", (event, arg) => {
 
 ipcMain.on("save_config", (event, arg) => {
   // console.log(arg);
+
   configuration = arg;
+  store.set("configuration", arg);
+  console.log(configuration);
   try {
     controller.disconnect();
     clearInterval(controllerListen);

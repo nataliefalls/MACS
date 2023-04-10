@@ -1,5 +1,4 @@
-import nodeLogo from "./assets/node.svg";
-import {
+import React, {
   useState,
   Fragment,
   useRef,
@@ -33,6 +32,7 @@ import {
   DialogContent,
   TextField,
   LinearProgress,
+  Slider,
 } from "@mui/material";
 import { styled, useTheme } from "@mui/material/styles";
 import { ReactComponent as ButtonLogo } from "./assets/button.svg";
@@ -54,12 +54,17 @@ import {
   ArrowDropDown,
   RotateLeft,
   RotateRight,
+  Close,
+  DoneOutline,
+  SportsEsportsOutlined,
+  ErrorOutlineOutlined,
 } from "@mui/icons-material";
 import InputDraggableCard from "./InputDraggableCard";
 import { nanoid } from "nanoid";
 import ModuleContext from "./Utils/moduleContext";
 import { applyDrag } from "./Utils/applyDrag";
 import GlobalStyles from "@mui/material/GlobalStyles";
+import { toast } from "react-hot-toast";
 const { ipcRenderer } = require("electron");
 
 const Hexagons = [
@@ -93,7 +98,12 @@ const Hexagons = [
     r: -1,
     s: 0,
     moduleType: "dial",
-    configuration: {},
+    configuration: {
+      input: {
+        start: 0,
+        end: 100,
+      },
+    },
   },
   {
     id: nanoid(),
@@ -117,7 +127,12 @@ const Hexagons = [
     r: -1,
     s: 1,
     moduleType: "slider",
-    configuration: {},
+    configuration: {
+      input: {
+        start: 0,
+        end: 100,
+      },
+    },
   },
   {
     id: nanoid(),
@@ -356,6 +371,8 @@ function App() {
       mainModule: true,
     },
   ]);
+  // const [hexagons, setHexagons] = useState(Hexagons);
+  const [globalConfigs, setGlobalConfigs] = useState([]);
   const [controllerFound, setControllerFound] = useState(false);
   const [controllerStatus, setControllerStatus] = useState(false);
   const [activeHexagon, setActiveHexagon] = useState(null);
@@ -375,6 +392,32 @@ function App() {
       [hexagons]
     )
   );
+
+  const minDistance = 10;
+
+  const handleChangeSlider = (position, value) => {
+    console.log({
+      ...activeHexagon,
+      configuration: {
+        ...activeHexagon.configuration,
+        input: {
+          ...activeHexagon.configuration.input,
+          [position]: value,
+        },
+      },
+    });
+    setActiveHexagon({
+      ...activeHexagon,
+      configuration: {
+        ...activeHexagon.configuration,
+        input: {
+          ...activeHexagon.configuration.input,
+          [position]: value,
+        },
+      },
+    });
+  };
+
   const inputGlobalStyles = (
     <GlobalStyles
       styles={{
@@ -415,6 +458,9 @@ function App() {
           "&:before": {
             borderBottom: "1px solid rgb(0 0 0) !important",
           },
+        },
+        "& .MuiInputBase-root, .MuiFilledInput-root": {
+          color: "white !important",
         },
         "& .MuiSelect-select, MuiInputBase-input, MuiInput-input": {
           color: "white !important",
@@ -470,30 +516,14 @@ function App() {
     console.log(controllerStatus);
     if (!controllerStatus) {
       ipcRenderer.send("handle_controller", { start: true });
-      ipcRenderer.on("controller_error", (event, arg) => {
-        console.error(event);
-      });
-      ipcRenderer.on("controller_started", (event, arg) => {
-        setControllerStatus(true);
-      });
     } else {
       ipcRenderer.send("handle_controller", { disconnect: true });
-      ipcRenderer.on("controller_error", (event, arg) => {
-        console.error(event);
-      });
-      ipcRenderer.on("controller_disconnected", (event, arg) => {
-        setControllerStatus(false);
-      });
     }
   };
 
   const handleSaveConfig = (newHexagons) => {
     // const configs = newHexagons.map((hexagon) => hexagon.configuration);
     ipcRenderer.send("save_config", newHexagons);
-    ipcRenderer.on("config_saved", (event, arg) => {
-      console.log(arg);
-      setControllerStatus(false);
-    });
   };
 
   const hexagonSize = { x: 10, y: 10 };
@@ -525,7 +555,7 @@ function App() {
       case 1:
         switch (controllerHeight) {
           case 1:
-            return 1.75; // done
+            return 1.6; // done
           case 2:
             return 1.75; // done
           case 3:
@@ -536,11 +566,11 @@ function App() {
       case 2:
         switch (controllerHeight) {
           case 1:
-            return 2.125;
+            return 3.25;
           case 2: //done
-            return 1.4;
+            return 1.5;
           case 3: // done
-            return 1.7;
+            return 1;
           default:
             return 1;
         }
@@ -549,9 +579,9 @@ function App() {
           case 1: // done
             return 1.6;
           case 2: //done
-            return 1.6;
+            return 1.2;
           case 3: // done
-            return 1.35;
+            return 1.15;
           default:
             return 1.4;
         }
@@ -560,11 +590,11 @@ function App() {
           case 1:
             return 1.6;
           case 2:
-            return 1.6;
-          case 3: // done
-            return 1.8;
-          default:
             return 1.4;
+          case 3: // done
+            return 1;
+          default:
+            return 1;
         }
       default:
         return 1;
@@ -580,7 +610,7 @@ function App() {
           case 1:
             return 1.35; // done
           case 2: // done
-            return 1.75;
+            return 1.5;
           case 3:
             return 1.25;
           default:
@@ -616,11 +646,15 @@ function App() {
 
   const gridScaler = (width, height) => {
     if (width < 3 && height < 3) {
-      return 1.5;
+      return 1.6;
     } else if (width === 3) {
       return height <= 3 ? 1.3 : 1.1;
     } else if (width === 4) {
       return height <= 4 ? 1.0 : 1;
+    } else if (height === 3) {
+      return width <= 3 ? 1.3 : 1.1;
+    } else if (height === 4) {
+      return width <= 4 ? 1.0 : 1;
     } else {
       return 0.7;
     }
@@ -816,8 +850,27 @@ function App() {
         return hexagon;
       }
     });
+
+    if (controllerStatus) {
+      toast("Controller Turned Off!", {
+        icon: <SportsEsportsOutlined color="#fff" />,
+        style: {
+          borderRadius: "10px",
+          background: "#485863",
+          color: "#fff",
+        },
+      });
+    }
     handleSaveConfig(newHexagons);
     setHexagons(newHexagons);
+    toast("Configuration Saved!", {
+      icon: <DoneOutline color="#fff" />,
+      style: {
+        borderRadius: "10px",
+        background: "#485863",
+        color: "#fff",
+      },
+    });
   };
 
   const Dropzone = memo(
@@ -914,8 +967,10 @@ function App() {
                       300,
                       "easeOut"
                     );
+                    console.log(hexagons);
                     setActiveHexagon({ ...foundHexagon, index });
-                    // console.log(foundHexagon, index);
+                    console.log("active Hexagon:");
+                    console.log(foundHexagon);
                   }}
                 >
                   <CardContent
@@ -1027,23 +1082,6 @@ function App() {
     }
   );
 
-  // const providerValues = useMemo(
-  //   () => ({
-  //     dropzoneRefs,
-  //     panRef,
-  //     activeHexagon: [activeHexagon, setActiveHexagon],
-  //     hexagons: [hexagons, setHexagons],
-  //   }),
-  //   [
-  //     dropzoneRefs,
-  //     panRef,
-  //     activeHexagon,
-  //     setActiveHexagon,
-  //     hexagons,
-  //     setHexagons,
-  //   ]
-  // );
-
   const Dropzones = memo(
     () => {
       return filteredHexagons.map((hexagon, index) => {
@@ -1057,7 +1095,6 @@ function App() {
           />
         );
       });
-      // </ModuleContext.Provider>
     },
     () => true
   );
@@ -1096,7 +1133,10 @@ function App() {
         ...activeHexagon,
         configuration: {
           ...activeHexagon.configuration,
-          input: e.target.value,
+          input: {
+            ...activeHexagon.configuration.input,
+            input: e.target.value,
+          },
         },
       });
     }
@@ -1133,31 +1173,32 @@ function App() {
               setActiveHexagon(null);
             }}
           >
-            <ChevronLeft color="primary" />
+            <Close color="primary" />
           </Button>
         )}
-        <Paper
-          sx={{
-            backgroundColor: "drawerBackground.main",
-            position: "absolute",
-            top: "19%",
-            left: 10,
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            flexDirection: "column",
-            flexShrink: 0,
-            width: 250,
-            maxHeight: "calc(100vh - 150px)",
-            opacity: 0.97,
-            zIndex: 10000,
-            overflow: "hidden",
-            pt: 1,
-            pb: 1.5,
-            px: activeHexagon ? 2 : 1,
-          }}
-        >
-          {targetHexagon === null && (
+        {activeHexagon && (
+          <Paper
+            sx={{
+              backgroundColor: "drawerBackground.main",
+              position: "absolute",
+              top: "19%",
+              left: 10,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              flexDirection: "column",
+              flexShrink: 0,
+              width: 250,
+              maxHeight: "calc(100vh - 150px)",
+              opacity: 0.99,
+              zIndex: 10000,
+              overflow: "hidden",
+              pt: 1,
+              pb: 1.5,
+              px: activeHexagon ? 2 : 1,
+            }}
+          >
+            {/* {targetHexagon === null && (
             <>
               <Typography
                 className="app-title"
@@ -1249,423 +1290,471 @@ function App() {
                 ))}
               </Grid>
             </>
-          )}
-          {targetHexagon !== null && (
-            <>
-              <Typography
-                className="app-title"
-                sx={{
-                  fontWeight: 400,
-                  paddingTop: 0,
-                  paddingBottom: 1,
-                  fontSize: "1.4rem",
-                  textDecoration: "underline",
-                }}
-              >
-                {`Module ${targetHexagon?.index + 1} Settings`}
-              </Typography>
-              <Typography
-                sx={{
-                  color: "white",
-                  fontWeight: 300,
-                  fontSize: "1.2rem",
-                  textAlign: "center",
-                  width: "100%",
-                  paddingBottom: 1,
-                }}
-              >
-                {`Type - 
+          )} */}
+            {targetHexagon !== null && (
+              <>
+                <Typography
+                  className="app-title"
+                  sx={{
+                    fontWeight: 400,
+                    paddingTop: 0,
+                    paddingBottom: 1,
+                    fontSize: "1.4rem",
+                    textDecoration: "underline",
+                  }}
+                >
+                  {`Module ${targetHexagon?.index + 1} Settings`}
+                </Typography>
+                <Typography
+                  sx={{
+                    color: "white",
+                    fontWeight: 300,
+                    fontSize: "1.2rem",
+                    textAlign: "center",
+                    width: "100%",
+                    paddingBottom: 1,
+                  }}
+                >
+                  {`Type - 
               ${
                 targetHexagon.moduleType.slice(0, 1).toUpperCase() +
                 targetHexagon.moduleType.slice(1)
               }`}
-              </Typography>
-              <Typography
-                sx={{
-                  color: "white",
-                  fontWeight: 300,
-                  fontSize: "1.25rem",
-                  textAlign: "center",
-                  width: "100%",
-                  textDecoration: "underline",
-                }}
-              >
-                Mapping
-              </Typography>
-              {(targetHexagon.moduleType === "button" ||
-                targetHexagon.moduleType === "switch") && (
-                <Box
+                </Typography>
+                <Typography
                   sx={{
-                    mt: 2,
-                    display: "flex",
-                    flexDirection: "column",
-                    justifyContent: "center",
-                    alignItems: "center",
-                    mb: 1,
+                    color: "white",
+                    fontWeight: 300,
+                    fontSize: "1.25rem",
+                    textAlign: "center",
+                    width: "100%",
+                    textDecoration: "underline",
                   }}
                 >
-                  {targetHexagon.moduleType === "button" && (
-                    <ButtonLogo width={80} height={80} style={{}} />
-                  )}
-                  {targetHexagon.moduleType === "switch" && (
-                    <SwitchLogo width={100} height={100} />
-                  )}
-                  <FormControl
-                    variant="standard"
-                    color={"selectWhite"}
+                  Mapping
+                </Typography>
+                {(targetHexagon.moduleType === "button" ||
+                  targetHexagon.moduleType === "switch") && (
+                  <Box
                     sx={{
-                      width: "200px",
-                      mt: targetHexagon.moduleType === "switch" ? -3 : 0,
+                      mt: 2,
+                      display: "flex",
+                      flexDirection: "column",
+                      justifyContent: "center",
+                      alignItems: "center",
+                      mb: 1,
                     }}
                   >
-                    <InputLabel>Input</InputLabel>
-                    <Select
-                      value={targetHexagon?.configuration?.input ?? ""}
-                      label="Input"
-                      onChange={handleInputChange}
-                      MenuProps={{
-                        sx: {
-                          zIndex: 100000000,
-                          maxHeight: 300,
-                        },
-                        color: "white",
-                      }}
-                    >
-                      {ControllerInputs.map((input, index) => (
-                        <MenuItem key={input.value} value={input.value}>
-                          {input.label}
-                        </MenuItem>
-                      ))}
-                    </Select>
-                  </FormControl>
-                </Box>
-              )}
-              {(targetHexagon.moduleType === "dpad" ||
-                targetHexagon.moduleType === "joystick") && (
-                <Box
-                  sx={{
-                    display: "flex",
-                    flexDirection: "column",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    pt: 1,
-                    pb: 1,
-                  }}
-                >
-                  {activeHexagon?.moduleType === "joystick" && (
-                    <Box
+                    {targetHexagon.moduleType === "button" && (
+                      <ButtonLogo width={80} height={80} style={{}} />
+                    )}
+                    {targetHexagon.moduleType === "switch" && (
+                      <SwitchLogo width={100} height={100} />
+                    )}
+                    <FormControl
+                      variant="standard"
+                      color={"selectWhite"}
                       sx={{
-                        display: "flex",
-                        flexDirection: "row",
-                        alignItems: "center",
-                        justifyContent: "space-evenly",
-                        width: 250,
+                        width: "200px",
+                        mt: targetHexagon.moduleType === "switch" ? -3 : 0,
                       }}
                     >
-                      <Typography
-                        sx={{
+                      <InputLabel>Input</InputLabel>
+                      <Select
+                        value={targetHexagon?.configuration?.input ?? ""}
+                        label="Input"
+                        onChange={handleInputChange}
+                        MenuProps={{
+                          sx: {
+                            zIndex: 100000000,
+                            maxHeight: 300,
+                          },
                           color: "white",
-                          fontWeight: 300,
-                          fontSize: "1.2rem",
                         }}
                       >
-                        Behavior:
-                      </Typography>
-                      <FormControl>
-                        <RadioGroup
-                          value={targetHexagon?.configuration?.behavior ?? ""}
-                          onChange={(e) => handleBehaviorChange(e)}
-                        >
-                          <FormControlLabel
-                            value="default"
-                            control={<Radio color="selectWhite" size="small" />}
-                            label="Default"
-                            style={{
-                              color: "white",
-                              userSelect: "none",
-                              WebkitUserSelect: "none",
-                              MozUserSelect: "none",
-                            }}
-                          />
-                          <FormControlLabel
-                            value="buttons"
-                            control={<Radio color="selectWhite" size="small" />}
-                            label="Buttons"
-                            style={{
-                              color: "white",
-                              userSelect: "none",
-                              WebkitUserSelect: "none",
-                              MozUserSelect: "none",
-                            }}
-                          />
-                        </RadioGroup>
-                      </FormControl>
-                    </Box>
-                  )}
-                  {(activeHexagon?.configuration?.behavior === "buttons" ||
-                    activeHexagon.moduleType === "dpad") && (
-                    <>
-                      <FormControl
-                        sx={{ width: "30%" }}
-                        variant="standard"
-                        color={"selectWhite"}
-                        // sx={{ color: "white" }}
-                      >
-                        <InputLabel>Up</InputLabel>
-                        <Select
-                          value={targetHexagon?.configuration?.input?.up ?? ""}
-                          label="Input"
-                          onChange={(e) => handleInputChange(e, "up")}
-                          MenuProps={{
-                            sx: {
-                              zIndex: 100000000,
-                              maxHeight: 300,
-                            },
-                            color: "white",
-                          }}
-                        >
-                          {ControllerInputs.map((input, index) => (
-                            <MenuItem key={input.value} value={input.value}>
-                              {input.label}
-                            </MenuItem>
-                          ))}
-                        </Select>
-                      </FormControl>
+                        {ControllerInputs.map((input, index) => (
+                          <MenuItem key={input.value} value={input.value}>
+                            {input.label}
+                          </MenuItem>
+                        ))}
+                      </Select>
+                    </FormControl>
+                  </Box>
+                )}
+                {(targetHexagon.moduleType === "dpad" ||
+                  targetHexagon.moduleType === "joystick") && (
+                  <Box
+                    sx={{
+                      display: "flex",
+                      flexDirection: "column",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      pt: 1,
+                      pb: 1,
+                    }}
+                  >
+                    {activeHexagon?.moduleType === "joystick" && (
                       <Box
                         sx={{
                           display: "flex",
                           flexDirection: "row",
-                          alignItems:
-                            targetHexagon.moduleType === "dpad"
-                              ? "center"
-                              : "flex-start",
+                          alignItems: "center",
                           justifyContent: "space-evenly",
-                          width: 300,
-                          pb: 0,
-                          pt: 2,
-                          mb: targetHexagon.moduleType === "dpad" ? 0 : -0.5,
+                          width: 250,
                         }}
                       >
-                        <FormControl
-                          sx={{ width: "27%" }}
-                          variant="standard"
-                          color={"selectWhite"}
-                          // sx={{ color: "white" }}
-                        >
-                          <InputLabel>Left</InputLabel>
-                          <Select
-                            value={
-                              targetHexagon?.configuration?.input?.left ?? ""
-                            }
-                            label="Input"
-                            onChange={(e) => handleInputChange(e, "left")}
-                            MenuProps={{
-                              sx: {
-                                zIndex: 100000000,
-                                maxHeight: 300,
-                              },
-                              color: "white",
-                            }}
-                          >
-                            {ControllerInputs.map((input, index) => (
-                              <MenuItem key={input.value} value={input.value}>
-                                {input.label}
-                              </MenuItem>
-                            ))}
-                          </Select>
-                        </FormControl>
-                        {targetHexagon.moduleType === "dpad" && (
-                          <DpadLogo
-                            width={65}
-                            height={65}
-                            style={{ paddingRight: 2 }}
-                          />
-                        )}
-                        {targetHexagon.moduleType === "joystick" && (
-                          <JoystickLogo
-                            width={70}
-                            height={70}
-                            style={{ paddingRight: 3 }}
-                          />
-                        )}
-                        <FormControl
-                          sx={{ width: "27%" }}
-                          variant="standard"
-                          color={"selectWhite"}
-                          // sx={{ color: "white" }}
-                        >
-                          <InputLabel>Right</InputLabel>
-                          <Select
-                            value={
-                              targetHexagon?.configuration?.input?.right ?? ""
-                            }
-                            label="Input"
-                            onChange={(e) => handleInputChange(e, "right")}
-                            MenuProps={{
-                              sx: {
-                                zIndex: 100000000,
-                                maxHeight: 300,
-                              },
-                              color: "white",
-                            }}
-                          >
-                            {ControllerInputs.map((input, index) => (
-                              <MenuItem key={input.value} value={input.value}>
-                                {input.label}
-                              </MenuItem>
-                            ))}
-                          </Select>
-                        </FormControl>
-                      </Box>
-                      <FormControl
-                        sx={{ width: "30%" }}
-                        variant="standard"
-                        color={"selectWhite"}
-                        // sx={{ color: "white" }}
-                      >
-                        <InputLabel>Down</InputLabel>
-                        <Select
-                          value={
-                            targetHexagon?.configuration?.input?.down ?? ""
-                          }
-                          label="Input"
-                          onChange={(e) => handleInputChange(e, "down")}
-                          MenuProps={{
-                            sx: {
-                              zIndex: 100000000,
-                              maxHeight: 300,
-                            },
+                        <Typography
+                          sx={{
                             color: "white",
+                            fontWeight: 300,
+                            fontSize: "1.2rem",
                           }}
                         >
-                          {ControllerInputs.map((input, index) => (
-                            <MenuItem key={input.value} value={input.value}>
-                              {input.label}
-                            </MenuItem>
-                          ))}
-                        </Select>
-                      </FormControl>
-                    </>
-                  )}
-                </Box>
-              )}
-              {(targetHexagon.moduleType === "dial" ||
-                targetHexagon.moduleType === "slider") && (
-                <>
-                  <Box sx={{ pt: 1, mb: -2 }}>
-                    {targetHexagon.moduleType === "dial" && (
-                      <DialLogo
-                        width={125}
-                        height={125}
-                        style={{ marginBottom: -30, paddingTop: 10 }}
-                      />
+                          Behavior:
+                        </Typography>
+                        <FormControl>
+                          <RadioGroup
+                            value={targetHexagon?.configuration?.behavior ?? ""}
+                            onChange={(e) => handleBehaviorChange(e)}
+                          >
+                            <FormControlLabel
+                              value="default"
+                              control={
+                                <Radio color="selectWhite" size="small" />
+                              }
+                              label="Default"
+                              style={{
+                                color: "white",
+                                userSelect: "none",
+                                WebkitUserSelect: "none",
+                                MozUserSelect: "none",
+                              }}
+                            />
+                            <FormControlLabel
+                              value="buttons"
+                              control={
+                                <Radio color="selectWhite" size="small" />
+                              }
+                              label="Buttons"
+                              style={{
+                                color: "white",
+                                userSelect: "none",
+                                WebkitUserSelect: "none",
+                                MozUserSelect: "none",
+                              }}
+                            />
+                          </RadioGroup>
+                        </FormControl>
+                      </Box>
                     )}
-                    {targetHexagon.moduleType === "slider" && (
-                      <SliderLogo
-                        width={100}
-                        height={100}
-                        style={{ paddingTop: 10, marginBottom: -2 }}
-                      />
+                    {(activeHexagon?.configuration?.behavior === "buttons" ||
+                      activeHexagon.moduleType === "dpad") && (
+                      <>
+                        <FormControl
+                          sx={{ width: "30%" }}
+                          variant="standard"
+                          color={"selectWhite"}
+                          // sx={{ color: "white" }}
+                        >
+                          <InputLabel>Up</InputLabel>
+                          <Select
+                            value={
+                              targetHexagon?.configuration?.input?.up ?? ""
+                            }
+                            label="Input"
+                            onChange={(e) => handleInputChange(e, "up")}
+                            MenuProps={{
+                              sx: {
+                                zIndex: 100000000,
+                                maxHeight: 300,
+                              },
+                              color: "white",
+                            }}
+                          >
+                            {ControllerInputs.map((input, index) => (
+                              <MenuItem key={input.value} value={input.value}>
+                                {input.label}
+                              </MenuItem>
+                            ))}
+                          </Select>
+                        </FormControl>
+                        <Box
+                          sx={{
+                            display: "flex",
+                            flexDirection: "row",
+                            alignItems:
+                              targetHexagon.moduleType === "dpad"
+                                ? "center"
+                                : "flex-start",
+                            justifyContent: "space-evenly",
+                            width: 300,
+                            pb: 0,
+                            pt: 2,
+                            mb: targetHexagon.moduleType === "dpad" ? 0 : -0.5,
+                          }}
+                        >
+                          <FormControl
+                            sx={{ width: "27%" }}
+                            variant="standard"
+                            color={"selectWhite"}
+                            // sx={{ color: "white" }}
+                          >
+                            <InputLabel>Left</InputLabel>
+                            <Select
+                              value={
+                                targetHexagon?.configuration?.input?.left ?? ""
+                              }
+                              label="Input"
+                              onChange={(e) => handleInputChange(e, "left")}
+                              MenuProps={{
+                                sx: {
+                                  zIndex: 100000000,
+                                  maxHeight: 300,
+                                },
+                                color: "white",
+                              }}
+                            >
+                              {ControllerInputs.map((input, index) => (
+                                <MenuItem key={input.value} value={input.value}>
+                                  {input.label}
+                                </MenuItem>
+                              ))}
+                            </Select>
+                          </FormControl>
+                          {targetHexagon.moduleType === "dpad" && (
+                            <DpadLogo
+                              width={65}
+                              height={65}
+                              style={{ paddingRight: 2 }}
+                            />
+                          )}
+                          {targetHexagon.moduleType === "joystick" && (
+                            <JoystickLogo
+                              width={70}
+                              height={70}
+                              style={{ paddingRight: 3 }}
+                            />
+                          )}
+                          <FormControl
+                            sx={{ width: "27%" }}
+                            variant="standard"
+                            color={"selectWhite"}
+                            // sx={{ color: "white" }}
+                          >
+                            <InputLabel>Right</InputLabel>
+                            <Select
+                              value={
+                                targetHexagon?.configuration?.input?.right ?? ""
+                              }
+                              label="Input"
+                              onChange={(e) => handleInputChange(e, "right")}
+                              MenuProps={{
+                                sx: {
+                                  zIndex: 100000000,
+                                  maxHeight: 300,
+                                },
+                                color: "white",
+                              }}
+                            >
+                              {ControllerInputs.map((input, index) => (
+                                <MenuItem key={input.value} value={input.value}>
+                                  {input.label}
+                                </MenuItem>
+                              ))}
+                            </Select>
+                          </FormControl>
+                        </Box>
+                        <FormControl
+                          sx={{ width: "30%" }}
+                          variant="standard"
+                          color={"selectWhite"}
+                          // sx={{ color: "white" }}
+                        >
+                          <InputLabel>Down</InputLabel>
+                          <Select
+                            value={
+                              targetHexagon?.configuration?.input?.down ?? ""
+                            }
+                            label="Input"
+                            onChange={(e) => handleInputChange(e, "down")}
+                            MenuProps={{
+                              sx: {
+                                zIndex: 100000000,
+                                maxHeight: 300,
+                              },
+                              color: "white",
+                            }}
+                          >
+                            {ControllerInputs.map((input, index) => (
+                              <MenuItem key={input.value} value={input.value}>
+                                {input.label}
+                              </MenuItem>
+                            ))}
+                          </Select>
+                        </FormControl>
+                      </>
                     )}
                   </Box>
-                  <FormControl
-                    variant="standard"
-                    color={"selectWhite"}
-                    sx={{ width: "80%" }}
-                  >
-                    <InputLabel>Input</InputLabel>
-                    <Select
-                      value={targetHexagon?.configuration?.input ?? ""}
-                      label="Input"
-                      onChange={handleInputChange}
-                      MenuProps={{
-                        sx: {
-                          zIndex: 100000000,
-                          maxHeight: 300,
-                        },
-                        color: "white",
-                      }}
+                )}
+                {(targetHexagon.moduleType === "dial" ||
+                  targetHexagon.moduleType === "slider") && (
+                  <>
+                    <Box sx={{ pt: 1, mb: -2 }}>
+                      {targetHexagon.moduleType === "dial" && (
+                        <DialLogo
+                          width={125}
+                          height={125}
+                          style={{ marginBottom: -30, paddingTop: 10 }}
+                        />
+                      )}
+                      {targetHexagon.moduleType === "slider" && (
+                        <SliderLogo
+                          width={100}
+                          height={100}
+                          style={{ paddingTop: 10, marginBottom: -2 }}
+                        />
+                      )}
+                    </Box>
+                    <FormControl
+                      variant="standard"
+                      color={"selectWhite"}
+                      sx={{ width: "80%" }}
                     >
-                      {ControllerInputs.map((input, index) => (
-                        <MenuItem key={input.value} value={input.value}>
-                          {input.label}
-                        </MenuItem>
-                      ))}
-                    </Select>
-                  </FormControl>
-                </>
-              )}
-              <Typography
-                sx={{
-                  color: "white",
-                  fontWeight: 300,
-                  fontSize: "1.05rem",
-                  textAlign: "center",
-                  width: "100%",
-                  wordWrap: "break-word",
-                }}
-              >
-                {`config: ${JSON.stringify(targetHexagon.configuration)}`}
-              </Typography>
-              <Box
-                sx={{
-                  display: "flex",
-                  flexDirection: "row",
-                  alignItems: "center",
-                  justifyContent: "space-evenly",
-                  width: "100%",
-                }}
-              >
-                <Button
-                  variant="contained"
-                  color={"startButtonGreen"}
-                  style={{
-                    textTransform: "none",
-                    color: "white",
-                    fontSize: "1rem",
-                  }}
+                      <InputLabel>Input</InputLabel>
+                      <Select
+                        value={targetHexagon?.configuration?.input ?? ""}
+                        label="Input"
+                        onChange={handleInputChange}
+                        MenuProps={{
+                          sx: {
+                            zIndex: 100000000,
+                            maxHeight: 300,
+                          },
+                          color: "white",
+                        }}
+                      >
+                        {ControllerInputs.map((input, index) => (
+                          <MenuItem key={input.value} value={input.value}>
+                            {input.label}
+                          </MenuItem>
+                        ))}
+                      </Select>
+                      <Box
+                        sx={{
+                          display: "flex",
+                          flexDirection: "row",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          mt: 2,
+                        }}
+                      >
+                        <TextField
+                          label="Start"
+                          type="number"
+                          defaultValue={
+                            activeHexagon?.configuration?.input?.start ?? 0
+                          }
+                          InputProps={{ inputProps: { min: 0, max: 100 } }}
+                          InputLabelProps={{
+                            shrink: true,
+                          }}
+                          onChange={(e) =>
+                            handleChangeSlider("start", e.target.value)
+                          }
+                          variant="filled"
+                        />
+                        <Typography
+                          color="white"
+                          sx={{ fontFamily: "K2D", mx: 2 }}
+                        >
+                          {" "}
+                          to{" "}
+                        </Typography>
+                        <TextField
+                          label="End"
+                          type="number"
+                          defaultValue={
+                            activeHexagon?.configuration?.input?.end ?? 100
+                          }
+                          InputProps={{ inputProps: { min: 0, max: 100 } }}
+                          onChange={(e) =>
+                            handleChangeSlider("end", e.target.value)
+                          }
+                          InputLabelProps={{
+                            shrink: true,
+                          }}
+                          variant="filled"
+                        />
+                      </Box>
+                    </FormControl>
+                  </>
+                )}
+                <Typography
                   sx={{
-                    marginTop: 1,
-                  }}
-                  onClick={() => updateInputHandler()}
-                >
-                  Save
-                </Button>
-                <Button
-                  variant="contained"
-                  color={"stopButtonRed"}
-                  style={{
-                    textTransform: "none",
                     color: "white",
-                    fontSize: "1rem",
+                    fontWeight: 300,
+                    fontSize: "1.05rem",
+                    textAlign: "center",
+                    width: "100%",
+                    wordWrap: "break-word",
                   }}
-                  sx={{
-                    marginTop: 1,
-                  }}
-                  onClick={() => removeInputHandler()}
                 >
-                  Delete
-                </Button>
-              </Box>
-            </>
-          )}
-        </Paper>
+                  {`config: ${JSON.stringify(targetHexagon.configuration)}`}
+                </Typography>
+                <Box
+                  sx={{
+                    display: "flex",
+                    flexDirection: "row",
+                    alignItems: "center",
+                    justifyContent: "space-evenly",
+                    width: "100%",
+                  }}
+                >
+                  <Button
+                    variant="contained"
+                    color={"startButtonGreen"}
+                    disabled={
+                      activeHexagon.configuration ===
+                      hexagons.find((hex) => hex.id === activeHexagon.id)
+                        ?.configuration
+                        ? true
+                        : false
+                    }
+                    style={{
+                      textTransform: "none",
+                      color: "white",
+                      fontSize: "1rem",
+                    }}
+                    sx={{
+                      marginTop: 1,
+                    }}
+                    onClick={() => updateInputHandler()}
+                  >
+                    Save
+                  </Button>
+                  {/* <Button
+                    variant="contained"
+                    color={"stopButtonRed"}
+                    style={{
+                      textTransform: "none",
+                      color: "white",
+                      fontSize: "1rem",
+                    }}
+                    sx={{
+                      marginTop: 1,
+                    }}
+                    onClick={() => removeInputHandler()}
+                  >
+                    Delete
+                  </Button> */}
+                </Box>
+              </>
+            )}
+          </Paper>
+        )}
       </>
     );
   };
-
-  // let keyPressed = false;
-  // window.addEventListener("keydown", function (event) {
-  //   if (!keyPressed) {
-  //     keyPressed = true;
-  //     handleKeyPress(event);
-  //     console.log("ran");
-  //   }
-  // });
-  // window.addEventListener("keyup", function (event) {
-  //   keyPressed = false;
-  //   console.log("keyup");
-  // });
 
   // Reposition the dropzones on window resize
   window.setTimeout(() => {
@@ -1714,7 +1803,7 @@ function App() {
       ipcRenderer.send("initialize", hexagons);
     }
     panRef?.current?.resetTransform();
-    // panRef?.current?.centerView();
+    panRef?.current?.centerView();
   }, [controllerFound, hexagons]);
 
   // On initial render
@@ -1722,6 +1811,7 @@ function App() {
     ipcRenderer.on("controller_found", (event, arg) => {
       console.log(arg);
       setControllerFound(arg);
+      // setControllerFound(true);
       if (arg) {
         let tempDropzones = [];
         positionSVG();
@@ -1737,17 +1827,48 @@ function App() {
 
         setDropzones(tempDropzones);
         ipcRenderer.send("initialize", hexagons);
+        toast(
+          <Box
+            display="flex"
+            flexDirection="row"
+            alignItems="center"
+            justifyContent="center"
+          >
+            <Typography
+              sx={{
+                fontFamily: "bitcount-mono-single-line-ci",
+                fontSize: "2em",
+                mr: 1,
+              }}
+            >
+              MACS
+            </Typography>
+            <Typography sx={{ fontFamily: "K2D" }}>Found !</Typography>
+          </Box>,
+          {
+            style: {
+              borderRadius: "10px",
+              background: "#485863",
+              color: "#fff",
+              maxHeight: "35px",
+              minWidth: "100px",
+            },
+          }
+        );
       } else {
         setDropzones([]);
-        setHexagons([{
-          id: nanoid(),
-          q: 0,
-          r: 0,
-          s: 0,
-          configuration: {},
-          moduleType: undefined,
-          mainModule: true,
-        }]);
+        setHexagons([
+          {
+            id: nanoid(),
+            q: 0,
+            r: 0,
+            s: 0,
+            configuration: {},
+            moduleType: undefined,
+            mainModule: true,
+          },
+        ]);
+        // setHexagons(Hexagons);
       }
       panRef?.current?.resetTransform();
       panRef?.current?.centerView();
@@ -1756,16 +1877,31 @@ function App() {
       console.log("connected received");
       console.log(arg);
       setHexagons((prevHexagons) => {
-        console.log("old");
+        console.log("old hexagons");
         console.log(prevHexagons);
         console.log(
           !prevHexagons.some((localHexagon) => localHexagon.id === arg.id)
         );
         if (!prevHexagons.some((localHexagon) => localHexagon.id === arg.id)) {
+          // const foundConfig = globalConfigs.find(
+          //   (config) => config.id === arg.id
+          // );
+          // console.log("existing configs");
+          // console.log(globalConfigs);
+          // console.log("found config for new module:");
+          // console.log(foundConfig);
+          // if (foundConfig) {
+          //   const newModule = {
+          //     ...arg,
+          //     configuration: foundConfig.configuration,
+          //   };
+          //   console.log("with updated configs: " + [...prevHexagons, newModule]);
+          // } else {
           console.log([...prevHexagons, arg]);
           return [...prevHexagons, arg];
+          // }
         }
-        console.log("already exists");
+        console.log();
         return prevHexagons;
       });
     });
@@ -1787,6 +1923,49 @@ function App() {
         return prevHexagons;
       });
     });
+    ipcRenderer.on("controller_error", (event, arg) => {
+      console.error(event);
+      if (controllerStatus) {
+        toast("Controller Failed To Start!", {
+          icon: <ErrorOutlineOutlined color="#fff" />,
+          style: {
+            borderRadius: "10px",
+            background: "#485863",
+            color: "#fff",
+          },
+        });
+      }
+    });
+    ipcRenderer.on("controller_started", (event, arg) => {
+      toast("Controller Started!", {
+        icon: <SportsEsportsOutlined color="#fff" />,
+        style: {
+          borderRadius: "10px",
+          background: "#485863",
+          color: "#fff",
+        },
+      });
+      setControllerStatus(true);
+    });
+    ipcRenderer.on("controller_disconnected", (event, arg) => {
+      console.log("controller disconnected");
+      console.log(arg);
+      toast("Controller Turned Off!", {
+        icon: <SportsEsportsOutlined color="#fff" />,
+        style: {
+          borderRadius: "10px",
+          background: "#485863",
+          color: "#fff",
+        },
+      });
+
+      setControllerStatus(false);
+    });
+    ipcRenderer.on("config_saved", (event, arg) => {
+      console.log(arg);
+      setControllerStatus(false);
+    });
+
     panRef?.current?.resetTransform();
     panRef?.current?.centerView();
   }, []);
@@ -1804,42 +1983,7 @@ function App() {
         }}
       >
         {inputGlobalStyles}
-        {/* <Drawer
-          variant="permanent"
-          open={open}
-          PaperProps={{
-            sx: {
-              backgroundColor: "drawerBackground.main",
-              opacity: 0.83,
-              filter: "drop-shadow(0px 5px 5px rgba(0, 0, 0, 0.3));",
-              // overflow: "hidden",
-            },
-          }}
-        >
-          <DrawerHeader sx={{ justifyContent: "flex-end" }}>
-            {open ? (
-              <IconButton onClick={toggleDrawer} sx={{ mr: 1.5 }}>
-                <ChevronLeftIcon color="primary" />
-              </IconButton>
-            ) : (
-              <IconButton onClick={toggleDrawer} sx={{ mr: 1.5 }}>
-                <ChevronRightIcon color="primary" />
-              </IconButton>
-            )}
-          </DrawerHeader> */}
-        {/* <Divider sx={{ borderColor: "white", opacity: 0.7 }} /> */}
-        {/* <Box
-          sx={{
-            height: "100%",
-            display: "flex",
-            justifyContent: "center",
-            alignItems: "center",
-            backgroundColor: "transparent",
-          }}
-        > */}
         {controllerFound && <SidePanel targetHexagon={activeHexagon} />}
-        {/* </Drawer> */}
-        {/* </Box> */}
         <TransformWrapper
           initialScale={1}
           ref={panRef}
