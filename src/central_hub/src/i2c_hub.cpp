@@ -30,7 +30,7 @@ IPayload *payloadFromType(ModuleType type, uint8_t *buf) {
     case kPotentiometer:
         return new AnalogPayload({ buf[0] });
     case kJoystick:
-        return new JoystickPayload({ buf[0], buf[1], buf[2] });
+        return new JoystickPayload({  buf[1], buf[2], buf[0]  });
     default:
         return nullptr;
     }
