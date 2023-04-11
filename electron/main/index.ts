@@ -141,6 +141,25 @@ async function createWindow() {
     processMACS();
   };
 
+  const isAButton = (inputRequested) => {
+    switch (inputRequested) {
+      case "START":
+      case "BACK":
+      case "LEFT_THUMB":
+      case "RIGHT_THUMB":
+      case "LEFT_SHOULDER":
+      case "RIGHT_SHOULDER":
+      case "GUIDE":
+      case "A":
+      case "B":
+      case "X":
+      case "Y":
+        return true;
+      default:
+        return false;
+    }
+  };
+
   const processMACS = () => {
     try {
       MACS_CONTROLLER = HID.devices(0xcafe, 0x0000);
@@ -182,12 +201,20 @@ async function createWindow() {
               try {
                 if (controller?.type) {
                   configuration?.forEach((module, index) => {
-                    if (module?.index === 0) {
+                    if (module?.id === data.readInt8(1)) {
+                      console.log("found");
                       const buttonState = data.readInt8(2);
-                      controller?.button[
-                        buttons[getInputIndex(module?.configuration?.input)]
-                      ].setValue(buttonState);
-                      controller?.update();
+                      if (isAButton(module?.configuration?.input)) {
+                        controller?.button[
+                          buttons[getInputIndex(module?.configuration?.input)]
+                        ].setValue(buttonState);
+                        controller?.update();
+                      } else {
+                        controller?.axis[
+                          axes[getAxisIndex(module?.configuration?.input)]
+                        ].setValue(buttonState);
+                        controller?.update();
+                      }
                     } else {
                       // console.log("not found");
                     }
@@ -200,35 +227,135 @@ async function createWindow() {
               }
               break;
             case 4:
+              const moduleID = data.readInt8(1);
               const analogValue = data.readUInt8(2);
               console.log("analog: " + analogValue);
+              try {
+                if (controller?.type) {
+                  configuration?.forEach((module, index) => {
+                    if (module?.id === data.readInt8(1)) {
+                      const buttonState = data.readInt8(2);
+                      if (isAButton(module?.configuration?.input?.input)) {
+                        controller?.button[
+                          buttons[
+                            getInputIndex(module?.configuration?.input?.input)
+                          ]
+                        ].setValue(buttonState / 255);
+                        controller?.update();
+                      } else {
+                        if (
+                          getAxisDirection(
+                            module?.configuration?.input?.input
+                          ) !== 0
+                        ) {
+                          // console.log("in switch");
+                          switch (module?.configuration?.input?.input) {
+                            case "RIGHT_JOYSTICK_UP":
+                              controller?.axis?.rightY?.(analogValue / 255);
+                              controller?.update();
+                              break;
+                            case "RIGHT_JOYSTICK_DOWN":
+                              controller?.axis?.rightY?.setValue(
+                                0 - analogValue / 255
+                              );
+                              controller?.update();
+                              break;
+                            case "RIGHT_JOYSTICK_LEFT":
+                              controller?.axis?.rightX?.setValue(
+                                0 - analogValue / 255
+                              );
+                              controller?.update();
+                              break;
+                            case "RIGHT_JOYSTICK_RIGHT":
+                              console.log("in right joystick right");
+                              console.log(analogValue / 255);
+                              controller?.axis?.rightX?.setValue(
+                                analogValue / 255
+                              );
+                              controller?.update();
+                              break;
+                            case "LEFT_JOYSTICK_UP":
+                              controller?.axis?.leftY?.setValue(
+                                analogValue / 255
+                              );
+                              controller?.update();
+                              break;
+                            case "LEFT_JOYSTICK_DOWN":
+                              controller?.axis?.leftY.setValue(
+                                0 - analogValue / 255
+                              );
+                              controller?.update();
+                              break;
+                            case "LEFT_JOYSTICK_LEFT":
+                              controller?.axis?.leftX.setValue(
+                                0 - analogValue / 255
+                              );
+                              controller?.update();
+                              break;
+                            case "LEFT_JOYSTICK_RIGHT":
+                              controller?.axis?.leftY?.setValue(
+                                analogValue / 255
+                              );
+                              controller?.update();
+                              break;
+                            default:
+                              break;
+                          }
+                        } else {
+                          controller?.axis[
+                            axes[
+                              getAxisIndex(module?.configuration?.input?.input)
+                            ]
+                          ].setValue((analogValue - 128) / 128);
+                          controller?.update();
+                        }
+                      }
+                    } else {
+                      // console.log("not found");
+                    }
+                  });
+                } else {
+                  // console.log("controller is null");
+                }
+              } catch (e) {
+                // controller is not on
+              }
               break;
             case 5:
               // console.log(data);
               const joystickHorizontal = data.readUInt8(2);
               const joystickVertical = data.readUInt8(3);
               const joystickButtonState = data.readUInt8(4);
+
+              const x = (joystickHorizontal - 128) / 128;
+              const y = (joystickVertical - 128) / 128;
               console.log(joystickButtonState);
               // console.log(joystickHorizontal);
               // console.log(joystickVertical);
-              // console.log("x " + (joystickHorizontal - 128) / 128);
-              // console.log("y " + (joystickVertical - 128) / 128);
+              console.log(
+                0 - Math.cos((Math.PI / 6) * x - y * Math.sin(Math.PI / 6))
+              );
+              console.log(
+                y * Math.cos(Math.PI / 6) + x * Math.sin(Math.PI / 6)
+              );
               // console.log("before loop");
               try {
                 if (controller?.type) {
                   // console.log("entered loop");
                   configuration?.forEach((module, index) => {
-                    if (module?.index === 1) {
+                    if (module?.id === data.readInt8(1)) {
                       // console.log(module);
                       // console.log(module?.configuration?.input);
                       if (module?.configuration?.behavior === "default") {
                         // controller.axis.leftX.setValue(0.5); // move left stick 50% to the left
                         // controller.axis.leftY.setValue(-0.5); // move left stick 50% down
                         controller.axis.leftX.setValue(
-                          (joystickHorizontal - 128) / 128
+                          0 -
+                            Math.cos(Math.PI / 6) * x -
+                            y * Math.sin(Math.PI / 6)
                         );
                         controller.axis.leftY.setValue(
-                          (joystickVertical - 128) / 128
+                          y * Math.cos(Math.PI / 6) + x * Math.sin(Math.PI / 6)
                         );
                         controller?.update();
                       }
@@ -384,6 +511,51 @@ const getInputIndex = (input) => {
 
 const getAxisIndex = (axis) => {
   switch (axis) {
+    case "LEFT_TRIGGER":
+      return 4;
+    case "RIGHT_TRIGGER":
+      return 5;
+    case "RIGHT_JOYSTICK_UP":
+      return 3;
+    case "RIGHT_JOYSTICK_DOWN":
+      return 3;
+    case "RIGHT_JOYSTICK_LEFT":
+      return 2;
+    case "RIGHT_JOYSTICK_RIGHT":
+      return 2;
+    case "LEFT_JOYSTICK_UP":
+      return 1;
+    case "LEFT_JOYSTICK_DOWN":
+      return 1;
+    case "LEFT_JOYSTICK_LEFT":
+      return 0;
+    case "LEFT_JOYSTICK_RIGHT":
+      return 0;
+    default:
+      return;
+  }
+};
+
+const getAxisDirection = (axis) => {
+  switch (axis) {
+    case "RIGHT_JOYSTICK_UP":
+      return 1;
+    case "RIGHT_JOYSTICK_DOWN":
+      return -1;
+    case "RIGHT_JOYSTICK_LEFT":
+      return -1;
+    case "RIGHT_JOYSTICK_RIGHT":
+      return 1;
+    case "LEFT_JOYSTICK_UP":
+      return 1;
+    case "LEFT_JOYSTICK_DOWN":
+      return -1;
+    case "LEFT_JOYSTICK_LEFT":
+      return -1;
+    case "LEFT_JOYSTICK_RIGHT":
+      return 1;
+    default:
+      return 0;
   }
 };
 

@@ -68,14 +68,14 @@ import { toast } from "react-hot-toast";
 const { ipcRenderer } = require("electron");
 
 const Hexagons = [
-  {
-    id: nanoid(),
-    q: 0,
-    r: 2,
-    s: -2,
-    moduleType: undefined,
-    mainModule: true,
-  },
+  // {
+  //   id: nanoid(),
+  //   q: 0,
+  //   r: 0,
+  //   s: 1,
+  //   moduleType: undefined,
+  //   mainModule: true,
+  // },
   // {
   //   id: nanoid(),
   //   q: 0,
@@ -84,74 +84,74 @@ const Hexagons = [
   //   moduleType: undefined,
   //   configuration: {},
   // },
-  {
-    id: nanoid(),
-    q: -1,
-    r: 0,
-    s: 1,
-    moduleType: undefined,
-    configuration: {},
-  },
-  {
-    id: nanoid(),
-    q: 1,
-    r: -1,
-    s: 0,
-    moduleType: "dial",
-    configuration: {
-      input: {
-        start: 0,
-        end: 100,
-      },
-    },
-  },
-  {
-    id: nanoid(),
-    q: 0,
-    r: 1,
-    s: -1,
-    moduleType: "dpad",
-    configuration: {},
-  },
-  {
-    id: nanoid(),
-    q: 1,
-    r: 0,
-    s: -1,
-    moduleType: "button",
-    configuration: {},
-  },
-  {
-    id: nanoid(),
-    q: 0,
-    r: -1,
-    s: 1,
-    moduleType: "slider",
-    configuration: {
-      input: {
-        start: 0,
-        end: 100,
-      },
-    },
-  },
-  {
-    id: nanoid(),
-    q: -1,
-    r: 1,
-    s: 0,
-    moduleType: "joystick",
-    configuration: {
-      behavior: "default",
-    },
-  },
-  {
-    id: nanoid(),
-    q: 2,
-    r: -1,
-    s: -1,
-    moduleType: "switch",
-    configuration: {},
-  },
+  // {
+  //   id: nanoid(),
+  //   q: -1,
+  //   r: 0,
+  //   s: 1,
+  //   moduleType: undefined,
+  //   configuration: {},
+  // },
+  // {
+  //   id: nanoid(),
+  //   q: 1,
+  //   r: 0,
+  //   s: 0,
+  //   moduleType: "dial",
+  //   configuration: {
+  //     input: {
+  //       start: 0,
+  //       end: 100,
+  //     },
+  //   },
+  // },
+  // {
+  //   id: nanoid(),
+  //   q: 0,
+  //   r: 1,
+  //   s: -1,
+  //   moduleType: "dpad",
+  //   configuration: {},
+  // },
+  // {
+  //   id: nanoid(),
+  //   q: 1,
+  //   r: 1,
+  //   s: -1,
+  //   moduleType: "button",
+  //   configuration: {},
+  // },
+  // {
+  //   id: nanoid(),
+  //   q: 0,
+  //   r: 2,
+  //   s: -2,
+  //   moduleType: "slider",
+  //   configuration: {
+  //     input: {
+  //       start: 0,
+  //       end: 100,
+  //     },
+  //   },
+  // },
+  // {
+  //   id: nanoid(),
+  //   q: -1,
+  //   r: 2,
+  //   s: 0,
+  //   moduleType: "joystick",
+  //   configuration: {
+  //     behavior: "default",
+  //   },
+  // },
+  // {
+  //   id: nanoid(),
+  //   q: 2,
+  //   r: 0,
+  //   s: -1,
+  //   moduleType: "switch",
+  //   configuration: {},
+  // },
   {
     id: nanoid(),
     q: 0,
@@ -376,6 +376,9 @@ function App() {
   const [controllerFound, setControllerFound] = useState(false);
   const [controllerStatus, setControllerStatus] = useState(false);
   const [activeHexagon, setActiveHexagon] = useState(null);
+  const [tempHexagon, setTempHexagon] = useState(null);
+  const [enableSave, setEnableSave] = useState(false);
+  const [sidePanelActive, setSidePanelOpen] = useState(false);
   const [gridRotate, setGridRotate] = useState("0deg");
   const [dropzones, setDropzones] = useState([]);
   const [distinctInputTypes, setDistinctInputTypes] = useState([]);
@@ -396,22 +399,25 @@ function App() {
   const minDistance = 10;
 
   const handleChangeSlider = (position, value) => {
+    // if (!enableSave) {
+    //   setEnableSave(true);
+    // }
     console.log({
-      ...activeHexagon,
+      ...tempHexagon,
       configuration: {
-        ...activeHexagon.configuration,
+        ...tempHexagon.configuration,
         input: {
-          ...activeHexagon.configuration.input,
+          ...tempHexagon.configuration.input,
           [position]: value,
         },
       },
     });
-    setActiveHexagon({
-      ...activeHexagon,
+    setTempHexagon({
+      ...tempHexagon,
       configuration: {
-        ...activeHexagon.configuration,
+        ...tempHexagon.configuration,
         input: {
-          ...activeHexagon.configuration.input,
+          ...tempHexagon.configuration.input,
           [position]: value,
         },
       },
@@ -455,12 +461,16 @@ function App() {
           },
         },
         "& .controller-name-input > .MuiInputBase-root": {
+          color: "black !important",
           "&:before": {
             borderBottom: "1px solid rgb(0 0 0) !important",
           },
         },
         "& .MuiInputBase-root, .MuiFilledInput-root": {
           color: "white !important",
+        },
+        "& .MuiInputBase-roo.MuiInput-underline": {
+          color: "black !important",
         },
         "& .MuiSelect-select, MuiInputBase-input, MuiInput-input": {
           color: "white !important",
@@ -555,7 +565,7 @@ function App() {
       case 1:
         switch (controllerHeight) {
           case 1:
-            return 1.6; // done
+            return 2; // done
           case 2:
             return 1.75; // done
           case 3:
@@ -581,7 +591,7 @@ function App() {
           case 2: //done
             return 1.2;
           case 3: // done
-            return 1.15;
+            return 1.25;
           default:
             return 1.4;
         }
@@ -592,7 +602,7 @@ function App() {
           case 2:
             return 1.4;
           case 3: // done
-            return 1;
+            return 1.3;
           default:
             return 1;
         }
@@ -604,11 +614,11 @@ function App() {
   const getHeightOffset = (controllerHeight, controllerWidth) => {
     switch (controllerHeight) {
       case 1:
-        return 1.4; // done
+        return 1.8; // done
       case 2:
         switch (controllerWidth) {
           case 1:
-            return 1.35; // done
+            return 2; // done
           case 2: // done
             return 1.5;
           case 3:
@@ -623,10 +633,22 @@ function App() {
           case 2: // done
             return 1.2;
           case 3: // done
-            return 1.15;
+            return 1.4;
           default:
             return 1.3;
         }
+      case 4:
+        switch (controllerWidth) {
+          case 1: // done
+            return 1.2;
+          case 2: // done
+            return 1.2;
+          case 3: // done
+            return 2;
+          default:
+            return 1;
+        }
+
       case 5:
         switch (controllerWidth) {
           case 1: // done
@@ -645,12 +667,14 @@ function App() {
   };
 
   const gridScaler = (width, height) => {
-    if (width < 3 && height < 3) {
+    if (width === 1 && height === 1) {
+      return 2;
+    } else if (width < 3 && height < 3) {
       return 1.6;
     } else if (width === 3) {
       return height <= 3 ? 1.3 : 1.1;
     } else if (width === 4) {
-      return height <= 4 ? 1.0 : 1;
+      return height <= 4 ? 1.2 : 1;
     } else if (height === 3) {
       return width <= 3 ? 1.3 : 1.1;
     } else if (height === 4) {
@@ -838,19 +862,24 @@ function App() {
     });
     setHexagons(newHexagons);
     setActiveHexagon(null);
+    setTempHexagon(null);
+    // setEnableSave(false);
+    setSidePanelOpen(false);
   };
 
   const updateInputHandler = () => {
+    console.log(tempHexagon);
     const newHexagons = hexagons.map((hexagon) => {
       if (hexagon.id === activeHexagon.id) {
+        console.log("found the new hexagon");
+        console.log(tempHexagon);
         return {
-          ...activeHexagon,
+          ...tempHexagon,
         };
       } else {
         return hexagon;
       }
     });
-
     if (controllerStatus) {
       toast("Controller Turned Off!", {
         icon: <SportsEsportsOutlined color="#fff" />,
@@ -863,6 +892,7 @@ function App() {
     }
     handleSaveConfig(newHexagons);
     setHexagons(newHexagons);
+    setActiveHexagon(tempHexagon);
     toast("Configuration Saved!", {
       icon: <DoneOutline color="#fff" />,
       style: {
@@ -969,6 +999,8 @@ function App() {
                     );
                     console.log(hexagons);
                     setActiveHexagon({ ...foundHexagon, index });
+                    setTempHexagon({ ...foundHexagon, index });
+                    setSidePanelOpen(true);
                     console.log("active Hexagon:");
                     console.log(foundHexagon);
                   }}
@@ -1100,14 +1132,24 @@ function App() {
   );
 
   const handleInputChange = (e, direction) => {
+    // if (!enableSave) {
+    //   setEnableSave(true);
+    // }
     if (
       activeHexagon.moduleType === "button" ||
       activeHexagon.moduleType === "switch"
     ) {
-      setActiveHexagon({
-        ...activeHexagon,
+      // setActiveHexagon({
+      //   ...activeHexagon,
+      //   configuration: {
+      //     ...activeHexagon.configuration,
+      //     input: e.target.value,
+      //   },
+      // });
+      setTempHexagon({
+        ...tempHexagon,
         configuration: {
-          ...activeHexagon.configuration,
+          ...tempHexagon.configuration,
           input: e.target.value,
         },
       });
@@ -1115,12 +1157,23 @@ function App() {
       activeHexagon.moduleType === "dpad" ||
       activeHexagon.moduleType === "joystick"
     ) {
-      setActiveHexagon({
-        ...activeHexagon,
+      // setActiveHexagon({
+      //   ...activeHexagon,
+      //   configuration: {
+      //     ...activeHexagon.configuration,
+      //     input: {
+      //       ...activeHexagon.configuration.input,
+      //       [direction]: e.target.value,
+      //     },
+      //   },
+      // });
+      // setEnableSave(true);
+      setTempHexagon({
+        ...tempHexagon,
         configuration: {
-          ...activeHexagon.configuration,
+          ...tempHexagon.configuration,
           input: {
-            ...activeHexagon.configuration.input,
+            ...tempHexagon.configuration.input,
             [direction]: e.target.value,
           },
         },
@@ -1129,12 +1182,34 @@ function App() {
       activeHexagon.moduleType === "slider" ||
       activeHexagon.moduleType === "dial"
     ) {
-      setActiveHexagon({
-        ...activeHexagon,
+      // setActiveHexagon({
+      //   ...activeHexagon,
+      //   configuration: {
+      //     ...activeHexagon.configuration,
+      //     input: {
+      //       ...activeHexagon.configuration.input,
+      //       input: e.target.value,
+      //     },
+      //   },
+      // });
+      // setEnableSave(true);
+      console.log("ran", e.target.value);
+      console.log({
+        ...tempHexagon,
         configuration: {
-          ...activeHexagon.configuration,
+          ...tempHexagon.configuration,
           input: {
-            ...activeHexagon.configuration.input,
+            ...tempHexagon.configuration.input,
+            input: e.target.value,
+          },
+        },
+      });
+      setTempHexagon({
+        ...tempHexagon,
+        configuration: {
+          ...tempHexagon.configuration,
+          input: {
+            ...tempHexagon.configuration.input,
             input: e.target.value,
           },
         },
@@ -1143,10 +1218,21 @@ function App() {
   };
 
   const handleBehaviorChange = (e) => {
-    setActiveHexagon({
-      ...activeHexagon,
+    // setActiveHexagon({
+    //   ...activeHexagon,
+    //   configuration: {
+    //     ...activeHexagon.configuration,
+    //     behavior: e.target.value,
+    //   },
+    // });
+    // setEnableSave(true);
+    // if (!enableSave) {
+    //   setEnableSave(true);
+    // }
+    setTempHexagon({
+      ...tempHexagon,
       configuration: {
-        ...activeHexagon.configuration,
+        ...tempHexagon.configuration,
         behavior: e.target.value,
       },
     });
@@ -1155,7 +1241,7 @@ function App() {
   const SidePanel = ({ targetHexagon }) => {
     return (
       <>
-        {activeHexagon && (
+        {sidePanelActive && (
           <Button
             variant="contained"
             color={"drawerBackground"}
@@ -1171,12 +1257,15 @@ function App() {
             onClick={() => {
               panRef?.current?.resetTransform();
               setActiveHexagon(null);
+              setTempHexagon(null);
+              // setEnableSave(false);
+              setSidePanelOpen(false);
             }}
           >
             <Close color="primary" />
           </Button>
         )}
-        {activeHexagon && (
+        {sidePanelActive && (
           <Paper
             sx={{
               backgroundColor: "drawerBackground.main",
@@ -1361,7 +1450,7 @@ function App() {
                     >
                       <InputLabel>Input</InputLabel>
                       <Select
-                        value={targetHexagon?.configuration?.input ?? ""}
+                        value={tempHexagon?.configuration?.input}
                         label="Input"
                         onChange={handleInputChange}
                         MenuProps={{
@@ -1414,7 +1503,7 @@ function App() {
                         </Typography>
                         <FormControl>
                           <RadioGroup
-                            value={targetHexagon?.configuration?.behavior ?? ""}
+                            value={tempHexagon?.configuration?.behavior ?? ""}
                             onChange={(e) => handleBehaviorChange(e)}
                           >
                             <FormControlLabel
@@ -1447,8 +1536,8 @@ function App() {
                         </FormControl>
                       </Box>
                     )}
-                    {(activeHexagon?.configuration?.behavior === "buttons" ||
-                      activeHexagon.moduleType === "dpad") && (
+                    {(tempHexagon?.configuration?.behavior === "buttons" ||
+                      tempHexagon.moduleType === "dpad") && (
                       <>
                         <FormControl
                           sx={{ width: "30%" }}
@@ -1458,9 +1547,7 @@ function App() {
                         >
                           <InputLabel>Up</InputLabel>
                           <Select
-                            value={
-                              targetHexagon?.configuration?.input?.up ?? ""
-                            }
+                            value={tempHexagon?.configuration?.input?.up ?? ""}
                             label="Input"
                             onChange={(e) => handleInputChange(e, "up")}
                             MenuProps={{
@@ -1502,7 +1589,7 @@ function App() {
                             <InputLabel>Left</InputLabel>
                             <Select
                               value={
-                                targetHexagon?.configuration?.input?.left ?? ""
+                                tempHexagon?.configuration?.input?.left ?? ""
                               }
                               label="Input"
                               onChange={(e) => handleInputChange(e, "left")}
@@ -1521,14 +1608,14 @@ function App() {
                               ))}
                             </Select>
                           </FormControl>
-                          {targetHexagon.moduleType === "dpad" && (
+                          {tempHexagon.moduleType === "dpad" && (
                             <DpadLogo
                               width={65}
                               height={65}
                               style={{ paddingRight: 2 }}
                             />
                           )}
-                          {targetHexagon.moduleType === "joystick" && (
+                          {tempHexagon.moduleType === "joystick" && (
                             <JoystickLogo
                               width={70}
                               height={70}
@@ -1544,7 +1631,7 @@ function App() {
                             <InputLabel>Right</InputLabel>
                             <Select
                               value={
-                                targetHexagon?.configuration?.input?.right ?? ""
+                                tempHexagon?.configuration?.input?.right ?? ""
                               }
                               label="Input"
                               onChange={(e) => handleInputChange(e, "right")}
@@ -1573,7 +1660,7 @@ function App() {
                           <InputLabel>Down</InputLabel>
                           <Select
                             value={
-                              targetHexagon?.configuration?.input?.down ?? ""
+                              tempHexagon?.configuration?.input?.down ?? ""
                             }
                             label="Input"
                             onChange={(e) => handleInputChange(e, "down")}
@@ -1622,7 +1709,10 @@ function App() {
                     >
                       <InputLabel>Input</InputLabel>
                       <Select
-                        value={targetHexagon?.configuration?.input ?? ""}
+                        // value={
+                        //   targetHexagon?.configuration?.input?.number ?? ""
+                        // }
+                        value={tempHexagon?.configuration?.input?.input ?? ""}
                         label="Input"
                         onChange={handleInputChange}
                         MenuProps={{
@@ -1651,9 +1741,7 @@ function App() {
                         <TextField
                           label="Start"
                           type="number"
-                          defaultValue={
-                            activeHexagon?.configuration?.input?.start ?? 0
-                          }
+                          value={tempHexagon?.configuration?.input?.start ?? 0}
                           InputProps={{ inputProps: { min: 0, max: 100 } }}
                           InputLabelProps={{
                             shrink: true,
@@ -1673,9 +1761,7 @@ function App() {
                         <TextField
                           label="End"
                           type="number"
-                          defaultValue={
-                            activeHexagon?.configuration?.input?.end ?? 100
-                          }
+                          value={tempHexagon?.configuration?.input?.end ?? 100}
                           InputProps={{ inputProps: { min: 0, max: 100 } }}
                           onChange={(e) =>
                             handleChangeSlider("end", e.target.value)
@@ -1689,7 +1775,7 @@ function App() {
                     </FormControl>
                   </>
                 )}
-                <Typography
+                {/* <Typography
                   sx={{
                     color: "white",
                     fontWeight: 300,
@@ -1700,7 +1786,7 @@ function App() {
                   }}
                 >
                   {`config: ${JSON.stringify(targetHexagon.configuration)}`}
-                </Typography>
+                </Typography> */}
                 <Box
                   sx={{
                     display: "flex",
@@ -1713,20 +1799,14 @@ function App() {
                   <Button
                     variant="contained"
                     color={"startButtonGreen"}
-                    disabled={
-                      activeHexagon.configuration ===
-                      hexagons.find((hex) => hex.id === activeHexagon.id)
-                        ?.configuration
-                        ? true
-                        : false
-                    }
+                    // disabled={!enableSave}
                     style={{
                       textTransform: "none",
                       color: "white",
                       fontSize: "1rem",
                     }}
                     sx={{
-                      marginTop: 1,
+                      marginTop: 2.5,
                     }}
                     onClick={() => updateInputHandler()}
                   >
@@ -1808,6 +1888,16 @@ function App() {
 
   // On initial render
   useEffect(() => {
+    window.addEventListener(
+      "resize",
+      () => {
+        console.log("resize again");
+        for (const [index, Hexagon] of filteredHexagons.entries()) {
+          positionDropzone(index, `hexagon-${Hexagon.id}`);
+        }
+      },
+      false
+    );
     ipcRenderer.on("controller_found", (event, arg) => {
       console.log(arg);
       setControllerFound(arg);
@@ -1924,7 +2014,6 @@ function App() {
       });
     });
     ipcRenderer.on("controller_error", (event, arg) => {
-      console.error(event);
       if (controllerStatus) {
         toast("Controller Failed To Start!", {
           icon: <ErrorOutlineOutlined color="#fff" />,
@@ -2380,13 +2469,16 @@ function App() {
     controllerFound,
     controllerStatus,
     hexagons,
+    sidePanelActive,
     activeHexagon,
+    tempHexagon,
     distinctInputTypes,
     viewBox,
     gridRotate,
     tempControllerName,
     controllerName,
     open,
+    // enableSave,
   ]);
 }
 
