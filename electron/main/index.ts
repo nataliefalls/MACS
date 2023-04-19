@@ -41,7 +41,7 @@ function typeFromAddress(address: number): string | undefined {
 }
 
 function configFromMemory(id: number) {
-  const foundConfig = configs.find((config: any) => config.id === id);
+  const foundConfig = configs?.find((config: any) => config.id === id);
   if (foundConfig) {
     console.log("found config");
     console.log(foundConfig.configuration);
@@ -52,14 +52,17 @@ function configFromMemory(id: number) {
       case 2:
       case 3:
         return {
-          input: {
-            start: 0,
-            end: 100,
-          },
+          input: [
+            {
+              start: 0,
+              end: 100,
+            },
+          ],
         };
       case 4:
         return {
           behavior: "default",
+          type: "LEFT_JOYSTICK",
         };
       default:
         return {};
@@ -160,6 +163,134 @@ async function createWindow() {
     }
   };
 
+  const getInputIndex = (input) => {
+    switch (input) {
+      case "START":
+        return 0;
+      case "BACK":
+        return 1;
+      case "LEFT_THUMB":
+        return 2;
+      case "RIGHT_THUMB":
+        return 3;
+      case "LEFT_SHOULDER":
+        return 4;
+      case "RIGHT_SHOULDER":
+        return 5;
+      case "GUIDE":
+        return 6;
+      case "A":
+        return 7;
+      case "B":
+        return 8;
+      case "X":
+        return 9;
+      case "Y":
+        return 10;
+      default:
+        return;
+    }
+  };
+
+  const getAxisIndex = (axis) => {
+    switch (axis) {
+      case "LEFT_TRIGGER":
+        return 4;
+      case "RIGHT_TRIGGER":
+        return 5;
+      case "RIGHT_JOYSTICK_UP":
+        return 3;
+      case "RIGHT_JOYSTICK_DOWN":
+        return 3;
+      case "RIGHT_JOYSTICK_LEFT":
+        return 2;
+      case "RIGHT_JOYSTICK_RIGHT":
+        return 2;
+      case "LEFT_JOYSTICK_UP":
+        return 1;
+      case "LEFT_JOYSTICK_DOWN":
+        return 1;
+      case "LEFT_JOYSTICK_LEFT":
+        return 0;
+      case "LEFT_JOYSTICK_RIGHT":
+        return 0;
+      default:
+        return;
+    }
+  };
+
+  const getAxisDirection = (axis) => {
+    switch (axis) {
+      case "RIGHT_JOYSTICK_UP":
+        return 1;
+      case "RIGHT_JOYSTICK_DOWN":
+        return -1;
+      case "RIGHT_JOYSTICK_LEFT":
+        return -1;
+      case "RIGHT_JOYSTICK_RIGHT":
+        return 1;
+      case "LEFT_JOYSTICK_UP":
+        return 1;
+      case "LEFT_JOYSTICK_DOWN":
+        return -1;
+      case "LEFT_JOYSTICK_LEFT":
+        return -1;
+      case "LEFT_JOYSTICK_RIGHT":
+        return 1;
+      default:
+        return 0;
+    }
+  };
+
+  const getJoystickButton = (input, newX, newY) => {
+    switch (input) {
+      case "RIGHT_JOYSTICK_UP":
+        controller?.axis?.rightY?.setValue(newX);
+        // controller?.update();
+        break;
+      case "RIGHT_JOYSTICK_DOWN":
+        controller?.axis?.rightY?.setValue(newY);
+        // controller?.update();
+        break;
+      case "RIGHT_JOYSTICK_LEFT":
+        controller?.axis?.rightX?.setValue(newX);
+        // controller?.update();
+        break;
+      case "RIGHT_JOYSTICK_RIGHT":
+        console.log("in right joystick right");
+        // console.log(analogValue / 255);
+        controller?.axis?.rightX?.setValue(newX);
+        // controller?.update();
+        break;
+      case "LEFT_JOYSTICK_UP":
+        controller?.axis?.leftY?.setValue(newY);
+        // controller?.update();
+        break;
+      case "LEFT_JOYSTICK_DOWN":
+        controller?.axis?.leftY.setValue(newY);
+        // controller?.update();
+        break;
+      case "LEFT_JOYSTICK_LEFT":
+        controller?.axis?.leftX.setValue(newX);
+        // controller?.update();
+        break;
+      case "LEFT_JOYSTICK_RIGHT":
+        controller?.axis?.leftY?.setValue(newY);
+        // controller?.update();
+        break;
+      case "LEFT_TRIGGER":
+        controller?.axis?.leftTrigger?.setValue(newY);
+        // controller?.update();
+        break;
+      case "RIGHT_TRIGGER":
+        controller?.axis?.rightTrigger?.setValue(newY);
+        // controller?.update();
+        break;
+      default:
+        break;
+    }
+  };
+
   const processMACS = () => {
     try {
       MACS_CONTROLLER = HID.devices(0xcafe, 0x0000);
@@ -195,6 +326,9 @@ async function createWindow() {
                 r: 0 - data.readInt8(3),
                 s: 0 - data.readInt8(2),
               });
+              if (controller?.type) {
+                controller?.resetInputs();
+              }
               break;
             case 3:
               console.log("buttonState: " + data.readInt8(2));
@@ -210,10 +344,60 @@ async function createWindow() {
                         ].setValue(buttonState);
                         controller?.update();
                       } else {
-                        controller?.axis[
-                          axes[getAxisIndex(module?.configuration?.input)]
-                        ].setValue(buttonState);
-                        controller?.update();
+                        if (
+                          getAxisDirection(module?.configuration?.input) !== 0
+                        ) {
+                          // console.log("in switch");
+                          switch (module?.configuration?.input?.input) {
+                            case "RIGHT_JOYSTICK_UP":
+                              controller?.axis?.rightY?.(buttonState);
+                              controller?.update();
+                              break;
+                            case "RIGHT_JOYSTICK_DOWN":
+                              controller?.axis?.rightY?.setValue(
+                                0 - buttonState
+                              );
+                              controller?.update();
+                              break;
+                            case "RIGHT_JOYSTICK_LEFT":
+                              controller?.axis?.rightX?.setValue(
+                                0 - buttonState
+                              );
+                              controller?.update();
+                              break;
+                            case "RIGHT_JOYSTICK_RIGHT":
+                              console.log("in right joystick right");
+                              console.log(analogValue / 255);
+                              controller?.axis?.rightX?.setValue(buttonState);
+                              controller?.update();
+                              break;
+                            case "LEFT_JOYSTICK_UP":
+                              controller?.axis?.leftY?.setValue(
+                                analogValue / 255
+                              );
+                              controller?.update();
+                              break;
+                            case "LEFT_JOYSTICK_DOWN":
+                              controller?.axis?.leftY.setValue(0 - buttonState);
+                              controller?.update();
+                              break;
+                            case "LEFT_JOYSTICK_LEFT":
+                              controller?.axis?.leftX.setValue(0 - buttonState);
+                              controller?.update();
+                              break;
+                            case "LEFT_JOYSTICK_RIGHT":
+                              controller?.axis?.leftY?.setValue(buttonState);
+                              controller?.update();
+                              break;
+                            default:
+                              break;
+                          }
+                        } else {
+                          controller?.axis[
+                            axes[getAxisIndex(module?.configuration?.input)]
+                          ].setValue((analogValue - 128) / 128);
+                          controller?.update();
+                        }
                       }
                     } else {
                       // console.log("not found");
@@ -227,9 +411,9 @@ async function createWindow() {
               }
               break;
             case 4:
-              const moduleID = data.readInt8(1);
               const analogValue = data.readUInt8(2);
               console.log("analog: " + analogValue);
+
               try {
                 if (controller?.type) {
                   configuration?.forEach((module, index) => {
@@ -240,7 +424,7 @@ async function createWindow() {
                           buttons[
                             getInputIndex(module?.configuration?.input?.input)
                           ]
-                        ].setValue(buttonState / 255);
+                        ].setValue(analogValue / 255);
                         controller?.update();
                       } else {
                         if (
@@ -306,7 +490,7 @@ async function createWindow() {
                             axes[
                               getAxisIndex(module?.configuration?.input?.input)
                             ]
-                          ].setValue((analogValue - 128) / 128);
+                          ].setValue(analogValue / 255);
                           controller?.update();
                         }
                       }
@@ -329,34 +513,411 @@ async function createWindow() {
 
               const x = (joystickHorizontal - 128) / 128;
               const y = (joystickVertical - 128) / 128;
-              console.log(joystickButtonState);
-              // console.log(joystickHorizontal);
+              console.log("joystick button: " + joystickButtonState);
+              // console.log(
+              //   "old x: " + joystickHorizontal,
+              //   "old y: " + joystickVertical
+              // );
               // console.log(joystickVertical);
-              console.log(
-                0 - Math.cos((Math.PI / 6) * x - y * Math.sin(Math.PI / 6))
-              );
-              console.log(
-                y * Math.cos(Math.PI / 6) + x * Math.sin(Math.PI / 6)
-              );
+              // console.log(
+              //   Math.cos(Math.PI / 6) * x - y * Math.sin(Math.PI / 6)
+              // );
+              // console.log(
+              //   y * Math.cos(Math.PI / 6) + x * Math.sin(Math.PI / 6)
+              // );
               // console.log("before loop");
+              const cosPiOverSix = Math.sqrt(3) / 2;
+              const newX =
+                joystickHorizontal < 125 && joystickHorizontal > 108
+                  ? 0
+                  : y / 2 - cosPiOverSix * x;
+              const newY =
+                joystickVertical < 125 && joystickVertical > 108
+                  ? 0
+                  : y * cosPiOverSix + x / 2;
+              console.log("x: " + newX + " y: " + newY);
+              const properX = y / 2 - cosPiOverSix * x;
+              const properY = y * cosPiOverSix + x / 2;
               try {
                 if (controller?.type) {
                   // console.log("entered loop");
                   configuration?.forEach((module, index) => {
                     if (module?.id === data.readInt8(1)) {
                       // console.log(module);
-                      // console.log(module?.configuration?.input);
+                      console.log(module?.configuration);
+                      let count = 0;
                       if (module?.configuration?.behavior === "default") {
                         // controller.axis.leftX.setValue(0.5); // move left stick 50% to the left
                         // controller.axis.leftY.setValue(-0.5); // move left stick 50% down
-                        controller.axis.leftX.setValue(
-                          0 -
-                            Math.cos(Math.PI / 6) * x -
-                            y * Math.sin(Math.PI / 6)
-                        );
-                        controller.axis.leftY.setValue(
-                          y * Math.cos(Math.PI / 6) + x * Math.sin(Math.PI / 6)
-                        );
+                        if (module?.configuration?.type === "LEFT_JOYSTICK") {
+                          controller.axis.leftX.setValue(properX);
+                          controller.axis.leftY.setValue(properY);
+                          controller?.button[buttons[2]].setValue(
+                            !joystickButtonState
+                          );
+                          controller?.update();
+                        } else {
+                          controller.axis.rightX.setValue(properX);
+                          controller.axis.rightY.setValue(properY);
+                          controller?.button[buttons[3]].setValue(
+                            !joystickButtonState
+                          );
+                          controller?.update();
+                        }
+                      } else {
+                        // console.log("in first else");
+                        // if (isAButton(module?.configuration?.input)) {
+                        if (isAButton(module?.configuration?.input?.up)) {
+                          // console.log("true");
+                          count++;
+                          controller?.button[
+                            buttons[
+                              getInputIndex(module?.configuration?.input?.up)
+                            ]
+                          ].setValue(newY > 0.5 ? 1 : 0);
+                        }
+                        if (isAButton(module?.configuration?.input?.down)) {
+                          count++;
+                          controller?.button[
+                            buttons[getInputIndex(module?.configuration?.down)]
+                          ].setValue(newY < -0.5 ? 1 : 0);
+                        }
+                        if (isAButton(module?.configuration?.input?.left)) {
+                          count++;
+                          controller?.button[
+                            buttons[
+                              getInputIndex(module?.configuration?.input?.left)
+                            ]
+                          ].setValue(newX < -0.5 ? 1 : 0);
+                        }
+                        if (isAButton(module?.configuration?.input?.right)) {
+                          count++;
+                          console.log(newX > 0.5 ? 1 : 0);
+                          controller?.button[
+                            buttons[
+                              getInputIndex(module?.configuration?.input?.right)
+                            ]
+                          ].setValue(newX > 0.5 ? 1 : 0);
+                        }
+                        if (!isAButton(module?.configuration?.input?.up)) {
+                          count++;
+                          if (
+                            getAxisDirection(
+                              module?.configuration?.input?.up
+                            ) !== 0
+                          ) {
+                            // console.log("in switch");
+                            switch (module?.configuration?.input?.up) {
+                              case "RIGHT_JOYSTICK_UP":
+                                controller?.axis?.rightY?.(newY);
+                                controller?.update();
+                                break;
+                              case "RIGHT_JOYSTICK_DOWN":
+                                controller?.axis?.rightY?.setValue(newY);
+                                controller?.update();
+                                break;
+                              case "RIGHT_JOYSTICK_LEFT":
+                                controller?.axis?.rightX?.setValue(newX);
+                                controller?.update();
+                                break;
+                              case "RIGHT_JOYSTICK_RIGHT":
+                                console.log("in right joystick right");
+                                // console.log(analogValue / 255);
+                                controller?.axis?.rightX?.setValue(newX);
+                                controller?.update();
+                                break;
+                              case "LEFT_JOYSTICK_UP":
+                                controller?.axis?.leftY?.setValue(newY);
+                                controller?.update();
+                                break;
+                              case "LEFT_JOYSTICK_DOWN":
+                                controller?.axis?.leftY.setValue(newY);
+                                controller?.update();
+                                break;
+                              case "LEFT_JOYSTICK_LEFT":
+                                controller?.axis?.leftX.setValue(newX);
+                                controller?.update();
+                                break;
+                              case "LEFT_JOYSTICK_RIGHT":
+                                controller?.axis?.leftY?.setValue(newY);
+                                controller?.update();
+                                break;
+                              default:
+                                controller?.axis[
+                                  axes[
+                                    getAxisIndex(
+                                      module?.configuration?.input?.up
+                                    )
+                                  ]
+                                ].setValue(newY > 0.5 ? newY : 0);
+                                break;
+                            }
+                          } else {
+                            controller?.axis[
+                              axes[
+                                getAxisIndex(module?.configuration?.input?.up)
+                              ]
+                            ].setValue(
+                              newY > 0.5
+                                ? getAxisIndex(
+                                    module?.configuration?.input?.up
+                                  ) === 4 ||
+                                  getAxisIndex(
+                                    module?.configuration?.input?.up
+                                  ) === 5
+                                  ? Math.abs(newY)
+                                  : newY
+                                : 0
+                            );
+                          }
+                        }
+                        if (!isAButton(module?.configuration?.input?.down)) {
+                          count++;
+                          // console.log("down detected");
+                          if (
+                            getAxisDirection(
+                              module?.configuration?.input?.down
+                            ) !== 0
+                          ) {
+                            switch (module?.configuration?.input?.down) {
+                              case "RIGHT_JOYSTICK_UP":
+                                controller?.axis?.rightY?.(newY);
+                                controller?.update();
+                                break;
+                              case "RIGHT_JOYSTICK_DOWN":
+                                controller?.axis?.rightY?.setValue(newY);
+                                controller?.update();
+                                break;
+                              case "RIGHT_JOYSTICK_LEFT":
+                                controller?.axis?.rightX?.setValue(newX);
+                                controller?.update();
+                                break;
+                              case "RIGHT_JOYSTICK_RIGHT":
+                                console.log("in right joystick right");
+                                // console.log(analogValue / 255);
+                                controller?.axis?.rightX?.setValue(newX);
+                                controller?.update();
+                                break;
+                              case "LEFT_JOYSTICK_UP":
+                                controller?.axis?.leftY?.setValue(newY);
+                                controller?.update();
+                                break;
+                              case "LEFT_JOYSTICK_DOWN":
+                                controller?.axis?.leftY.setValue(newY);
+                                controller?.update();
+                                break;
+                              case "LEFT_JOYSTICK_LEFT":
+                                controller?.axis?.leftX.setValue(newX);
+                                controller?.update();
+                                break;
+                              case "LEFT_JOYSTICK_RIGHT":
+                                controller?.axis?.leftY?.setValue(newY);
+                                controller?.update();
+                                break;
+                              default:
+                                controller?.axis[
+                                  axes[
+                                    getAxisIndex(
+                                      module?.configuration?.input?.down
+                                    )
+                                  ]
+                                ].setValue(newY < -0.5 ? newY : 0);
+                                break;
+                            }
+                          } else {
+                            console.log("in else");
+                            controller?.axis[
+                              axes[
+                                getAxisIndex(module?.configuration?.input?.down)
+                              ]
+                            ].setValue(
+                              newY < -0.5
+                                ? getAxisIndex(
+                                    module?.configuration?.input?.down
+                                  ) === 4 ||
+                                  getAxisIndex(
+                                    module?.configuration?.input?.down
+                                  ) === 5
+                                  ? Math.abs(newY)
+                                  : newY
+                                : 0
+                            );
+                          }
+                        }
+                        if (!isAButton(module?.configuration?.input?.left)) {
+                          count++;
+                          if (
+                            getAxisDirection(
+                              module?.configuration?.input?.left
+                            ) !== 0
+                          ) {
+                            // console.log("in switch");
+                            switch (module?.configuration?.input?.left) {
+                              case "RIGHT_JOYSTICK_UP":
+                                controller?.axis?.rightY?.(newY > 0 ? newY : 0);
+                                controller?.update();
+                                break;
+                              case "RIGHT_JOYSTICK_DOWN":
+                                controller?.axis?.rightY?.setValue(
+                                  newY < 0 ? newY : 0
+                                );
+                                controller?.update();
+                                break;
+                              case "RIGHT_JOYSTICK_LEFT":
+                                controller?.axis?.rightX?.setValue(
+                                  newX < 0 ? newX : 0
+                                );
+                                controller?.update();
+                                break;
+                              case "RIGHT_JOYSTICK_RIGHT":
+                                console.log("in right joystick right");
+                                // console.log(analogValue / 255);
+                                controller?.axis?.rightX?.setValue(
+                                  newX > 0 ? newX : 0
+                                );
+                                controller?.update();
+                                break;
+                              case "LEFT_JOYSTICK_UP":
+                                controller?.axis?.leftY?.setValue(
+                                  newY > 0 ? newY : 0
+                                );
+                                controller?.update();
+                                break;
+                              case "LEFT_JOYSTICK_DOWN":
+                                controller?.axis?.leftY.setValue(
+                                  newY < 0 ? newY : 0
+                                );
+                                controller?.update();
+                                break;
+                              case "LEFT_JOYSTICK_LEFT":
+                                controller?.axis?.leftX.setValue(
+                                  newX < 0 ? newX : 0
+                                );
+                                controller?.update();
+                                break;
+                              case "LEFT_JOYSTICK_RIGHT":
+                                controller?.axis?.leftX?.setValue(
+                                  newX > 0 ? newX : 0
+                                );
+                                controller?.update();
+                                break;
+                              default:
+                                controller?.axis[
+                                  axes[
+                                    getAxisIndex(
+                                      module?.configuration?.input?.left
+                                    )
+                                  ]
+                                ].setValue(newX < -0.5 ? newX : 0);
+                                break;
+                            }
+                          } else {
+                            controller?.axis[
+                              axes[
+                                getAxisIndex(module?.configuration?.input?.left)
+                              ]
+                            ].setValue(
+                              newX < -0.5
+                                ? getAxisIndex(
+                                    module?.configuration?.input?.left
+                                  ) === 4 ||
+                                  getAxisIndex(
+                                    module?.configuration?.input?.left
+                                  ) === 5
+                                  ? Math.abs(newX)
+                                  : newX
+                                : 0
+                            );
+                          }
+                        }
+                        if (!isAButton(module?.configuration?.input?.right)) {
+                          count++;
+                          console.log("should not run");
+                          if (
+                            getAxisDirection(
+                              module?.configuration?.input?.right
+                            ) !== 0
+                          ) {
+                            // console.log("in switch");
+                            switch (module?.configuration?.input?.right) {
+                              case "RIGHT_JOYSTICK_UP":
+                                controller?.axis?.rightY?.(newY);
+                                controller?.update();
+                                break;
+                              case "RIGHT_JOYSTICK_DOWN":
+                                controller?.axis?.rightY?.setValue(newY);
+                                controller?.update();
+                                break;
+                              case "RIGHT_JOYSTICK_LEFT":
+                                controller?.axis?.rightX?.setValue(newX);
+                                controller?.update();
+                                break;
+                              case "RIGHT_JOYSTICK_RIGHT":
+                                console.log("in right joystick right");
+                                // console.log(analogValue / 255);
+                                controller?.axis?.rightX?.setValue(newX);
+                                controller?.update();
+                                break;
+                              case "LEFT_JOYSTICK_UP":
+                                controller?.axis?.leftY?.setValue(newY);
+                                controller?.update();
+                                break;
+                              case "LEFT_JOYSTICK_DOWN":
+                                controller?.axis?.leftY.setValue(newY);
+                                controller?.update();
+                                break;
+                              case "LEFT_JOYSTICK_LEFT":
+                                controller?.axis?.leftX.setValue(newX);
+                                controller?.update();
+                                break;
+                              case "LEFT_JOYSTICK_RIGHT":
+                                controller?.axis?.leftY?.setValue(newY);
+                                controller?.update();
+                                break;
+                              default:
+                                controller?.axis[
+                                  axes[
+                                    getAxisIndex(
+                                      module?.configuration?.input?.right
+                                    )
+                                  ]
+                                ].setValue(newX > 0.5 ? newX : 0);
+                                break;
+                            }
+                          } else {
+                            console.log(
+                              newX > 0.5
+                                ? getAxisIndex(
+                                    module?.configuration?.input?.right
+                                  ) === 4 ||
+                                  getAxisIndex(
+                                    module?.configuration?.input?.right
+                                  ) === 5
+                                  ? Math.abs(newX)
+                                  : newX
+                                : 0
+                            );
+                            controller?.axis[
+                              axes[
+                                getAxisIndex(
+                                  module?.configuration?.input?.right
+                                )
+                              ]
+                            ].setValue(
+                              newX > 0.5
+                                ? getAxisIndex(
+                                    module?.configuration?.input?.right
+                                  ) === 4 ||
+                                  getAxisIndex(
+                                    module?.configuration?.input?.right
+                                  ) === 5
+                                  ? Math.abs(newX)
+                                  : newX
+                                : 0
+                            );
+                          }
+                        }
+                        console.log(count);
                         controller?.update();
                       }
                     } else {
@@ -401,6 +962,7 @@ async function createWindow() {
   // Test actively push message to the Electron-Renderer
   win.webContents.on("did-finish-load", () => {
     configs = store.get("configuration");
+    // store.clear();
     controllerListen = setInterval(() => {
       console.log("searching for controller");
       // read the controller data
@@ -464,10 +1026,9 @@ ipcMain.on("initialize", (event, arg) => {
 });
 
 ipcMain.on("save_config", (event, arg) => {
-  // console.log(arg);
-
-  configuration = arg;
-  store.set("configuration", arg);
+  console.log(arg);
+  configs = arg;
+  store.set("configuration", [...arg]);
   console.log(configuration);
   try {
     controller.disconnect();
@@ -479,85 +1040,6 @@ ipcMain.on("save_config", (event, arg) => {
   console.log("controller disconnected");
   event.sender.send("config_saved", true);
 });
-
-const getInputIndex = (input) => {
-  switch (input) {
-    case "START":
-      return 0;
-    case "BACK":
-      return 1;
-    case "LEFT_THUMB":
-      return 2;
-    case "RIGHT_THUMB":
-      return 3;
-    case "LEFT_SHOULDER":
-      return 4;
-    case "RIGHT_SHOULDER":
-      return 5;
-    case "GUIDE":
-      return 6;
-    case "A":
-      return 7;
-    case "B":
-      return 8;
-    case "X":
-      return 9;
-    case "Y":
-      return 10;
-    default:
-      return;
-  }
-};
-
-const getAxisIndex = (axis) => {
-  switch (axis) {
-    case "LEFT_TRIGGER":
-      return 4;
-    case "RIGHT_TRIGGER":
-      return 5;
-    case "RIGHT_JOYSTICK_UP":
-      return 3;
-    case "RIGHT_JOYSTICK_DOWN":
-      return 3;
-    case "RIGHT_JOYSTICK_LEFT":
-      return 2;
-    case "RIGHT_JOYSTICK_RIGHT":
-      return 2;
-    case "LEFT_JOYSTICK_UP":
-      return 1;
-    case "LEFT_JOYSTICK_DOWN":
-      return 1;
-    case "LEFT_JOYSTICK_LEFT":
-      return 0;
-    case "LEFT_JOYSTICK_RIGHT":
-      return 0;
-    default:
-      return;
-  }
-};
-
-const getAxisDirection = (axis) => {
-  switch (axis) {
-    case "RIGHT_JOYSTICK_UP":
-      return 1;
-    case "RIGHT_JOYSTICK_DOWN":
-      return -1;
-    case "RIGHT_JOYSTICK_LEFT":
-      return -1;
-    case "RIGHT_JOYSTICK_RIGHT":
-      return 1;
-    case "LEFT_JOYSTICK_UP":
-      return 1;
-    case "LEFT_JOYSTICK_DOWN":
-      return -1;
-    case "LEFT_JOYSTICK_LEFT":
-      return -1;
-    case "LEFT_JOYSTICK_RIGHT":
-      return 1;
-    default:
-      return 0;
-  }
-};
 
 ipcMain.on("handle_controller", (event, arg) => {
   console.log(configuration);
