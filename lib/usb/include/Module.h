@@ -1,8 +1,8 @@
 #pragma once
 
-#include "report_ids.h"
+#include "coordinates.h"
 #include "IPayload.h"
-#include "ReportQueueController.h"
+#include "IReportQueueController.h"
 
 /**
  * Handles all state updates for a module.
@@ -14,14 +14,14 @@ class Module {
     bool connected;
     const uint8_t moduleID;
     const module_coordinates_t coordinates;
-    const ReportQueueController *controller;
+    const IReportQueueController *controller;
     IPayload *state;
 
     public:
     /**
      * construct a ModuleUpdateHandler with the given moduleID, and coordinates.
     */
-    Module(uint8_t _moduleID, module_coordinates_t _coordinates, ReportQueueController *_controller);
+    Module(uint8_t _moduleID, module_coordinates_t _coordinates, IReportQueueController *_controller);
 
     Module() = default;
     

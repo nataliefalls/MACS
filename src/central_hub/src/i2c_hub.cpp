@@ -1,16 +1,13 @@
-#include <i2c_hub.h>
 #include <vector>
-
-#include <DigitalPayload.h>
-#include <AnalogPayload.h>
-#include <JoystickPayload.h>
+#include <i2c_hub.h>
+#include <PayloadFactory.h>
 
 using namespace std::placeholders;
 
 /* I2C Hub Definitoin */
 
 I2C_Hub::I2C_Hub(uint queen_sda, uint queen_scl, uint worker_sda, uint worker_scl,
-                 ReportQueueController *controller,
+                 IReportQueueController *controller,
                  std::function<void(i2c_inst_t *, i2c_worker_event_t)> handler)
     : I2C_Base(HUB_I2C_ADDRESS, worker_sda, worker_scl),
       _handler(handler),
@@ -25,12 +22,12 @@ IPayload *payloadFromType(ModuleType type, uint8_t *buf) {
     switch (type) {
     case kButton:
     case kSwitch:
-        return new DigitalPayload({ buf[0] });
+        return PayloadFactory::digitalPayload(buf[0]);
     case kSlider:
     case kPotentiometer:
-        return new AnalogPayload({ buf[0] });
+        return PayloadFactory::analogPayload(buf[0]);
     case kJoystick:
-        return new JoystickPayload({  buf[1], buf[2], buf[0]  });
+        return PayloadFactory::joystickPayload(buf[1], buf[2], buf[0]);
     default:
         return nullptr;
     }

@@ -9,16 +9,17 @@
 #include "hub_utils.h"
 
 // #include "demo.h"
-#include "PicoQueueReportQueue.h"
-#include "ReportQueueController.h"
+// #include "PicoQueueReportQueue.h"
+#include "IReportQueueController.h"
 #include "usbTask.h"
+#include "ReportQueueFactory.h"
 
 I2C_Hub *i2c_hub;
 
-IReportQueue *inputReportQueue;
-IReportQueue *connectionReportQueue;
-queue_t inputQueue;
-queue_t connectionQueue;
+// IReportQueue *inputReportQueue;
+// IReportQueue *connectionReportQueue;
+// queue_t inputQueue;
+// queue_t connectionQueue;
 
 static void hub_worker_callback(i2c_inst_t *i2c, i2c_worker_event_t event) {
     if (event == I2C_WORKER_RECEIVE) {
@@ -29,7 +30,8 @@ static void hub_worker_callback(i2c_inst_t *i2c, i2c_worker_event_t event) {
 
 void usbMain() {
     usbInit();
-    usbTask(inputReportQueue, connectionReportQueue);
+    usbTask(ReportQueueFactory::getHandler());
+    // usbTask(inputReportQueue, connectionReportQueue);
 }
 
 int main() {
@@ -55,15 +57,20 @@ int main() {
 
     module_pwm.setPWMOut((uint16_t)HUB_I2C_ADDRESS);
 
-    inputReportQueue = new PicoQueueReportQueue(&inputQueue);
-    connectionReportQueue = new PicoQueueReportQueue(&connectionQueue);
+    // inputReportQueue = new PicoQueueReportQueue(&inputQueue);
+    // connectionReportQueue = new PicoQueueReportQueue(&connectionQueue);
     multicore_launch_core1(usbMain);
 
-    // usb core will handle the reports, so in this thread, we will send demo reports
-    // we do this via a report queue controller
-    ReportQueueController *controller = new ReportQueueController(inputReportQueue, connectionReportQueue);
+    // ReportQueueController *controller = new ReportQueueController(inputReportQueue, connectionReportQueue);
 
-    i2c_hub = new I2C_Hub(hub::QUEEN_SDA_PIN, hub::QUEEN_SCL_PIN, hub::WORKER_SDA_PIN, hub::WORKER_SCL_PIN, controller, &hub_worker_callback);
+    // i2c_hub = new I2C_Hub(hub::QUEEN_SDA_PIN, hub::QUEEN_SCL_PIN, hub::WORKER_SDA_PIN, hub::WORKER_SCL_PIN, controller, &hub_worker_callback);
+    i2c_hub = new I2C_Hub(
+        hub::QUEEN_SDA_PIN,
+        hub::QUEEN_SCL_PIN,
+        hub::WORKER_SDA_PIN,
+        hub::WORKER_SCL_PIN,
+        ReportQueueFactory::getController(),
+        &hub_worker_callback);
     i2c_hub->setup();
     
     while(1) {

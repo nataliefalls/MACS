@@ -1,15 +1,9 @@
 #pragma once
 
+#include "IReportQueueHandler.h"
 #include "IReportQueue.h"
 
-// error status codes for send_next_report
-enum send_report_status_t {
-    SEND_SUCCESS = 0,
-    E_QUEUE_EMPTY,
-    E_USB_TRANSFER_FAILED,
-};
-
-class ReportQueueHandler {
+class ReportQueueHandler: public IReportQueueHandler {
     private:
     const IReportQueue *inputQueue;
     // inputs are less important to process than connect / disconnect messages, so
@@ -24,13 +18,12 @@ class ReportQueueHandler {
     */
     ReportQueueHandler(const IReportQueue *_inputQueue, const IReportQueue *_connectionQueue);
 
-    ReportQueueHandler() = default;
-    
     /**
-     * send the next report in the report queue over usb
-     * 
+     * do nothing, since the handler doesn't own the queues it's given
     */
-    send_report_status_t sendNextReport() const;
+    ~ReportQueueHandler();
+
+    virtual send_report_status_t sendNextReport() const;
 
     private:
     bool getNextReport(report_t *report) const;
