@@ -1,8 +1,8 @@
 #pragma once
 
-#include "IPayload.h"
+#include "Payload.h"
 
-class JoystickPayload: public IPayload {
+class JoystickPayload: public Payload {
     private:
     const joystick_data_t data;
 
@@ -20,7 +20,8 @@ class JoystickPayload: public IPayload {
 
     virtual report_id_t reportID() const;
 
-    virtual bool isEquivalent(const IPayload *other) const;
+    protected:
+    virtual bool sameData(const IPayload *other) const;
 
     private:
     bool isWithinTolerance(uint8_t value1, uint8_t value2) const;

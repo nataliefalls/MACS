@@ -12,7 +12,7 @@
 // #include "PicoQueueReportQueue.h"
 #include "IReportQueueController.h"
 #include "usbTask.h"
-#include "ReportQueueFactory.h"
+#include "ReportQueueSingleton.h"
 
 I2C_Hub *i2c_hub;
 
@@ -30,7 +30,7 @@ static void hub_worker_callback(i2c_inst_t *i2c, i2c_worker_event_t event) {
 
 void usbMain() {
     usbInit();
-    usbTask(ReportQueueFactory::getHandler());
+    usbTask(ReportQueueSingleton::getHandler());
     // usbTask(inputReportQueue, connectionReportQueue);
 }
 
@@ -69,7 +69,7 @@ int main() {
         hub::QUEEN_SCL_PIN,
         hub::WORKER_SDA_PIN,
         hub::WORKER_SCL_PIN,
-        ReportQueueFactory::getController(),
+        ReportQueueSingleton::getController(),
         &hub_worker_callback);
     i2c_hub->setup();
     

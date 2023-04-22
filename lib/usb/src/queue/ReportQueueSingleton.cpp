@@ -1,13 +1,11 @@
-#include "ReportQueueFactory.h"
+#include "ReportQueueSingleton.h"
 #include "ReportQueueHandler.h"
 #include "ReportQueueController.h"
 #include "PicoQueueReportQueue.h"
 #include "pico/util/queue.h"
 
-queue_t _connectionQueue;
-queue_t _inputQueue;
-
 IReportQueue* getInputQueue() {
+    static queue_t _inputQueue;
     static IReportQueue *inputQueue;
     static bool inputQueueInitialized = false;
 
@@ -19,6 +17,7 @@ IReportQueue* getInputQueue() {
 }
 
 IReportQueue* getConnectionQueue() {
+    static queue_t _connectionQueue;
     static IReportQueue *connectionQueue;
     static bool connectionQueueInitialized = false;
 
@@ -29,23 +28,27 @@ IReportQueue* getConnectionQueue() {
     return connectionQueue;
 }
 
-IReportQueueController* ReportQueueFactory::getController() {
+IReportQueueController* ReportQueueSingleton::getController() {
     static IReportQueueController *controller;
     static bool controllerInitialized = false;
 
     if (!controllerInitialized) {
-        controller = new ReportQueueController(getInputQueue(), getConnectionQueue());
+        controller = new ReportQueueController(
+            getInputQueue(),
+            getConnectionQueue());
         controllerInitialized = true;
     }
     return controller;
 }
 
-IReportQueueHandler* ReportQueueFactory::getHandler() {
+IReportQueueHandler* ReportQueueSingleton::getHandler() {
     static IReportQueueHandler *handler;
     static bool handlerInitialized = false;
 
     if (!handlerInitialized) {
-        handler = new ReportQueueHandler(getInputQueue(), getConnectionQueue());
+        handler = new ReportQueueHandler(
+            getInputQueue(),
+            getConnectionQueue());
         handlerInitialized = true;
     }
     return handler;

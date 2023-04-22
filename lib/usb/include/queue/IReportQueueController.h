@@ -1,6 +1,7 @@
 #pragma once
 
-#include "report_types.h"
+#include "report_ids.h"
+#include "payload_types.h"
 
 class IReportQueueController {
     public:
