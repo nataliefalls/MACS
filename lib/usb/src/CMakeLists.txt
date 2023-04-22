@@ -1,7 +1,4 @@
-set(target_name usb_comms)
-add_library(${target_name})
-
-target_sources(${target_name} PRIVATE
+target_sources(${lib_name} PRIVATE
     ${CMAKE_CURRENT_LIST_DIR}/usb_stack/usb_descriptors.c
     ${CMAKE_CURRENT_LIST_DIR}/usb_stack/device_callbacks.c
     ${CMAKE_CURRENT_LIST_DIR}/usb_stack/hid_callbacks.c
@@ -19,7 +16,7 @@ target_sources(${target_name} PRIVATE
     ${CMAKE_CURRENT_LIST_DIR}/usbTask.cpp
 )
 
-target_include_directories(${target_name} PRIVATE
+target_include_directories(${lib_name} PRIVATE
     ${CMAKE_CURRENT_LIST_DIR}
     ${CMAKE_CURRENT_LIST_DIR}/module
     ${CMAKE_CURRENT_LIST_DIR}/payload
@@ -27,18 +24,4 @@ target_include_directories(${target_name} PRIVATE
     ${CMAKE_CURRENT_LIST_DIR}/usb_stack
     ${CMAKE_CURRENT_LIST_DIR}/util
     ${CMAKE_CURRENT_LIST_DIR}/..
-)
-
-target_include_directories(${target_name} PUBLIC
-    ${CMAKE_CURRENT_LIST_DIR}/../include
-    ${CMAKE_CURRENT_LIST_DIR}/../include/types
-    ${CMAKE_CURRENT_LIST_DIR}/../include/queue
-    ${CMAKE_CURRENT_LIST_DIR}/../include/payload
-)
-
-target_link_libraries(${target_name} PUBLIC
-    pico_stdlib
-    pico_multicore
-    tinyusb_board
-    tinyusb_device
 )
