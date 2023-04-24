@@ -4,6 +4,8 @@
 ReportQueueHandler::ReportQueueHandler(const IReportQueue *_inputQueue, const IReportQueue *_connectionQueue):
     inputQueue(_inputQueue), connectionQueue(_connectionQueue) {}
 
+ReportQueueHandler::~ReportQueueHandler() {}
+
 send_report_status_t ReportQueueHandler::sendNextReport() const {
     report_t nextReport;
     bool success = this->getNextReport(&nextReport);

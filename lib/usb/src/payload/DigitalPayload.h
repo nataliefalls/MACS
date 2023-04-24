@@ -1,8 +1,8 @@
 #pragma once
 
-#include "IPayload.h"
+#include "Payload.h"
 
-class DigitalPayload: public IPayload {
+class DigitalPayload: public Payload {
     private:
     const digital_data_t data;
 
@@ -18,5 +18,6 @@ class DigitalPayload: public IPayload {
 
     virtual report_id_t reportID() const;
 
-    virtual bool isEquivalent(const IPayload *other) const;
+    protected:
+    virtual bool sameData(const IPayload *other) const;
 };

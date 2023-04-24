@@ -1,10 +1,10 @@
 #pragma once
 #include <stdint.h>
-#include "ReportQueueController.h"
+#include "IReportQueueController.h"
 
 void init_adc_gpio();
 
-void queueDemoReport(ReportQueueController *controller);
+void queueDemoReport(IReportQueueController *controller);
 
 inline uint8_t adc_read_pin(uint32_t pin);
 

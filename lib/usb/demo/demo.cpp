@@ -3,13 +3,10 @@
 
 #include "demo.h"
 #include "report_types.h"
-#include "ReportQueueController.h"
-#include "ReportQueueHandler.h"
-#include "PicoQueueReportQueue.h"
+#include "IReportQueueController.h"
 
 #include "Module.h"
-#include "DigitalPayload.h"
-#include "JoystickPayload.h"
+#include "PayloadFactory.h"
 
 #define TOGGLE_CONNECTION_PIN 13
 #define BUTTON_PIN 14
@@ -21,16 +18,16 @@ Module *joystickModule;
 const uint8_t buttonModuleID = 0x68;
 const uint8_t joystickModuleID = 0x69;
 
-void connectButtonModule(ReportQueueController *controller) {
+void connectButtonModule(IReportQueueController *controller) {
   buttonModule = new Module(buttonModuleID, { 0, 1 }, controller);
 }
 
-void connectJoystickModule(ReportQueueController *controller) {
+void connectJoystickModule(IReportQueueController *controller) {
   joystickModule = new Module(joystickModuleID, { 1, 1 }, controller);
 }
 
 bool updateButtonModule() {
-  DigitalPayload *buttonPayload = new DigitalPayload({ read_button(BUTTON_PIN) });
+  DigitalPayload *buttonPayload = PayloadFactory::digitalPayload(read_button(BUTTON_PIN));
   bool updated = buttonModule->update(buttonPayload);
   if (!updated) {
     delete buttonPayload;
@@ -41,11 +38,11 @@ bool updateButtonModule() {
 }
 
 bool updateJoystickModule() {
-  JoystickPayload *joystickPayload = new JoystickPayload({
+  JoystickPayload *joystickPayload = PayloadFactory::joystickPayload(
     adc_read_pin(JOYSTICK_X_PIN),
     adc_read_pin(JOYSTICK_Y_PIN),
     0
-  });
+  );
   if (!joystickModule->update(joystickPayload)) {
     delete joystickPayload;
     return false;
@@ -62,7 +59,7 @@ void removeJoystickModule() {
   delete joystickModule;
 }
 
-bool toggleButtonConnection(bool &connected, ReportQueueController *controller) {
+bool toggleButtonConnection(bool &connected, IReportQueueController *controller) {
   static uint8_t buttonPreviouslyHeld = false;
   bool ret = false;
   uint8_t toggleConnection = read_button(TOGGLE_CONNECTION_PIN);
@@ -82,7 +79,7 @@ bool toggleButtonConnection(bool &connected, ReportQueueController *controller) 
   return ret;
 }
 
-bool toggleJoystickConnection(bool &connected, ReportQueueController *controller) {
+bool toggleJoystickConnection(bool &connected, IReportQueueController *controller) {
   static uint8_t joystickPreviouslyHeld = false;
   bool ret = false;
   uint8_t toggleConnection = read_button(TOGGLE_CONNECTION_PIN);
@@ -102,7 +99,7 @@ bool toggleJoystickConnection(bool &connected, ReportQueueController *controller
   return ret;
 }
 
-bool queueButtonReport(ReportQueueController *controller) {
+bool queueButtonReport(IReportQueueController *controller) {
   static bool buttonConnected = false;
 
   if (!toggleButtonConnection(buttonConnected, controller) && buttonConnected) {
@@ -112,7 +109,7 @@ bool queueButtonReport(ReportQueueController *controller) {
   return false;
 }
 
-bool queueJoystickReport(ReportQueueController *controller) {
+bool queueJoystickReport(IReportQueueController *controller) {
   static bool joystickConnected = false;
 
   if (!toggleJoystickConnection(joystickConnected, controller) && joystickConnected) {
@@ -122,7 +119,7 @@ bool queueJoystickReport(ReportQueueController *controller) {
   return false;
 }
 
-void queueDemoReport(ReportQueueController *controller) {
+void queueDemoReport(IReportQueueController *controller) {
   static bool buttonOrJoystick = false;
 
   if (buttonOrJoystick) {

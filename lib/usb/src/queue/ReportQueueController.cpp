@@ -4,6 +4,8 @@
 ReportQueueController::ReportQueueController(const IReportQueue *_inputQueue, const IReportQueue *_connectionQueue):
     inputQueue(_inputQueue), connectionQueue(_connectionQueue) {}
 
+ReportQueueController::~ReportQueueController() {}
+
 bool ReportQueueController::inputReport(uint8_t moduleID, report_id_t reportID, const payload_t &payload) const {
     report_t newReport = {
         reportID,   // .reportID

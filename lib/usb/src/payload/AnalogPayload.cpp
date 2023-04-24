@@ -4,9 +4,7 @@ payload_t AnalogPayload::toPayload() const {
     return { .analog = data };
 }
 
-bool AnalogPayload::isEquivalent(const IPayload *other) const {
-    if (other == nullptr) return false;
-    // we know the type of other and this are the same from the precondition
+bool AnalogPayload::sameData(const IPayload *other) const {
     analog_data_t otherAnalog = other->toPayload().analog;
     return this->isWithinTolerance(this->data.analog, otherAnalog.analog);
 }

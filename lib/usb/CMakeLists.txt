@@ -1,26 +1,15 @@
-# Generated Cmake Pico project file
+# Pull in Raspberry Pi Pico SDK (must be before project)
+include(pico_sdk_import.cmake)
 
-# cmake_minimum_required(VERSION 3.13)
-# # Pull in Raspberry Pi Pico SDK (must be before project)
-# include(pico_sdk_import.cmake)
-# project(usb_comms C CXX ASM)
+set(lib_name usb_comms)
+add_library(${lib_name})
 
-# # needed for runtime type information
-# set(PICO_CXX_ENABLE_RTTI 1)
-# # Initialise the Raspberry Pi Pico SDK
-# pico_sdk_init()
-
-# set(CMAKE_C_STANDARD 11)
-# set(CMAKE_CXX_STANDARD 17)
-
-# # Initialise pico_sdk from installed location
-# # (note this can come from environment, CMake cache etc)
-# set(PICO_SDK_PATH $ENV{PICO_SDK_PATH})
-
-# set(PICO_BOARD pico CACHE STRING "Board type")
-
-# if (PICO_SDK_VERSION_STRING VERSION_LESS "1.4.0")
-#   message(FATAL_ERROR "Raspberry Pi Pico SDK version 1.4.0 (or later) required. Your version is ${PICO_SDK_VERSION_STRING}")
-# endif()
+target_link_libraries(${lib_name} PUBLIC
+    pico_stdlib
+    pico_multicore
+    tinyusb_board
+    tinyusb_device
+)
 
 add_subdirectory(src)
+add_subdirectory(include)

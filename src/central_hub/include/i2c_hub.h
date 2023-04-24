@@ -2,13 +2,13 @@
 #include <set>
 #include <map>
 #include <coordinates.h>
-#include <ReportQueueController.h>
+#include <IReportQueueController.h>
 #include <Module.h>
 
 class I2C_Hub : public I2C_Base {
     // contains worker and queen running simultaneously
 public:
-    I2C_Hub(uint queen_sda, uint queen_scl, uint worker_sda, uint worker_scl, ReportQueueController *controller, std::function<void (i2c_inst_t *, i2c_worker_event_t)> handler);
+    I2C_Hub(uint queen_sda, uint queen_scl, uint worker_sda, uint worker_scl, IReportQueueController *controller, std::function<void (i2c_inst_t *, i2c_worker_event_t)> handler);
     void i2c_task();
     void setup();
     //void worker_callback(i2c_inst_t *i2c, i2c_worker_event_t event);
@@ -29,6 +29,6 @@ private:
     std::map<uint8_t, Module*> modules;
     std::map<uint8_t, module_coordinates_t> coordinates;
     std::map<uint8_t, std::vector<module_side>> coordinate_dependencies;
-    ReportQueueController* _controller;
+    IReportQueueController* _controller;
     std::function<void (i2c_inst_t *, i2c_worker_event_t)> _handler;
 };

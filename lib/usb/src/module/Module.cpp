@@ -1,9 +1,6 @@
-#include <stdint.h>
-#include <type_traits>
 #include "Module.h"
-#include "coordinates.h"
 
-Module::Module(uint8_t _moduleID, module_coordinates_t _coordinates, ReportQueueController *_controller)
+Module::Module(uint8_t _moduleID, module_coordinates_t _coordinates, IReportQueueController *_controller)
     : moduleID(_moduleID), controller(_controller), coordinates(_coordinates), connected(false), state(nullptr) {}
 
 Module::~Module() {

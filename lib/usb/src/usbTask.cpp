@@ -1,50 +1,36 @@
 #include "usbTask.h"
 #include "constants.h"
 #include "PicoTimer.h"
-#include "ReportQueueHandler.h"
+#include "tusb.h"
 
-void hidTask(ReportQueueHandler *handler);
-bool initialStartUpFinished();
-bool pollingIntervalWait();
+bool isInitialStartUpFinished();
+bool pollingIntervalTimeout();
 
-/**
- * initialize the tinyUSB stack and identify as a human interface device
- * this function blocks until USB enumeration is complete, usually within 50ms
-*/
+void usbTask(IReportQueueHandler *handler) {
+  while (1) {
+    // this is a tiny USB thing. if it's not called every iteration, the USB port stops working
+    tud_task();
+    // process any reports we see off of the shared queue
+    if (pollingIntervalTimeout()) {
+      handler->sendNextReport();
+    }
+  }
+}
+
 void usbInit() {
   // init device stack on configured roothub port
   tud_init(BOARD_TUD_RHPORT);
   // let USB enumeration finish before sending any reports
   do {
     tud_task();
-  } while (!initialStartUpFinished());
+  } while (!isInitialStartUpFinished());
 }
 
-/**
- * main entry point for the USB thread. Responsibilities:
- * - handle reports off of the input queue
- * - facilitate USB communication
- * 
- * @param inputQueue the shared queue for controller input messages
- * @param connectionQueue the shared queue for module (dis)connection messages
-*/
-void usbTask(IReportQueue *inputQueue, IReportQueue *connectionQueue) {
+/*******************************************************
+ * TIMING HELPER FUNCTIONS
+********************************************************/
 
-  ReportQueueHandler *handler = new ReportQueueHandler(inputQueue, connectionQueue);
-
-  while (1) {
-    tud_task();
-    hidTask(handler);
-  }
-}
-
-void hidTask(ReportQueueHandler *handler) {
-  if (pollingIntervalWait()) {
-    handler->sendNextReport();
-  }
-}
-
-bool initialStartUpFinished() {
+bool isInitialStartUpFinished() {
   static PicoTimer startUpTimer;
   static bool startTimeInitialized = false;
 
@@ -56,7 +42,7 @@ bool initialStartUpFinished() {
   return startUpTimer.timeoutOccured();
 }
 
-bool pollingIntervalWait() {
+bool pollingIntervalTimeout() {
   static PicoTimer pollingTimer;
   static bool start_us_initialized = false;
 
@@ -67,8 +53,8 @@ bool pollingIntervalWait() {
 
   if (pollingTimer.timeoutOccured()) {
     pollingTimer.startTimer(POLLING_INTERVAL_MS * 1000);
-    return false;
-  } else {
     return true;
+  } else {
+    return false;
   }
 }
